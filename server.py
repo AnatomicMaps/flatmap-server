@@ -28,6 +28,21 @@ else:
 app = Flask(__name__, static_folder='%s/static' % options['LOCATION'])
 api = Api(app)
 
+
+@app.route('/<map>', methods=['GET', 'POST'])
+@app.route('/<map>/', methods=['GET', 'POST'])
+def index(map):
+    app.logger.debug("Sending index")
+    return send_file(os.path.join(options['LOCATION'], map, 'index.html'))
+
+@app.route('/<map>/<path>', methods=['GET', 'POST'])
+def serve(map, path):
+    if not path:
+        path = 'index.html'
+    file = os.path.join(options['LOCATION'], map, path)
+    app.logger.debug("Sending %s", file)
+    return send_file(file)
+
 @app.route('/<map>/json/<layer>', methods=['GET', 'POST'])
 def json(map, layer):
     filename = os.path.join(options['LOCATION'], map, 'json', '%s.json' % layer)
@@ -97,12 +112,6 @@ class Annotation(Resource):
 
 api.add_resource(Annotations, '/<map>/annotations')
 api.add_resource(Annotation,  '/<map>/annotation/<uri>')
-
-
-
-@app.route('/<map>', methods=['GET', 'POST'])
-def index(map):
-    return send_file(os.path.join(options['LOCATION'], map, 'index.html'))
 
 
 if __name__ == '__main__':
