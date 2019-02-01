@@ -10,7 +10,7 @@ if __name__ == '__main__':
     import os
     options['LOCATION'] = os.getcwd()
 else:
-    options['LOCATION'] = '/www/html/celldl/flatmaps'
+    options['LOCATION'] = '/www/html/celldl/flatmaps/demo'
 
 app = Flask(__name__, static_folder='%s/static' % options['LOCATION'])
 
