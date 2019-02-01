@@ -3,20 +3,7 @@ from flask import Flask, abort, request, send_file
 from flask_restful import Resource, Api
 from flask_expects_json import expects_json
 
-location_schema = {
-    'type': 'object',
-    'properties': {
-        'location': {
-            'type': 'array',
-            'minItems': 2,
-            'maxItems': 2,
-            'items': {
-                'type': 'number'
-            }
-        }
-    },
-    'required': ['location']
-}
+#===============================================================================
 
 options = {}
 if __name__ == '__main__':
@@ -26,8 +13,8 @@ else:
     options['LOCATION'] = '/www/html/celldl/flatmaps'
 
 app = Flask(__name__, static_folder='%s/static' % options['LOCATION'])
-api = Api(app)
 
+#===============================================================================
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -59,33 +46,56 @@ def tiles(map, layer, z, y, x):
     else:
         return send_file(os.path.join(options['LOCATION'], 'static/images/blank.png'))
 
+#===============================================================================
 
-annotations = {}
+location_schema = {
+    'type': 'object',
+    'properties': {
+        'location': {
+            'type': 'array',
+            'minItems': 2,
+            'maxItems': 2,
+            'items': {
+                'type': 'number'
+            }
+        }
+    },
+    'required': ['location']
+}
 
-class Annotations(Resource):
+#===============================================================================
+
+class Features(Resource):
+
+    _store = {}
+
     def get(self, map):
-        return (annotations, 200)
+        return (Features._store, 200)
 
-class Annotation(Resource):
+#===============================================================================
+
+class Feature(Resource):
     def get(self, map, uri):
-        if uri in annotations:
-            return ({'location': annotations[uri]}, 200)
+        if uri in Features._store:
+            return ({'location': Features._store[uri]}, 200)
         else:
             abort(404)
 
     @expects_json(location_schema)
     def put(self, map, uri):
-        status = 200 if uri in annotations else 201
+        status = 200 if uri in Features._store else 201
         data = request.get_json()
-        annotations[uri] = data['location']
-        return ({'location': annotations[uri]}, status)
+        Features._store[uri] = data['location']
+        return ({'location': Features._store[uri]}, status)
 
     def delete(self, map, uri):
-        if uri in annotations:
-            del annotations[uri]
+        if uri in Features._store:
+            del Features._store[uri]
             return ('', 204)
         else:
             abort(404)
+
+#===============================================================================
 
     """
     database = os.path.join(options['LOCATION'], map, 'annotation.sqlite')
@@ -108,10 +118,16 @@ class Annotation(Resource):
 
 
     """
+#===============================================================================
 
-api.add_resource(Annotations, '/<map>/annotations')
-api.add_resource(Annotation,  '/<map>/annotation/<uri>')
+api = Api(app)
 
+api.add_resource(Features, '/<map>/features')
+api.add_resource(Feature,  '/<map>/feature/<uri>')
+
+#===============================================================================
 
 if __name__ == '__main__':
     app.run(debug=True, host='localhost', port=8000)
+
+#===============================================================================
