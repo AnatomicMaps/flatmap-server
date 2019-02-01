@@ -12,7 +12,7 @@ if __name__ == '__main__':
 else:
     options['LOCATION'] = '/www/html/celldl/flatmaps/demo'
 
-app = Flask(__name__, static_folder='%s/static' % options['LOCATION'])
+app = Flask(__name__, static_folder=os.path.join(options['LOCATION'], 'static'))
 
 #===============================================================================
 
