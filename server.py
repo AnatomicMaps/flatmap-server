@@ -29,17 +29,16 @@ app = Flask(__name__, static_folder='%s/static' % options['LOCATION'])
 api = Api(app)
 
 
-@app.route('/<map>', methods=['GET', 'POST'])
-@app.route('/<map>/', methods=['GET', 'POST'])
-def index(map):
+@app.route('/', methods=['GET', 'POST'])
+def index():
     app.logger.debug("Sending index")
-    return send_file(os.path.join(options['LOCATION'], map, 'index.html'))
+    return send_file(os.path.join(options['LOCATION'], 'index.html'))
 
-@app.route('/<map>/<path>', methods=['GET', 'POST'])
-def serve(map, path):
+@app.route('/<path>', methods=['GET', 'POST'])
+def serve(path):
     if not path:
         path = 'index.html'
-    file = os.path.join(options['LOCATION'], map, path)
+    file = os.path.join(options['LOCATION'], path)
     app.logger.debug("Sending %s", file)
     return send_file(file)
 
