@@ -58,6 +58,15 @@ def tiles(map, layer, z, y, x):
     else:
         return send_file(os.path.join(options['STATIC_ROOT'], 'static/images/blank.png'))
 
+@app.route('/<map>/topology/', methods=['GET', 'POST'])
+def maptopology(map):
+    filename = os.path.join(options['STATIC_ROOT'], map, 'topology.json')
+    app.logger.debug("Checking %s", filename)
+    if os.path.isfile(filename):
+        return send_file(filename)
+    else:
+        abort(404)
+
 #===============================================================================
 
 location_schema = {
