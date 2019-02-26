@@ -18,8 +18,10 @@
 #
 #===============================================================================
 
+import json
 import os.path
 import logging
+
 from flask import Flask, abort, request, send_file
 from flask_restful import Resource, Api
 from flask_expects_json import expects_json
@@ -39,12 +41,13 @@ app = Flask(__name__, static_folder=os.path.join(options['STATIC_ROOT'], 'static
 
 #===============================================================================
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
 def index():
     app.logger.debug("Sending index")
     return send_file(os.path.join(options['HTML_ROOT'], 'index.html'))
 
-@app.route('/<path>', methods=['GET', 'POST'])
+
+@app.route('/<path>', methods=['GET'])
 def serve(path):
     if not path:
         path = 'index.html'
@@ -52,25 +55,28 @@ def serve(path):
     app.logger.debug("Sending %s", file)
     return send_file(file)
 
+
 @app.route('/<map>/features/', methods=['GET', 'POST'])
-def mapfeatures(map):
-    filename = os.path.join(options['STATIC_ROOT'], map, 'features.json')
-    app.logger.debug("Checking %s", filename)
-    if os.path.isfile(filename):
-        return send_file(filename)
-    else:
-        abort(404)
-
 @app.route('/<map>/features/<layer>', methods=['GET', 'POST'])
-def layer_features(map, layer):
-    filename = os.path.join(options['STATIC_ROOT'], map, 'features', '%s.json' % layer)
-    app.logger.debug("Checking %s", filename)
-    if os.path.isfile(filename):
-        return send_file(filename)
+def map_features(map, layer=None):
+    if layer:
+        filename = os.path.join(options['STATIC_ROOT'], map, 'features', '%s.json' % layer)
     else:
-        abort(404)
+        filename = os.path.join(options['STATIC_ROOT'], map, 'features.json')
+    if request.method == 'GET':
+        app.logger.debug("Checking %s", filename)
+        if os.path.isfile(filename):
+            return send_file(filename)
+        else:
+            abort(404)
+    elif request.method == 'POST':      # Authentication... <===========
+        geoJson = request.get_json()    # Validation...     <===========
+        with open(filename, 'w') as f:
+            json.dump(geoJson, f)
+        return 'Features updated'
 
-@app.route('/<map>/tiles/<layer>/<z>/<x>/<y>', methods=['GET', 'POST'])
+
+@app.route('/<map>/tiles/<layer>/<z>/<x>/<y>', methods=['GET'])
 def tiles(map, layer, z, y, x):
     filename = os.path.join(options['STATIC_ROOT'], map, 'tiles', layer, z, x, '%s.png' % y)
     app.logger.debug("Checking %s", filename)
@@ -79,7 +85,8 @@ def tiles(map, layer, z, y, x):
     else:
         return send_file(os.path.join(options['STATIC_ROOT'], 'static/images/blank.png'))
 
-@app.route('/<map>/topology/', methods=['GET', 'POST'])
+
+@app.route('/<map>/topology/', methods=['GET'])
 def maptopology(map):
     filename = os.path.join(options['STATIC_ROOT'], map, 'topology.json')
     app.logger.debug("Checking %s", filename)
