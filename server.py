@@ -74,6 +74,11 @@ def map_features(map, layer=None):
         with open(filename, 'w') as f:
             json.dump(geoJson, f)
         return 'Features updated'
+    elif request.method == 'PUT':      # Authentication... <===========
+        geoJson = request.get_json()    # Validation...     <===========
+        with open(filename, 'w') as f:
+            json.dump(geoJson, f, indent=2)   # User option for indent?? Or when debugging??
+        return 'Features created'
 
 
 @app.route('/<map>/tiles/<layer>/<z>/<x>/<y>', methods=['GET'])
