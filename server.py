@@ -64,8 +64,8 @@ def map(map):
         abort(404)
 
 
-@app.route('/<map>/features/', methods=['GET', 'POST'])
-@app.route('/<map>/features/<layer>', methods=['GET', 'POST'])
+@app.route('/<map>/features/', methods=['GET', 'POST', 'PUT'])
+@app.route('/<map>/features/<layer>', methods=['GET', 'POST', 'PUT'])
 def map_features(map, layer=None):
     if layer:
         filename = os.path.join(options['MAP_ROOT'], map, 'features', '%s.json' % layer)
@@ -86,7 +86,7 @@ def map_features(map, layer=None):
         geoJson = request.get_json()    # Validation...     <===========
         with open(filename, 'w') as f:
             json.dump(geoJson, f, indent=2)   # User option for indent?? Or when debugging??
-        return 'Features created'
+        return ('Features created', 204)
 
 
 @app.route('/<map>/tiles/<layer>/<z>/<x>/<y>', methods=['GET'])
