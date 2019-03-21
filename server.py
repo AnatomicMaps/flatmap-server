@@ -31,38 +31,46 @@ from flask_expects_json import expects_json
 options = {}
 if __name__ == '__main__':
     import os
-    options['HTML_ROOT'] = os.getcwd()
-    options['STATIC_ROOT'] = os.path.join(os.getcwd(), '..')
+    options['HTML_ROOT'] = os.path.join(os.getcwd(), '../dist')
+    options['MAP_ROOT'] = os.path.join(os.getcwd(), '../maps')
+    options['LOG_FILE'] = os.path.join(os.getcwd(), 'debug.log')
 else:
     options['HTML_ROOT'] = '/www/html/celldl/flatmaps/demo'
-    options['STATIC_ROOT'] = '/www/html/celldl/flatmaps/demo'
+    options['MAP_ROOT'] = '/www/html/celldl/flatmaps/demo/maps'
+    options['LOG_FILE'] = '/www/flatmaps/debug.log'
 
-app = Flask(__name__, static_folder=os.path.join(options['STATIC_ROOT'], 'static'))
+app = Flask(__name__)
+
 
 #===============================================================================
 
 @app.route('/', methods=['GET'])
-def index():
-    app.logger.debug("Sending index")
-    return send_file(os.path.join(options['HTML_ROOT'], 'index.html'))
-
-
 @app.route('/<path>', methods=['GET'])
-def serve(path):
+def serve(path=None):
     if not path:
         path = 'index.html'
-    file = os.path.join(options['HTML_ROOT'], path)
-    app.logger.debug("Sending %s", file)
-    return send_file(file)
+    filename = os.path.join(options['HTML_ROOT'], path)
+    app.logger.debug("Sending %s", filename)
+    return send_file(filename)
+
+
+@app.route('/<map>/', methods=['GET'])
+def map(map):
+    filename = os.path.join(options['MAP_ROOT'], map, 'index.json')
+    app.logger.debug("Checking %s", filename)
+    if os.path.isfile(filename):
+        return send_file(filename)
+    else:
+        abort(404)
 
 
 @app.route('/<map>/features/', methods=['GET', 'POST'])
 @app.route('/<map>/features/<layer>', methods=['GET', 'POST'])
 def map_features(map, layer=None):
     if layer:
-        filename = os.path.join(options['STATIC_ROOT'], map, 'features', '%s.json' % layer)
+        filename = os.path.join(options['MAP_ROOT'], map, 'features', '%s.json' % layer)
     else:
-        filename = os.path.join(options['STATIC_ROOT'], map, 'features.json')
+        filename = os.path.join(options['MAP_ROOT'], map, 'features.json')
     if request.method == 'GET':
         app.logger.debug("Checking %s", filename)
         if os.path.isfile(filename):
@@ -82,18 +90,18 @@ def map_features(map, layer=None):
 
 
 @app.route('/<map>/tiles/<layer>/<z>/<x>/<y>', methods=['GET'])
-def tiles(map, layer, z, y, x):
-    filename = os.path.join(options['STATIC_ROOT'], map, 'tiles', layer, z, x, '%s.png' % y)
+def map_tiles(map, layer, z, y, x):
+    filename = os.path.join(options['MAP_ROOT'], map, 'tiles', layer, z, x, '%s.png' % y)
     app.logger.debug("Checking %s", filename)
     if os.path.isfile(filename):
         return send_file(filename)
     else:
-        return send_file(os.path.join(options['STATIC_ROOT'], 'static/images/blank.png'))
+        return send_file(os.path.join(options['HTML_ROOT'], 'blank-tile.png'))  # 204 response ??
 
 
 @app.route('/<map>/topology/', methods=['GET'])
-def maptopology(map):
-    filename = os.path.join(options['STATIC_ROOT'], map, 'topology.json')
+def map_topology(map):
+    filename = os.path.join(options['MAP_ROOT'], map, 'topology.json')
     app.logger.debug("Checking %s", filename)
     if os.path.isfile(filename):
         return send_file(filename)
