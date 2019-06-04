@@ -190,6 +190,12 @@ api.add_resource(Feature,  '/<map>/feature/<uri>')
 #===============================================================================
 
 if __name__ == '__main__':
-    app.run(debug=True, host='localhost', port=8000)
+    import sys
+
+    args = sys.argv
+    if len(args) > 1:
+        app.run(debug=True, host='localhost', port=args[1])
+    else:
+        app.run(debug=True, host='localhost')
 
 #===============================================================================
