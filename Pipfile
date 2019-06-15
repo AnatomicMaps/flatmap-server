@@ -6,6 +6,9 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
+flask = "*"
+flask-restful = "*"
+flask-expects-json = "*"
 
 [requires]
 python_version = "3.7"
