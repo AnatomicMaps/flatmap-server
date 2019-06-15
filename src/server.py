@@ -28,7 +28,10 @@ from flask_expects_json import expects_json
 
 #===============================================================================
 
-options = {}
+from options import options
+
+#===============================================================================
+
 if __name__ == '__main__':
     import os
     options['HTML_ROOT'] = os.path.join(os.getcwd(), '../dist')
