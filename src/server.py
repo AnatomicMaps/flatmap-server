@@ -18,6 +18,7 @@
 #
 #===============================================================================
 
+import io
 import json
 import os.path
 import logging
@@ -28,6 +29,7 @@ from flask_expects_json import expects_json
 
 #===============================================================================
 
+import mbtiles
 from options import options
 
 #===============================================================================
@@ -90,6 +92,15 @@ def map_features(map, layer=None):
         with open(filename, 'w') as f:
             json.dump(geoJson, f, indent=2)   # User option for indent?? Or when debugging??
         return ('Features created', 204)
+
+
+@app.route('/<map>/mvtiles/<z>/<x>/<y>', methods=['GET'])
+def vector_tiles(map, z, y, x):
+    try:
+        return send_file(io.BytesIO(mbtiles.get_tile(map, z, x, y)), mimetype='application/octet-stream')
+    except:
+        pass
+    return ('', 204)
 
 
 @app.route('/<map>/tiles/<layer>/<z>/<x>/<y>', methods=['GET'])
