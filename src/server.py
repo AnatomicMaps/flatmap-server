@@ -94,6 +94,14 @@ def map_features(map, layer=None):
         return ('Features created', 204)
 
 
+@app.route('/<map>/images/<image>', methods=['GET'])
+def map_background(map, image):
+    filename = os.path.join(options['MAP_ROOT'], map, 'images', image)
+    if os.path.isfile(filename):
+        return send_file(filename)
+    abort(404)
+
+
 @app.route('/<map>/mvtiles/<z>/<x>/<y>', methods=['GET'])
 def vector_tiles(map, z, y, x):
     try:
