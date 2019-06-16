@@ -23,6 +23,8 @@ import json
 import os.path
 import logging
 
+#===============================================================================
+
 from flask import Flask, abort, request, send_file
 from flask_restful import Resource, Api
 from flask_expects_json import expects_json
@@ -55,18 +57,18 @@ def serve(path=None):
     if not path:
         path = 'index.html'
     filename = os.path.join(options['HTML_ROOT'], path)
-    app.logger.debug("Sending %s", filename)
-    return send_file(filename)
+    if os.path.isfile(filename):
+        return send_file(filename)
+    abort(404)
 
 
 @app.route('/<map>/', methods=['GET'])
 def map(map):
     filename = os.path.join(options['MAP_ROOT'], map, 'index.json')
-    app.logger.debug("Checking %s", filename)
     if os.path.isfile(filename):
+#        metadata_store.load(map)
         return send_file(filename)
-    else:
-        abort(404)
+    abort(404)
 
 
 @app.route('/<map>/features/', methods=['GET', 'POST', 'PUT'])
@@ -77,11 +79,9 @@ def map_features(map, layer=None):
     else:
         filename = os.path.join(options['MAP_ROOT'], map, 'features.json')
     if request.method == 'GET':
-        app.logger.debug("Checking %s", filename)
         if os.path.isfile(filename):
             return send_file(filename)
-        else:
-            abort(404)
+        abort(404)
     elif request.method == 'POST':      # Authentication... <===========
         geoJson = request.get_json()    # Validation...     <===========
         with open(filename, 'w') as f:
@@ -114,21 +114,17 @@ def vector_tiles(map, z, y, x):
 @app.route('/<map>/tiles/<layer>/<z>/<x>/<y>', methods=['GET'])
 def map_tiles(map, layer, z, y, x):
     filename = os.path.join(options['MAP_ROOT'], map, 'tiles', layer, z, x, '%s.png' % y)
-    app.logger.debug("Checking %s", filename)
     if os.path.isfile(filename):
         return send_file(filename)
-    else:
-        return send_file(os.path.join(options['HTML_ROOT'], 'blank-tile.png'))  # 204 response ??
+    return ('', 204)
 
 
 @app.route('/<map>/topology/', methods=['GET'])
 def map_topology(map):
     filename = os.path.join(options['MAP_ROOT'], map, 'topology.json')
-    app.logger.debug("Checking %s", filename)
     if os.path.isfile(filename):
         return send_file(filename)
-    else:
-        abort(404)
+    abort(404)
 
 #===============================================================================
 
@@ -179,29 +175,6 @@ class Feature(Resource):
         else:
             abort(404)
 
-#===============================================================================
-
-    """
-    database = os.path.join(options['LOCATION'], map, 'annotation.sqlite')
-
-    SQLAlchemy model??
-
-    location table:
-        uri, location
-
-    GET:
-        return URI's location (200 OK, 404)
-    PUT:
-        add/update URI's location (201 Created, 200 OK)
-    DELETE:
-        remove URI (204 No Content, 404)
-
-    Abbreviate URIs??  `ilx:XXXX`
-
-    Set Last-Modified and ETag when sending responses, updating
-
-
-    """
 #===============================================================================
 
 api = Api(app)
