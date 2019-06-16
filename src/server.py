@@ -193,12 +193,16 @@ api.add_resource(Feature,  '/<map>/feature/<uri>')
 #===============================================================================
 
 if __name__ == '__main__':
-    import sys
+    import argparse
 
-    args = sys.argv
-    if len(args) > 1:
-        app.run(debug=True, host='localhost', port=args[1])
-    else:
-        app.run(debug=True, host='localhost')
+    parser = argparse.ArgumentParser(description='A web-server for flatmaps.')
+    parser.add_argument('--debug', action='store_true',
+                        help="run in debugging mode (NOT FOR PRODUCTION)")
+    parser.add_argument('--port', type=int, metavar='PORT', default=5000,
+                        help='the port to listen on (default 5000)')
+
+    args = parser.parse_args()
+
+    app.run(debug=args.debug, host='localhost', port=args.port)
 
 #===============================================================================
