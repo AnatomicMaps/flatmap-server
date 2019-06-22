@@ -71,6 +71,14 @@ def map(map):
     abort(404)
 
 
+@app.route('/<map>/style', methods=['GET'])
+def style(map):
+    filename = os.path.join(options['MAP_ROOT'], map, 'style.json')
+    if os.path.isfile(filename):
+        return send_file(filename)
+    abort(404)
+
+
 @app.route('/<map>/features/', methods=['GET', 'POST', 'PUT'])
 @app.route('/<map>/features/<layer>', methods=['GET', 'POST', 'PUT'])
 def map_features(map, layer=None):
