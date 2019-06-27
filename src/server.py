@@ -113,7 +113,7 @@ def map_background(map, image):
 @app.route('/<map>/mvtiles/<z>/<x>/<y>', methods=['GET'])
 def vector_tiles(map, z, y, x):
     try:
-        return send_file(io.BytesIO(mbtiles.get_tile(map, z, x, y)), mimetype='application/octet-stream')
+        return send_file(io.BytesIO(mbtiles.get_vector_tile(map, z, x, y)), mimetype='application/octet-stream')
     except:
         pass
     return ('', 204)
@@ -121,9 +121,10 @@ def vector_tiles(map, z, y, x):
 
 @app.route('/<map>/tiles/<layer>/<z>/<x>/<y>', methods=['GET'])
 def map_tiles(map, layer, z, y, x):
-    filename = os.path.join(options['MAP_ROOT'], map, 'tiles', layer, z, x, '%s.png' % y)
-    if os.path.isfile(filename):
-        return send_file(filename)
+    try:
+        return send_file(io.BytesIO(mbtiles.get_raster_tile(map, layer, z, x, y)), mimetype='image/png')
+    except:
+        pass
     return ('', 204)
 
 

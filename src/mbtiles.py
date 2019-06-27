@@ -30,9 +30,17 @@ from options import options
 
 #===============================================================================
 
-def get_tile(map, z, x, y):
+def get_vector_tile(map, z, x, y):
     mbtiles = os.path.join(options['MAP_ROOT'], map, 'index.mbtiles')
     reader = MBTilesReader(mbtiles)
     return reader.tile(z, x, y)
 
 #===============================================================================
+
+def get_raster_tile(map, layer, z, x, y):
+    mbtiles = os.path.join(options['MAP_ROOT'], map, '{}.mbtiles'.format(layer))
+    reader = MBTilesReader(mbtiles)
+    return reader.tile(z, x, y)
+
+#===============================================================================
+
