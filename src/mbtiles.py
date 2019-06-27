@@ -22,7 +22,7 @@ import os
 
 #===============================================================================
 
-from landez.sources import MBTilesReader
+from landez.sources import MBTilesReader, ExtractionError
 
 #===============================================================================
 

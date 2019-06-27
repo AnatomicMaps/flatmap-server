@@ -114,7 +114,7 @@ def map_background(map, image):
 def vector_tiles(map, z, y, x):
     try:
         return send_file(io.BytesIO(mbtiles.get_vector_tile(map, z, x, y)), mimetype='application/octet-stream')
-    except:
+    except mbtiles.ExtractionError:
         pass
     return ('', 204)
 
@@ -123,7 +123,7 @@ def vector_tiles(map, z, y, x):
 def map_tiles(map, layer, z, y, x):
     try:
         return send_file(io.BytesIO(mbtiles.get_raster_tile(map, layer, z, x, y)), mimetype='image/png')
-    except:
+    except mbtiles.ExtractionError:
         pass
     return ('', 204)
 
