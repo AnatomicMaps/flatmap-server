@@ -21,175 +21,78 @@
 import io
 import json
 import os.path
-import logging
+import pathlib
 
 #===============================================================================
 
-from flask import Flask, abort, request, send_file
-from flask_restful import Resource, Api
-from flask_expects_json import expects_json
+from flask import Blueprint, Flask, jsonify, request, send_file
+
+from landez.sources import MBTilesReader, ExtractionError
 
 #===============================================================================
 
-import mbtiles
-from options import options
+map_core_blueprint = Blueprint('map_core', __name__, url_prefix='/', static_folder='static',
+                               root_path='/Users/dave/build/flatmap-mvt-viewer/dist')
+
+flatmaps_root = os.path.join(map_core_blueprint.root_path, '../maps')
 
 #===============================================================================
 
-if __name__ == '__main__':
-    import os
-    options['HTML_ROOT'] = os.path.join(os.getcwd(), '../dist')
-    options['MAP_ROOT'] = os.path.join(os.getcwd(), '../maps')
-    options['LOG_FILE'] = os.path.join(os.getcwd(), 'debug.log')
-else:
-    options['HTML_ROOT'] = '/www/html/celldl/flatmaps/demo'
-    options['MAP_ROOT'] = '/www/html/celldl/flatmaps/demo/maps'
-    options['LOG_FILE'] = '/www/flatmaps/debug.log'
+@map_core_blueprint.route('/')
+@map_core_blueprint.route('/<string:filepath>')
+def serve(filepath=None):
+    if not filepath: filepath = 'index.html'
+    filename = os.path.join(map_core_blueprint.root_path, filepath)
+    return send_file(filename)
+
+@map_core_blueprint.route('flatmap/<string:map>/')
+def map(map):
+    filename = os.path.join(flatmaps_root, map, 'index.json')
+    return send_file(filename)
+
+@map_core_blueprint.route('flatmap/<string:map>/style')
+def style(map):
+    filename = os.path.join(flatmaps_root, map, 'style.json')
+    return send_file(filename)
+
+@map_core_blueprint.route('flatmap/<string:map>/annotations', methods=['GET', 'POST'])
+def map_annotations(map):
+    mbtiles = os.path.join(flatmaps_root, map, 'index.mbtiles')
+    reader = MBTilesReader(mbtiles)
+    if request.method == 'GET':
+        rows = reader._query("SELECT value FROM metadata WHERE name='annotations';")
+        annotations = json.loads([row[0] for row in rows][0])
+        return jsonify(annotations)
+@map_core_blueprint.route('flatmap/<string:map>/images/<string:image>')
+def map_background(map, image):
+    filename = os.path.join(flatmaps_root, map, 'images', image)
+    return send_file(filename)
+
+@map_core_blueprint.route('flatmap/<string:map>/mvtiles/<int:z>/<int:x>/<int:y>')
+def vector_tiles(map, z, y, x):
+    try:
+        mbtiles = os.path.join(flatmaps_root, map, 'index.mbtiles')
+        reader = MBTilesReader(mbtiles)
+        return send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='application/octet-stream')
+    except ExtractionError:
+        pass
+    return ('', 204)
+
+@map_core_blueprint.route('flatmap/<string:map>/tiles/<string:layer>/<int:z>/<int:x>/<int:y>')
+def image_tiles(map, layer, z, y, x):
+    try:
+        mbtiles = os.path.join(flatmaps_root, map, '{}.mbtiles'.format(layer))
+        reader = MBTilesReader(mbtiles)
+        return send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='image/png')
+    except ExtractionError:
+        pass
+    return ('', 204)
+
+#===============================================================================
 
 app = Flask(__name__)
 
-
-#===============================================================================
-
-@app.route('/', methods=['GET'])
-@app.route('/<path>', methods=['GET'])
-def serve(path=None):
-    if not path:
-        path = 'index.html'
-    filename = os.path.join(options['HTML_ROOT'], path)
-    if os.path.isfile(filename):
-        return send_file(filename)
-    abort(404)
-
-
-@app.route('/<map>/', methods=['GET'])
-def map(map):
-    filename = os.path.join(options['MAP_ROOT'], map, 'index.json')
-    if os.path.isfile(filename):
-#        metadata_store.load(map)
-        return send_file(filename)
-    abort(404)
-
-
-@app.route('/<map>/style', methods=['GET'])
-def style(map):
-    filename = os.path.join(options['MAP_ROOT'], map, 'style.json')
-    if os.path.isfile(filename):
-        return send_file(filename)
-    abort(404)
-
-
-@app.route('/<map>/features/', methods=['GET', 'POST', 'PUT'])
-@app.route('/<map>/features/<layer>', methods=['GET', 'POST', 'PUT'])
-def map_features(map, layer=None):
-    if layer:
-        filename = os.path.join(options['MAP_ROOT'], map, 'features', '%s.json' % layer)
-    else:
-        filename = os.path.join(options['MAP_ROOT'], map, 'features.json')
-    if request.method == 'GET':
-        if os.path.isfile(filename):
-            return send_file(filename)
-        abort(404)
-    elif request.method == 'POST':      # Authentication... <===========
-        geoJson = request.get_json()    # Validation...     <===========
-        with open(filename, 'w') as f:
-            json.dump(geoJson, f)
-        return 'Features updated'
-    elif request.method == 'PUT':      # Authentication... <===========
-        geoJson = request.get_json()    # Validation...     <===========
-        with open(filename, 'w') as f:
-            json.dump(geoJson, f, indent=2)   # User option for indent?? Or when debugging??
-        return ('Features created', 204)
-
-
-@app.route('/<map>/images/<image>', methods=['GET'])
-def map_background(map, image):
-    filename = os.path.join(options['MAP_ROOT'], map, 'images', image)
-    if os.path.isfile(filename):
-        return send_file(filename)
-    abort(404)
-
-
-@app.route('/<map>/mvtiles/<z>/<x>/<y>', methods=['GET'])
-def vector_tiles(map, z, y, x):
-    try:
-        return send_file(io.BytesIO(mbtiles.get_vector_tile(map, z, x, y)), mimetype='application/octet-stream')
-    except mbtiles.ExtractionError:
-        pass
-    return ('', 204)
-
-
-@app.route('/<map>/tiles/<layer>/<z>/<x>/<y>', methods=['GET'])
-def map_tiles(map, layer, z, y, x):
-    try:
-        return send_file(io.BytesIO(mbtiles.get_raster_tile(map, layer, z, x, y)), mimetype='image/png')
-    except mbtiles.ExtractionError:
-        pass
-    return ('', 204)
-
-
-@app.route('/<map>/topology/', methods=['GET'])
-def map_topology(map):
-    filename = os.path.join(options['MAP_ROOT'], map, 'topology.json')
-    if os.path.isfile(filename):
-        return send_file(filename)
-    abort(404)
-
-#===============================================================================
-
-location_schema = {
-    'type': 'object',
-    'properties': {
-        'location': {
-            'type': 'array',
-            'minItems': 2,
-            'maxItems': 2,
-            'items': {
-                'type': 'number'
-            }
-        }
-    },
-    'required': ['location']
-}
-
-#===============================================================================
-
-class Features(Resource):
-
-    _store = {}
-
-    def get(self, map):
-        return (Features._store, 200)
-
-#===============================================================================
-
-class Feature(Resource):
-    def get(self, map, uri):
-        if uri in Features._store:
-            return ({'location': Features._store[uri]}, 200)
-        else:
-            abort(404)
-
-    @expects_json(location_schema)
-    def put(self, map, uri):
-        status = 200 if uri in Features._store else 201
-        data = request.get_json()
-        Features._store[uri] = data['location']
-        return ({'location': Features._store[uri]}, status)
-
-    def delete(self, map, uri):
-        if uri in Features._store:
-            del Features._store[uri]
-            return ('', 204)
-        else:
-            abort(404)
-
-#===============================================================================
-
-api = Api(app)
-
-api.add_resource(Features, '/<map>/features')
-api.add_resource(Feature,  '/<map>/feature/<uri>')
+app.register_blueprint(map_core_blueprint)
 
 #===============================================================================
 
