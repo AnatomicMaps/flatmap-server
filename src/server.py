@@ -45,6 +45,17 @@ def serve(filepath=None):
     filename = os.path.join(map_core_blueprint.root_path, filepath)
     return send_file(filename)
 
+@map_core_blueprint.route('flatmap/')
+def maps():
+    maps = []
+    for path in pathlib.Path(flatmaps_root).iterdir():
+        if os.path.isdir(path) and os.path.join(flatmaps_root, path, 'index.mbtiles'):
+            mbtiles = os.path.join(flatmaps_root, path, 'index.mbtiles')
+            reader = MBTilesReader(mbtiles)
+            rows = reader._query("SELECT value FROM metadata WHERE name='source';")
+            maps.append({ 'id': path.name, 'source': [row[0] for row in rows][0] })
+    return jsonify(maps)
+
 @map_core_blueprint.route('flatmap/<string:map>/')
 def map(map):
     filename = os.path.join(flatmaps_root, map, 'index.json')
