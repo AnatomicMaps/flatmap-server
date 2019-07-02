@@ -74,6 +74,12 @@ def map_annotations(map):
         rows = reader._query("SELECT value FROM metadata WHERE name='annotations';")
         annotations = json.loads([row[0] for row in rows][0])
         return jsonify(annotations)
+    elif request.method == 'POST':                      # Authentication... <===========
+        annotations = json.dumps(request.get_json())    # Validation...     <===========
+        reader._query("UPDATE metadata SET value=? WHERE name='annotations';", [annotations])
+        reader._query("COMMIT")
+        return 'Annotations updated'
+
 @map_core_blueprint.route('flatmap/<string:map>/images/<string:image>')
 def map_background(map, image):
     filename = os.path.join(flatmaps_root, map, 'images', image)
