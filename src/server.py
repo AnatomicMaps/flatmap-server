@@ -71,8 +71,11 @@ def map_annotations(map):
     mbtiles = os.path.join(flatmaps_root, map, 'index.mbtiles')
     reader = MBTilesReader(mbtiles)
     if request.method == 'GET':
-        rows = reader._query("SELECT value FROM metadata WHERE name='annotations';")
-        annotations = json.loads([row[0] for row in rows][0])
+        rows = reader._query("SELECT value FROM metadata WHERE name='annotations';").fetchone()
+        if rows is None:
+            annotations = {}
+        else:
+            annotations = json.loads([row[0] for row in rows][0])
         return jsonify(annotations)
     elif request.method == 'POST':                      # Authentication... <===========
         annotations = json.dumps(request.get_json())    # Validation...     <===========
