@@ -8,6 +8,9 @@ verify_ssl = true
 [packages]
 flask = "1.0.3"
 landez = "2.5.0"
+rdflib = "*"
+rdflib-sqlalchemy = "*"
+pyyaml = "*"
 
 [requires]
 python_version = "3.7"
