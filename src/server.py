@@ -25,9 +25,60 @@ import pathlib
 
 #===============================================================================
 
-from flask import Blueprint, Flask, jsonify, request, send_file
+from flask import abort, Blueprint, Flask, jsonify, request, send_file
 
 from landez.sources import MBTilesReader, ExtractionError
+
+#===============================================================================
+
+from contextlib import ContextDecorator
+
+import rdflib
+
+import rdflib_sqlalchemy as sqlalchemy
+sqlalchemy.registerplugins()
+
+from rdflib.plugins.sparql.results.jsonlayer import encode as JSON_results_encode
+from rdflib.plugins.sparql.results.jsonresults import JSONResultSerializer
+
+#===============================================================================
+
+from namespaces import SCICRUNCH_NS
+
+#===============================================================================
+
+class KnowledgeBase(rdflib.Graph, ContextDecorator):
+    def __init__(self, kb_path):
+        SPARC = rdflib.URIRef('SPARC')
+        store = rdflib.plugin.get('SQLAlchemy', rdflib.store.Store)(identifier=SPARC)
+        super().__init__(store, identifier=SPARC)
+        self.namespace_manager = SCICRUNCH_NS
+        database = rdflib.Literal('sqlite:///{}'.format(kb_path))
+        self.open(database)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+        return False
+
+    def query(self, sparql, **kwds):
+        results = {}
+        try:
+            query_results = super().query(sparql, **kwds)
+            json_results = JSONResultSerializer(query_results)
+            if json_results.result.type == 'ASK':
+                results['head'] = {}
+                results['boolean'] = json_results.result.askAnswer
+            else:                       # SELECT
+                results['head'] = { 'vars': json_results.result.vars }
+                results['results'] = { 'bindings': [
+                    json_results._bindingToJSON(x) for x in json_results.result.bindings
+                ]}
+        except:
+            pass
+        return JSON_results_encode(results)
 
 #===============================================================================
 
@@ -107,6 +158,15 @@ def image_tiles(map, layer, z, y, x):
     except ExtractionError:
         pass
     return ('', 204)
+
+@map_core_blueprint.route('query', methods=['POST'])
+def kb_query():
+    sparql = request.get_json()
+    try:
+        with KnowledgeBase(os.path.join(flatmaps_root, 'KnowledgeBase.sqlite')) as graph:
+            return jsonify(graph.query(sparql.get('query')))
+    except RuntimeError:
+        abort(404, 'Cannot open knowledgebase')
 
 #===============================================================================
 
