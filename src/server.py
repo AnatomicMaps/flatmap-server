@@ -161,10 +161,10 @@ def image_tiles(map, layer, z, y, x):
 
 @map_core_blueprint.route('query', methods=['POST'])
 def kb_query():
-    sparql = request.get_json()
+    query = request.get_json()
     try:
         with KnowledgeBase(os.path.join(flatmaps_root, 'KnowledgeBase.sqlite')) as graph:
-            return jsonify(graph.query(sparql.get('query')))
+            return jsonify(graph.query(query.get('sparql')))
     except RuntimeError:
         abort(404, 'Cannot open knowledgebase')
 
