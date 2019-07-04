@@ -126,7 +126,7 @@ def map_annotations(map):
         if rows is None:
             annotations = {}
         else:
-            annotations = json.loads([row[0] for row in rows][0])
+            annotations = json.loads(rows[0])
         return jsonify(annotations)
     elif request.method == 'POST':                      # Authentication... <===========
         annotations = json.dumps(request.get_json())    # Validation...     <===========
