@@ -83,7 +83,7 @@ def map_annotations(map):
         return jsonify(annotations)
     elif request.method == 'POST':                      # Authentication... <===========
         annotations = json.dumps(request.get_json())    # Validation...     <===========
-        reader._query("UPDATE metadata SET value=? WHERE name='annotations';", [annotations])
+        reader._query("REPLACE into metadata(name, value) VALUES('annotations', ?);", (annotations,))
         reader._query("COMMIT")
         return 'Annotations updated'
 
