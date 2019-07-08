@@ -42,6 +42,25 @@ flatmaps_root = os.path.join(map_core_blueprint.root_path, '../maps')
 
 #===============================================================================
 
+def remote_addr(req):
+#====================
+    if req.environ.get('HTTP_X_FORWARDED_FOR') is None:
+        return req.environ['REMOTE_ADDR']
+    else:
+        return req.environ['HTTP_X_FORWARDED_FOR']
+
+def audit(user_ip, old_value, new_value):
+#========================================
+    with open(os.path.join(flatmaps_root, 'audit.log'), 'a') as aud:
+        aud.write('{}\n'.format(json.dumps({
+            'time': time.asctime(),
+            'ip': user_ip,
+            'old': old_value,
+            'new': new_value
+        })))
+
+#===============================================================================
+
 @map_core_blueprint.route('/')
 @map_core_blueprint.route('/<string:filepath>')
 def serve(filepath=None):
@@ -75,17 +94,21 @@ def style(map):
 def map_annotations(map):
     mbtiles = os.path.join(flatmaps_root, map, 'index.mbtiles')
     reader = MBTilesReader(mbtiles)
+    annotations_row = reader._query("SELECT value FROM metadata WHERE name='annotations';").fetchone()
+    if annotations_row is None:
+        annotations = {}
+    else:
+        annotations = json.loads(annotations_row[0])
     if request.method == 'GET':
-        rows = reader._query("SELECT value FROM metadata WHERE name='annotations';").fetchone()
-        if rows is None:
-            annotations = {}
-        else:
-            annotations = json.loads(rows[0])
         return jsonify(annotations)
     elif request.method == 'POST':                      # Authentication... <===========
+        source_row = reader._query("SELECT value FROM metadata WHERE name='source';").fetchone()
+        map_source = source_row[0] if source_row is not None else ''
+        old_annotations = json.dumps(annotations)
         annotations = json.dumps(request.get_json())    # Validation...     <===========
         reader._query("REPLACE into metadata(name, value) VALUES('annotations', ?);", (annotations,))
         reader._query("COMMIT")
+        audit(remote_addr(request), old_annotations, annotations)
         return 'Annotations updated'
 
 @map_core_blueprint.route('flatmap/<string:map>/images/<string:image>')
