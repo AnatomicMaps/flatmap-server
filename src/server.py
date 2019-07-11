@@ -84,6 +84,9 @@ def maps():
             source_row = reader._query("SELECT value FROM metadata WHERE name='source';").fetchone()
             if source_row is not None:
                 map = { 'id': path.name, 'source': source_row[0] }
+                created = reader._query("SELECT value FROM metadata WHERE name='created';").fetchone()
+                if created is not None:
+                    map['created'] = created[0]
                 describes = reader._query("SELECT value FROM metadata WHERE name='describes';").fetchone()
                 if describes is not None:
                     map['describes'] = describes[0]
