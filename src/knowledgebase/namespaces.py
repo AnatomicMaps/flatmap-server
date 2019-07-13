@@ -30,11 +30,11 @@ import yaml
 #===============================================================================
 
 with open(os.path.join(os.path.split(__file__)[0], 'curie_map.yaml')) as f:
-    namespaces = yaml.load(f, Loader=yaml.Loader)
+    curie_map = yaml.load(f, Loader=yaml.Loader)
 
 SCICRUNCH_NS = NamespaceManager(Graph())
 
-for prefix, url in namespaces.items():
+for prefix, url in curie_map.items():
     SCICRUNCH_NS.bind(prefix, Namespace(url), override=True)
 
 #===============================================================================
