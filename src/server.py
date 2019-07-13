@@ -67,7 +67,7 @@ def allow_cross_origin(response):
 
 #===============================================================================
 
-@flatmap_blueprint.route('flatmap/')
+@flatmap_blueprint.route('/')
 def maps():
     flatmap_list = []
     for tile_dir in pathlib.Path(flatmaps_root).iterdir():
