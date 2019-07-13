@@ -37,7 +37,7 @@ from rdflib.plugins.sparql.results.jsonresults import JSONResultSerializer
 
 #===============================================================================
 
-from namespaces import SCICRUNCH_NS
+from .namespaces import SCICRUNCH_NS
 
 #===============================================================================
 
