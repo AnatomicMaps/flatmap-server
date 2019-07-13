@@ -36,10 +36,10 @@ from knowledgebase import KnowledgeBase
 
 #===============================================================================
 
-map_core_blueprint = Blueprint('map_core', __name__, url_prefix='/', static_folder='static',
-                               root_path='/Users/dave/build/flatmap-mvt-viewer/dist')
+flatmap_blueprint = Blueprint('flatmap', __name__, url_prefix='/', static_folder='static',
+                               root_path=os.path.dirname(os.path.abspath(__file__)))
 
-flatmaps_root = os.path.join(map_core_blueprint.root_path, '../maps')
+flatmaps_root = os.path.join(flatmap_blueprint.root_path, '../flatmaps')
 
 #===============================================================================
 
@@ -67,45 +67,38 @@ def allow_cross_origin(response):
 
 #===============================================================================
 
-@map_core_blueprint.route('/')
-@map_core_blueprint.route('/<string:filepath>')
-def serve(filepath=None):
-    if not filepath: filepath = 'index.html'
-    filename = os.path.join(map_core_blueprint.root_path, filepath)
-    return send_file(filename)
-
-@map_core_blueprint.route('flatmap/')
+@flatmap_blueprint.route('flatmap/')
 def maps():
-    maps = []
-    for path in pathlib.Path(flatmaps_root).iterdir():
-        mbtiles = os.path.join(flatmaps_root, path, 'index.mbtiles')
-        if os.path.isdir(path) and os.path.exists(mbtiles):
+    flatmap_list = []
+    for tile_dir in pathlib.Path(flatmaps_root).iterdir():
+        mbtiles = os.path.join(flatmaps_root, tile_dir, 'index.mbtiles')
+        if os.path.isdir(tile_dir) and os.path.exists(mbtiles):
             reader = MBTilesReader(mbtiles)
             source_row = reader._query("SELECT value FROM metadata WHERE name='source';").fetchone()
             if source_row is not None:
-                map = { 'id': path.name, 'source': source_row[0] }
+                flatmap = { 'id': tile_dir.name, 'source': source_row[0] }
                 created = reader._query("SELECT value FROM metadata WHERE name='created';").fetchone()
                 if created is not None:
-                    map['created'] = created[0]
+                    flatmap['created'] = created[0]
                 describes = reader._query("SELECT value FROM metadata WHERE name='describes';").fetchone()
                 if describes is not None:
-                    map['describes'] = describes[0]
-                maps.append(map)
-    return allow_cross_origin(jsonify(maps))
+                    flatmap['describes'] = describes[0]
+                flatmap_list.append(flatmap)
+    return allow_cross_origin(jsonify(flatmap_list))
 
-@map_core_blueprint.route('flatmap/<string:map>/')
-def map(map):
-    filename = os.path.join(flatmaps_root, map, 'index.json')
+@flatmap_blueprint.route('flatmap/<string:map_path>/')
+def map(map_path):
+    filename = os.path.join(flatmaps_root, map_path, 'index.json')
+    return send_file(filename)
+
+@flatmap_blueprint.route('flatmap/<string:map_path>/style')
+def style(map_path):
+    filename = os.path.join(flatmaps_root, map_path, 'style.json')
     return allow_cross_origin(send_file(filename))
 
-@map_core_blueprint.route('flatmap/<string:map>/style')
-def style(map):
-    filename = os.path.join(flatmaps_root, map, 'style.json')
-    return allow_cross_origin(send_file(filename))
-
-@map_core_blueprint.route('flatmap/<string:map>/annotations', methods=['GET', 'POST'])
-def map_annotations(map):
-    mbtiles = os.path.join(flatmaps_root, map, 'index.mbtiles')
+@flatmap_blueprint.route('flatmap/<string:map_path>/annotations')
+def map_annotations(map_path):
+    mbtiles = os.path.join(flatmaps_root, map_path, 'index.mbtiles')
     reader = MBTilesReader(mbtiles)
     annotations_row = reader._query("SELECT value FROM metadata WHERE name='annotations';").fetchone()
     if annotations_row is None:
@@ -124,32 +117,32 @@ def map_annotations(map):
         audit(remote_addr(request), old_annotations, annotations)
         return 'Annotations updated'
 
-@map_core_blueprint.route('flatmap/<string:map>/images/<string:image>')
-def map_background(map, image):
-    filename = os.path.join(flatmaps_root, map, 'images', image)
+@flatmap_blueprint.route('flatmap/<string:map_path>/images/<string:image>')
+def map_background(map_path, image):
+    filename = os.path.join(flatmaps_root, map_path, 'images', image)
     return allow_cross_origin(send_file(filename))
 
-@map_core_blueprint.route('flatmap/<string:map>/mvtiles/<int:z>/<int:x>/<int:y>')
-def vector_tiles(map, z, y, x):
+@flatmap_blueprint.route('flatmap/<string:map_path>/mvtiles/<int:z>/<int:x>/<int:y>')
+def vector_tiles(map_path, z, y, x):
     try:
-        mbtiles = os.path.join(flatmaps_root, map, 'index.mbtiles')
+        mbtiles = os.path.join(flatmaps_root, map_path, 'index.mbtiles')
         reader = MBTilesReader(mbtiles)
         return allow_cross_origin(send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='application/octet-stream'))
     except ExtractionError:
         pass
-    return ('', 204)
+    return '', 204
 
-@map_core_blueprint.route('flatmap/<string:map>/tiles/<string:layer>/<int:z>/<int:x>/<int:y>')
-def image_tiles(map, layer, z, y, x):
+@flatmap_blueprint.route('flatmap/<string:map_path>/tiles/<string:layer>/<int:z>/<int:x>/<int:y>')
+def image_tiles(map_path, layer, z, y, x):
     try:
-        mbtiles = os.path.join(flatmaps_root, map, '{}.mbtiles'.format(layer))
+        mbtiles = os.path.join(flatmaps_root, map_path, '{}.mbtiles'.format(layer))
         reader = MBTilesReader(mbtiles)
         return allow_cross_origin(send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='image/png'))
     except ExtractionError:
         pass
-    return ('', 204)
+    return '', 204
 
-@map_core_blueprint.route('query', methods=['POST'])
+@flatmap_blueprint.route('query', methods=['POST'])
 def kb_query():
     query = request.get_json()
     try:
@@ -162,7 +155,7 @@ def kb_query():
 
 app = Flask(__name__)
 
-app.register_blueprint(map_core_blueprint)
+app.register_blueprint(flatmap_blueprint)
 
 #===============================================================================
 
@@ -172,8 +165,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A web-server for flatmaps.')
     parser.add_argument('--debug', action='store_true',
                         help="run in debugging mode (NOT FOR PRODUCTION)")
-    parser.add_argument('--port', type=int, metavar='PORT', default=5000,
-                        help='the port to listen on (default 5000)')
+    parser.add_argument('--port', type=int, metavar='PORT', default=4329,
+                        help='the port to listen on (default 4329)')
 
     args = parser.parse_args()
 
