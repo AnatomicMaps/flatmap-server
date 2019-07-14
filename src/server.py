@@ -27,6 +27,7 @@ import time
 #===============================================================================
 
 from flask import abort, Blueprint, Flask, jsonify, request, send_file
+from flask_cors import CORS
 
 from landez.sources import MBTilesReader, ExtractionError
 
@@ -60,11 +61,6 @@ def audit(user_ip, old_value, new_value):
             'new': new_value
         })))
 
-def allow_cross_origin(response):
-#================================
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    return response
-
 #===============================================================================
 
 @flatmap_blueprint.route('/')
@@ -84,17 +80,17 @@ def maps():
                 if describes is not None:
                     flatmap['describes'] = describes[0]
                 flatmap_list.append(flatmap)
-    return allow_cross_origin(jsonify(flatmap_list))
+    return jsonify(flatmap_list)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/')
 def map(map_path):
     filename = os.path.join(flatmaps_root, map_path, 'index.json')
-    return allow_cross_origin(send_file(filename))
+    return send_file(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/style')
 def style(map_path):
     filename = os.path.join(flatmaps_root, map_path, 'style.json')
-    return allow_cross_origin(send_file(filename))
+    return send_file(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/annotations')
 def map_annotations(map_path):
@@ -106,7 +102,7 @@ def map_annotations(map_path):
     else:
         annotations = json.loads(annotations_row[0])
     if request.method == 'GET':
-        return allow_cross_origin(jsonify(annotations))
+        return jsonify(annotations)
     elif request.method == 'POST':                      # Authentication... <===========
         source_row = reader._query("SELECT value FROM metadata WHERE name='source';").fetchone()
         map_source = source_row[0] if source_row is not None else ''
@@ -120,14 +116,14 @@ def map_annotations(map_path):
 @flatmap_blueprint.route('flatmap/<string:map_path>/images/<string:image>')
 def map_background(map_path, image):
     filename = os.path.join(flatmaps_root, map_path, 'images', image)
-    return allow_cross_origin(send_file(filename))
+    return send_file(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/mvtiles/<int:z>/<int:x>/<int:y>')
 def vector_tiles(map_path, z, y, x):
     try:
         mbtiles = os.path.join(flatmaps_root, map_path, 'index.mbtiles')
         reader = MBTilesReader(mbtiles)
-        return allow_cross_origin(send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='application/octet-stream'))
+        return send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='application/octet-stream')
     except ExtractionError:
         pass
     return '', 204
@@ -137,7 +133,7 @@ def image_tiles(map_path, layer, z, y, x):
     try:
         mbtiles = os.path.join(flatmaps_root, map_path, '{}.mbtiles'.format(layer))
         reader = MBTilesReader(mbtiles)
-        return allow_cross_origin(send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='image/png'))
+        return send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='image/png')
     except ExtractionError:
         pass
     return '', 204
@@ -147,13 +143,15 @@ def kb_query():
     query = request.get_json()
     try:
         with KnowledgeBase(os.path.join(flatmaps_root, 'KnowledgeBase.sqlite')) as graph:
-            return allow_cross_origin(jsonify(graph.query(query.get('sparql'))))
+            return jsonify(graph.query(query.get('sparql')))
     except RuntimeError:
         abort(404, 'Cannot open knowledge base')
 
 #===============================================================================
 
 app = Flask(__name__)
+
+#CORS(app)
 
 app.register_blueprint(flatmap_blueprint)
 
