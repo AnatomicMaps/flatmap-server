@@ -151,9 +151,9 @@ def kb_query():
 
 app = Flask(__name__)
 
-#CORS(app)
-
 app.register_blueprint(flatmap_blueprint)
+
+CORS(app)
 
 #===============================================================================
 
