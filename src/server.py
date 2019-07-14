@@ -89,7 +89,7 @@ def maps():
 @flatmap_blueprint.route('flatmap/<string:map_path>/')
 def map(map_path):
     filename = os.path.join(flatmaps_root, map_path, 'index.json')
-    return send_file(filename)
+    return allow_cross_origin(send_file(filename))
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/style')
 def style(map_path):
