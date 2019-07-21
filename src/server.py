@@ -93,6 +93,16 @@ def style(map_path):
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/annotations')
 def map_annotations(map_path):
+    filename = os.path.join(flatmaps_root, map_path, 'annotations.ttl')
+    if os.path.exists(filename):
+        response = make_response(send_file(filename))
+        response.headers['Content-Type'] = 'text/turtle'
+        return response
+    else:
+        abort(404, 'Missing RDF annotations')
+
+@flatmap_blueprint.route('flatmap/<string:map_path>/metadata', methods=['GET', 'POST'])
+def map_metadata(map_path):
     mbtiles = os.path.join(flatmaps_root, map_path, 'index.mbtiles')
     reader = MBTilesReader(mbtiles)
     annotations_row = reader._query("SELECT value FROM metadata WHERE name='annotations';").fetchone()
