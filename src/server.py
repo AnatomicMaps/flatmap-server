@@ -40,6 +40,11 @@ flatmaps_root = os.path.join(flatmap_blueprint.root_path, '../flatmaps')
 
 #===============================================================================
 
+app = Flask(__name__)
+
+CORS(flatmap_blueprint)
+
+#===============================================================================
 def remote_addr(req):
 #====================
     if req.environ.get('HTTP_X_FORWARDED_FOR') is None:
@@ -150,13 +155,8 @@ def image_tiles(map_path, layer, z, y, x):
 
 #===============================================================================
 
-app = Flask(__name__)
-
 app.register_blueprint(flatmap_blueprint)
 
-CORS(app)
-
-#===============================================================================
 
 if __name__ == '__main__':
     import argparse
