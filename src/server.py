@@ -45,6 +45,21 @@ app = Flask(__name__)
 CORS(flatmap_blueprint)
 
 #===============================================================================
+
+class Annotator(object):
+    def __init__(self):
+        self._annotating = False
+
+    def enable(self, state):
+        self._annotating = True
+
+    def enabled(self):
+        return self._annotating
+
+annotator = Annotator();
+
+#===============================================================================
+
 def remote_addr(req):
 #====================
     if req.environ.get('HTTP_X_FORWARDED_FOR') is None:
@@ -71,7 +86,10 @@ def maps():
         mbtiles = os.path.join(flatmaps_root, tile_dir, 'index.mbtiles')
         if os.path.isdir(tile_dir) and os.path.exists(mbtiles):
             reader = MBTilesReader(mbtiles)
-            source_row = reader._query("SELECT value FROM metadata WHERE name='source';").fetchone()
+            try:
+                source_row = reader._query("SELECT value FROM metadata WHERE name='source';").fetchone()
+            except InvalidFormatError:
+                abort(404, 'Cannot read tile database')
             if source_row is not None:
                 flatmap = { 'id': tile_dir.name, 'source': source_row[0] }
                 created = reader._query("SELECT value FROM metadata WHERE name='created';").fetchone()
@@ -107,13 +125,18 @@ def map_annotations(map_path):
 def map_metadata(map_path):
     mbtiles = os.path.join(flatmaps_root, map_path, 'index.mbtiles')
     reader = MBTilesReader(mbtiles)
-    annotations_row = reader._query("SELECT value FROM metadata WHERE name='annotations';").fetchone()
+    try:
+        annotations_row = reader._query("SELECT value FROM metadata WHERE name='annotations';").fetchone()
+    except InvalidFormatError:
+        abort(404, 'Cannot read tile database')
     if annotations_row is None:
         annotations = {}
     else:
         annotations = json.loads(annotations_row[0])
     if request.method == 'GET':
         return jsonify(annotations)
+    elif not annotator.enabled():
+        abort(405, 'Invalid method')
     elif request.method == 'POST':                      # Authentication... <===========
         source_row = reader._query("SELECT value FROM metadata WHERE name='source';").fetchone()
         map_source = source_row[0] if source_row is not None else ''
@@ -122,7 +145,7 @@ def map_metadata(map_path):
         reader._query("REPLACE into metadata(name, value) VALUES('annotations', ?);", (annotations,))
         reader._query("COMMIT")
         audit(remote_addr(request), old_annotations, annotations)
-        return 'Annotations updated'
+        return 'Metadata updated'
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/images/<string:image>')
 def map_background(map_path, image):
@@ -162,12 +185,16 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='A web-server for flatmaps.')
+    parser.add_argument('--annotate', action='store_true',
+                        help="allow local annotation (NOT FOR PRODUCTION)")
     parser.add_argument('--debug', action='store_true',
                         help="run in debugging mode (NOT FOR PRODUCTION)")
     parser.add_argument('--port', type=int, metavar='PORT', default=4329,
                         help='the port to listen on (default 4329)')
 
     args = parser.parse_args()
+
+    annotator.enable(args.annotate)
 
     app.run(debug=args.debug, host='localhost', port=args.port)
 
