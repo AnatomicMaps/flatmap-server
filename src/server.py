@@ -29,10 +29,7 @@ import time
 from flask import abort, Blueprint, Flask, jsonify, make_response, request, send_file
 from flask_cors import CORS
 
-from landez.sources import MBTilesReader, ExtractionError
-
-#===============================================================================
-
+from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
 
 #===============================================================================
 
@@ -135,6 +132,8 @@ def vector_tiles(map_path, z, y, x):
         return send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='application/octet-stream')
     except ExtractionError:
         pass
+    except InvalidFormatError:
+        abort(404, 'Cannot read tile database')
     return make_response('', 204)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/tiles/<string:layer>/<int:z>/<int:x>/<int:y>')
@@ -145,6 +144,8 @@ def image_tiles(map_path, layer, z, y, x):
         return send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='image/png')
     except ExtractionError:
         pass
+    except InvalidFormatError:
+        abort(404, 'Cannot read tile database')
     return make_response('', 204)
 
 #===============================================================================
