@@ -8,10 +8,6 @@ verify_ssl = true
 [packages]
 flask = "1.0.3"
 landez = "2.5.0"
-rdflib = "4.2.2"
-rdflib-sqlalchemy = "0.3.8"
-pyyaml = "5.1.1"
-pyparsing = "2.4.0"
 flask-cors = "3.0.8"
 
 [requires]

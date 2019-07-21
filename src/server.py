@@ -33,7 +33,6 @@ from landez.sources import MBTilesReader, ExtractionError
 
 #===============================================================================
 
-from knowledgebase import KnowledgeBase
 
 #===============================================================================
 
@@ -137,15 +136,6 @@ def image_tiles(map_path, layer, z, y, x):
     except ExtractionError:
         pass
     return make_response('', 204)
-
-@flatmap_blueprint.route('query', methods=['POST'])
-def kb_query():
-    query = request.get_json()
-    try:
-        with KnowledgeBase(os.path.join(flatmaps_root, 'KnowledgeBase.sqlite')) as graph:
-            return jsonify(graph.query(query.get('sparql')))
-    except RuntimeError:
-        abort(404, 'Cannot open knowledge base')
 
 #===============================================================================
 
