@@ -6,9 +6,9 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-flask = "1.0.3"
-landez = "2.5.0"
-flask-cors = "3.0.8"
+flask = "*"
+landez = "*"
+flask-cors = "*"
 
 [requires]
 python_version = "3.7"
