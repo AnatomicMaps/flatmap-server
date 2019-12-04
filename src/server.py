@@ -36,7 +36,7 @@ from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
 flatmap_blueprint = Blueprint('flatmap', __name__, url_prefix='/', static_folder='static',
                                root_path=os.path.dirname(os.path.abspath(__file__)))
 
-flatmaps_root = os.path.join(flatmap_blueprint.root_path, '../flatmaps')
+flatmaps_root = os.path.normpath(os.path.join(flatmap_blueprint.root_path, '../flatmaps'))
 
 #===============================================================================
 
@@ -115,9 +115,7 @@ def style(map_path):
 def map_annotations(map_path):
     filename = os.path.join(flatmaps_root, map_path, 'annotations.ttl')
     if os.path.exists(filename):
-        response = make_response(send_file(filename))
-        response.headers['Content-Type'] = 'text/turtle'
-        return response
+        return send_file(filename, mimetype='text/turtle')
     else:
         abort(404, 'Missing RDF annotations')
 
@@ -150,7 +148,10 @@ def map_metadata(map_path):
 @flatmap_blueprint.route('flatmap/<string:map_path>/images/<string:image>')
 def map_background(map_path, image):
     filename = os.path.join(flatmaps_root, map_path, 'images', image)
-    return send_file(filename)
+    if os.path.exists(filename):
+        return send_file(filename)
+    else:
+        abort(404, 'Missing image: {}'.format(filename))
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/mvtiles/<int:z>/<int:x>/<int:y>')
 def vector_tiles(map_path, z, y, x):
