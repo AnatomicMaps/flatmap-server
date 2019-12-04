@@ -37,6 +37,7 @@ flatmap_blueprint = Blueprint('flatmap', __name__, url_prefix='/', static_folder
                                root_path=os.path.dirname(os.path.abspath(__file__)))
 
 flatmaps_root = os.path.normpath(os.path.join(flatmap_blueprint.root_path, '../flatmaps'))
+ontology_root = os.path.normpath(os.path.join(flatmap_blueprint.root_path, '../ontology'))
 
 #===============================================================================
 
@@ -176,6 +177,16 @@ def image_tiles(map_path, layer, z, y, x):
     except InvalidFormatError:
         abort(404, 'Cannot read tile database')
     return make_response('', 204)
+
+@flatmap_blueprint.route('ontology/<string:ontology>')
+def send_ontology(ontology):
+    filename = os.path.join(ontology_root, ontology)
+    if os.path.exists(filename):
+        return send_file(filename, mimetype='application/rdf+xml'
+                                        if os.path.splitext(filename)[1] in ['.owl', '.xml']
+                                        else None)
+    else:
+        abort(404, 'Missing file: {}'.format(filename))
 
 #===============================================================================
 
