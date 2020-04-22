@@ -34,6 +34,17 @@ from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
 
 #===============================================================================
 
+from PIL import Image
+
+def blank_tile():
+    tile = Image.new('RGBA', (1, 1), color=(255, 255, 255, 0))
+    file = io.BytesIO()
+    tile.save(file, 'png')
+    file.seek(0)
+    return file
+
+#===============================================================================
+
 flatmap_blueprint = Blueprint('flatmap', __name__, url_prefix='/', static_folder='static',
                                root_path=os.path.dirname(os.path.abspath(__file__)))
 
@@ -201,7 +212,7 @@ def image_tiles(map_path, layer, z, y, x):
         pass
     except InvalidFormatError:
         abort(404, 'Cannot read tile database')
-    return make_response('', 204)
+    return send_file(blank_tile(), mimetype='image/png')
 
 @flatmap_blueprint.route('ontology/<string:ontology>')
 def send_ontology(ontology):
