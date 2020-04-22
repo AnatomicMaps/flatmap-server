@@ -107,9 +107,19 @@ def map(map_path):
     filename = os.path.join(flatmaps_root, map_path, 'index.json')
     return send_file(filename)
 
+@flatmap_blueprint.route('flatmap/<string:map_path>/tilejson')
+def tilejson(map_path):
+    filename = os.path.join(flatmaps_root, map_path, 'tilejson.json')
+    return send_file(filename)
+
 @flatmap_blueprint.route('flatmap/<string:map_path>/style')
 def style(map_path):
     filename = os.path.join(flatmaps_root, map_path, 'style.json')
+    return send_file(filename)
+
+@flatmap_blueprint.route('flatmap/<string:map_path>/styled')
+def styled(map_path):
+    filename = os.path.join(flatmaps_root, map_path, 'styled.json')
     return send_file(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/annotations')
@@ -119,6 +129,20 @@ def map_annotations(map_path):
         return send_file(filename, mimetype='text/turtle')
     else:
         abort(404, 'Missing RDF annotations')
+
+@flatmap_blueprint.route('flatmap/<string:map_path>/layers')
+def map_layers(map_path):
+    mbtiles = os.path.join(flatmaps_root, map_path, 'index.mbtiles')
+    reader = MBTilesReader(mbtiles)
+    try:
+        layers_row = reader._query("SELECT value FROM metadata WHERE name='layers';").fetchone()
+    except InvalidFormatError:
+        abort(404, 'Cannot read tile database')
+    if layers_row is None:
+        layers = {}
+    else:
+        layers = json.loads(layers_row[0])
+    return jsonify(layers)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/metadata', methods=['GET', 'POST'])
 def map_metadata(map_path):
