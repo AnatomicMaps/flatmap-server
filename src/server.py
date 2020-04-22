@@ -22,6 +22,7 @@ import io
 import json
 import os.path
 import pathlib
+import sqlite3
 import time
 
 #===============================================================================
@@ -186,7 +187,7 @@ def vector_tiles(map_path, z, y, x):
         return send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='application/octet-stream')
     except ExtractionError:
         pass
-    except InvalidFormatError:
+    except (InvalidFormatError, sqlite3.OperationalError):
         abort(404, 'Cannot read tile database')
     return make_response('', 204)
 
