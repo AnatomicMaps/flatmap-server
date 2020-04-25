@@ -101,7 +101,7 @@ def maps():
             reader = MBTilesReader(mbtiles)
             try:
                 source_row = reader._query("SELECT value FROM metadata WHERE name='source';").fetchone()
-            except InvalidFormatError:
+            except (InvalidFormatError, sqlite3.OperationalError):
                 abort(404, 'Cannot read tile database')
             if source_row is not None:
                 flatmap = { 'id': tile_dir.name, 'source': source_row[0] }
@@ -148,7 +148,7 @@ def map_layers(map_path):
     reader = MBTilesReader(mbtiles)
     try:
         layers_row = reader._query("SELECT value FROM metadata WHERE name='layers';").fetchone()
-    except InvalidFormatError:
+    except (InvalidFormatError, sqlite3.OperationalError):
         abort(404, 'Cannot read tile database')
     if layers_row is None:
         layers = {}
@@ -162,7 +162,7 @@ def map_metadata(map_path):
     reader = MBTilesReader(mbtiles)
     try:
         annotations_row = reader._query("SELECT value FROM metadata WHERE name='annotations';").fetchone()
-    except InvalidFormatError:
+    except (InvalidFormatError, sqlite3.OperationalError):
         abort(404, 'Cannot read tile database')
     if annotations_row is None:
         annotations = {}
@@ -210,7 +210,7 @@ def image_tiles(map_path, layer, z, y, x):
         return send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='image/png')
     except ExtractionError:
         pass
-    except InvalidFormatError:
+    except (InvalidFormatError, sqlite3.OperationalError):
         abort(404, 'Cannot read tile database')
     return send_file(blank_tile(), mimetype='image/png')
 
