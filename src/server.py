@@ -102,6 +102,13 @@ def audit(user_ip, old_value, new_value):
 
 #===============================================================================
 
+def normalise_identifier(id):
+#============================
+    return ':'.join([(s[:-1].lstrip('0') + s[-1])
+                        for s in id.split(':')])
+
+#===============================================================================
+
 @flatmap_blueprint.route('/')
 def maps():
     flatmap_list = []
@@ -120,7 +127,7 @@ def maps():
                     flatmap['created'] = created[0]
                 describes = reader._query("SELECT value FROM metadata WHERE name='describes';").fetchone()
                 if describes is not None:
-                    flatmap['describes'] = describes[0]
+                    flatmap['describes'] = normalise_identifier(describes[0])
                 flatmap_list.append(flatmap)
     return jsonify(flatmap_list)
 
