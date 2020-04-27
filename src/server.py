@@ -46,10 +46,20 @@ def blank_tile():
 #===============================================================================
 
 flatmap_blueprint = Blueprint('flatmap', __name__, url_prefix='/', static_folder='static',
-                               root_path=os.path.dirname(os.path.abspath(__file__)))
+                               root_path=os.path.split(os.path.dirname(os.path.abspath(__file__)))[0])
 
-flatmaps_root = os.path.normpath(os.path.join(flatmap_blueprint.root_path, '../flatmaps'))
-ontology_root = os.path.normpath(os.path.join(flatmap_blueprint.root_path, '../ontology'))
+
+#===============================================================================
+
+root_paths = {
+    'flatmaps': os.path.normpath(os.path.join(flatmap_blueprint.root_path, './flatmaps')),
+    'ontologies': os.path.normpath(os.path.join(flatmap_blueprint.root_path, './ontology')),
+    }
+
+def set_root_path(id, path):
+#===========================
+    global root_paths
+    root_paths[id] = os.path.normpath(os.path.join(flatmap_blueprint.root_path, path))
 
 #===============================================================================
 
@@ -82,7 +92,7 @@ def remote_addr(req):
 
 def audit(user_ip, old_value, new_value):
 #========================================
-    with open(os.path.join(flatmaps_root, 'audit.log'), 'a') as aud:
+    with open(os.path.join(root_paths['flatmaps'], 'audit.log'), 'a') as aud:
         aud.write('{}\n'.format(json.dumps({
             'time': time.asctime(),
             'ip': user_ip,
@@ -95,8 +105,8 @@ def audit(user_ip, old_value, new_value):
 @flatmap_blueprint.route('/')
 def maps():
     flatmap_list = []
-    for tile_dir in pathlib.Path(flatmaps_root).iterdir():
-        mbtiles = os.path.join(flatmaps_root, tile_dir, 'index.mbtiles')
+    for tile_dir in pathlib.Path(root_paths['flatmaps']).iterdir():
+        mbtiles = os.path.join(root_paths['flatmaps'], tile_dir, 'index.mbtiles')
         if os.path.isdir(tile_dir) and os.path.exists(mbtiles):
             reader = MBTilesReader(mbtiles)
             try:
@@ -116,27 +126,27 @@ def maps():
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/')
 def map(map_path):
-    filename = os.path.join(flatmaps_root, map_path, 'index.json')
+    filename = os.path.join(root_paths['flatmaps'], map_path, 'index.json')
     return send_file(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/tilejson')
 def tilejson(map_path):
-    filename = os.path.join(flatmaps_root, map_path, 'tilejson.json')
+    filename = os.path.join(root_paths['flatmaps'], map_path, 'tilejson.json')
     return send_file(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/style')
 def style(map_path):
-    filename = os.path.join(flatmaps_root, map_path, 'style.json')
+    filename = os.path.join(root_paths['flatmaps'], map_path, 'style.json')
     return send_file(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/styled')
 def styled(map_path):
-    filename = os.path.join(flatmaps_root, map_path, 'styled.json')
+    filename = os.path.join(root_paths['flatmaps'], map_path, 'styled.json')
     return send_file(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/annotations')
 def map_annotations(map_path):
-    filename = os.path.join(flatmaps_root, map_path, 'annotations.ttl')
+    filename = os.path.join(root_paths['flatmaps'], map_path, 'annotations.ttl')
     if os.path.exists(filename):
         return send_file(filename, mimetype='text/turtle')
     else:
@@ -144,7 +154,7 @@ def map_annotations(map_path):
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/layers')
 def map_layers(map_path):
-    mbtiles = os.path.join(flatmaps_root, map_path, 'index.mbtiles')
+    mbtiles = os.path.join(root_paths['flatmaps'], map_path, 'index.mbtiles')
     reader = MBTilesReader(mbtiles)
     try:
         layers_row = reader._query("SELECT value FROM metadata WHERE name='layers';").fetchone()
@@ -158,7 +168,7 @@ def map_layers(map_path):
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/metadata', methods=['GET', 'POST'])
 def map_metadata(map_path):
-    mbtiles = os.path.join(flatmaps_root, map_path, 'index.mbtiles')
+    mbtiles = os.path.join(root_paths['flatmaps'], map_path, 'index.mbtiles')
     reader = MBTilesReader(mbtiles)
     try:
         annotations_row = reader._query("SELECT value FROM metadata WHERE name='annotations';").fetchone()
@@ -184,7 +194,7 @@ def map_metadata(map_path):
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/images/<string:image>')
 def map_background(map_path, image):
-    filename = os.path.join(flatmaps_root, map_path, 'images', image)
+    filename = os.path.join(root_paths['flatmaps'], map_path, 'images', image)
     if os.path.exists(filename):
         return send_file(filename)
     else:
@@ -193,7 +203,7 @@ def map_background(map_path, image):
 @flatmap_blueprint.route('flatmap/<string:map_path>/mvtiles/<int:z>/<int:x>/<int:y>')
 def vector_tiles(map_path, z, y, x):
     try:
-        mbtiles = os.path.join(flatmaps_root, map_path, 'index.mbtiles')
+        mbtiles = os.path.join(root_paths['flatmaps'], map_path, 'index.mbtiles')
         reader = MBTilesReader(mbtiles)
         return send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='application/octet-stream')
     except ExtractionError:
@@ -205,7 +215,7 @@ def vector_tiles(map_path, z, y, x):
 @flatmap_blueprint.route('flatmap/<string:map_path>/tiles/<string:layer>/<int:z>/<int:x>/<int:y>')
 def image_tiles(map_path, layer, z, y, x):
     try:
-        mbtiles = os.path.join(flatmaps_root, map_path, '{}.mbtiles'.format(layer))
+        mbtiles = os.path.join(root_paths['flatmaps'], map_path, '{}.mbtiles'.format(layer))
         reader = MBTilesReader(mbtiles)
         return send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='image/png')
     except ExtractionError:
@@ -216,7 +226,7 @@ def image_tiles(map_path, layer, z, y, x):
 
 @flatmap_blueprint.route('ontology/<string:ontology>')
 def send_ontology(ontology):
-    filename = os.path.join(ontology_root, ontology)
+    filename = os.path.join(root_paths['ontologies'], ontology)
     if os.path.exists(filename):
         return send_file(filename, mimetype='application/rdf+xml'
                                         if os.path.splitext(filename)[1] in ['.owl', '.xml']
@@ -237,12 +247,16 @@ if __name__ == '__main__':
                         help="allow local annotation (NOT FOR PRODUCTION)")
     parser.add_argument('--debug', action='store_true',
                         help="run in debugging mode (NOT FOR PRODUCTION)")
+    parser.add_argument('--map-dir', metavar='MAP_DIR', default='./flatmaps',
+                        help='top-level directory containing flatmaps')
     parser.add_argument('--port', type=int, metavar='PORT', default=4329,
                         help='the port to listen on (default 4329)')
 
     args = parser.parse_args()
 
     annotator.enable(args.annotate)
+
+    set_root_path('flatmaps', args.map_dir)
 
     app.run(debug=args.debug, host='localhost', port=args.port)
 
