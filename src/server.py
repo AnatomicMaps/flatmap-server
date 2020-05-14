@@ -109,6 +109,17 @@ def normalise_identifier(id):
 
 #===============================================================================
 
+def get_metadata(map_path, name):
+    mbtiles = os.path.join(root_paths['flatmaps'], map_path, 'index.mbtiles')
+    reader = MBTilesReader(mbtiles)
+    try:
+        row = reader._query("SELECT value FROM metadata WHERE name='{}';".format(name)).fetchone()
+    except (InvalidFormatError, sqlite3.OperationalError):
+        abort(404, 'Cannot read tile database')
+    return {} if row is None else json.loads(row[0])
+
+#===============================================================================
+
 @flatmap_blueprint.route('/')
 def maps():
     flatmap_list = []
@@ -198,6 +209,10 @@ def map_metadata(map_path):
         reader._query("COMMIT")
         audit(remote_addr(request), old_annotations, annotations)
         return 'Metadata updated'
+
+@flatmap_blueprint.route('flatmap/<string:map_path>/pathways')
+def map_pathways(map_path):
+    return jsonify(get_metadata(map_path, 'pathways'))
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/images/<string:image>')
 def map_background(map_path, image):
