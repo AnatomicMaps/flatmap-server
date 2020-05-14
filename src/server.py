@@ -139,17 +139,7 @@ def map_annotations(map_path):
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/layers')
 def map_layers(map_path):
-    mbtiles = os.path.join(root_paths['flatmaps'], map_path, 'index.mbtiles')
-    reader = MBTilesReader(mbtiles)
-    try:
-        layers_row = reader._query("SELECT value FROM metadata WHERE name='layers';").fetchone()
-    except (InvalidFormatError, sqlite3.OperationalError):
-        abort(404, 'Cannot read tile database')
-    if layers_row is None:
-        layers = {}
-    else:
-        layers = json.loads(layers_row[0])
-    return jsonify(layers)
+    return jsonify(get_metadata(map_path, 'layers'))
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/metadata')
 def map_metadata(map_path):
