@@ -27,7 +27,8 @@ import time
 
 #===============================================================================
 
-from flask import abort, Blueprint, Flask, jsonify, make_response, request, send_file
+import flask
+from flask import Blueprint, Flask
 from flask_cors import CORS
 
 from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
@@ -82,8 +83,16 @@ def get_metadata(map_path, name):
     try:
         row = reader._query("SELECT value FROM metadata WHERE name='{}';".format(name)).fetchone()
     except (InvalidFormatError, sqlite3.OperationalError):
-        abort(404, 'Cannot read tile database')
+        flask.abort(404, 'Cannot read tile database')
     return {} if row is None else json.loads(row[0])
+
+#===============================================================================
+
+def send_json(filename):
+    try:
+        return flask.send_file(filename)
+    except FileNotFoundError:
+        return flask.jsonify({})
 
 #===============================================================================
 
@@ -97,7 +106,7 @@ def maps():
             try:
                 source_row = reader._query("SELECT value FROM metadata WHERE name='source';").fetchone()
             except (InvalidFormatError, sqlite3.OperationalError):
-                abort(404, 'Cannot read tile database')
+                flask.abort(404, 'Cannot read tile database: {}'.format(mbtiles))
             if source_row is not None:
                 flatmap = { 'id': tile_dir.name, 'source': source_row[0] }
                 created = reader._query("SELECT value FROM metadata WHERE name='created';").fetchone()
@@ -107,89 +116,89 @@ def maps():
                 if describes is not None:
                     flatmap['describes'] = normalise_identifier(describes[0])
                 flatmap_list.append(flatmap)
-    return jsonify(flatmap_list)
+    return flask.jsonify(flatmap_list)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/')
 def map(map_path):
     filename = os.path.join(root_paths['flatmaps'], map_path, 'index.json')
-    return send_file(filename)
+    return send_json(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/tilejson')
 def tilejson(map_path):
     filename = os.path.join(root_paths['flatmaps'], map_path, 'tilejson.json')
-    return send_file(filename)
+    return send_json(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/style')
 def style(map_path):
     filename = os.path.join(root_paths['flatmaps'], map_path, 'style.json')
-    return send_file(filename)
+    return send_json(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/styled')
 def styled(map_path):
     filename = os.path.join(root_paths['flatmaps'], map_path, 'styled.json')
-    return send_file(filename)
+    return send_json(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/annotations')
 def map_annotations(map_path):
     filename = os.path.join(root_paths['flatmaps'], map_path, 'annotations.ttl')
     if os.path.exists(filename):
-        return send_file(filename, mimetype='text/turtle')
+        return flask.send_file(filename, mimetype='text/turtle')
     else:
-        abort(404, 'Missing RDF annotations')
+        flask.abort(404, 'Missing RDF annotations')
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/layers')
 def map_layers(map_path):
-    return jsonify(get_metadata(map_path, 'layers'))
+    return flask.jsonify(get_metadata(map_path, 'layers'))
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/metadata')
 def map_metadata(map_path):
-    return jsonify(get_metadata(map_path, 'annotations'))
+    return flask.jsonify(get_metadata(map_path, 'annotations'))
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/pathways')
 def map_pathways(map_path):
-    return jsonify(get_metadata(map_path, 'pathways'))
+    return flask.jsonify(get_metadata(map_path, 'pathways'))
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/images/<string:image>')
 def map_background(map_path, image):
     filename = os.path.join(root_paths['flatmaps'], map_path, 'images', image)
     if os.path.exists(filename):
-        return send_file(filename)
+        return flask.send_file(filename)
     else:
-        abort(404, 'Missing image: {}'.format(filename))
+        flask.abort(404, 'Missing image: {}'.format(filename))
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/mvtiles/<int:z>/<int:x>/<int:y>')
 def vector_tiles(map_path, z, y, x):
     try:
         mbtiles = os.path.join(root_paths['flatmaps'], map_path, 'index.mbtiles')
         reader = MBTilesReader(mbtiles)
-        return send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='application/octet-stream')
+        return flask.send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='application/octet-stream')
     except ExtractionError:
         pass
     except (InvalidFormatError, sqlite3.OperationalError):
-        abort(404, 'Cannot read tile database')
-    return make_response('', 204)
+        flask.abort(404, 'Cannot read tile database')
+    return flask.make_response('', 204)
 
 @flatmap_blueprint.route('flatmap/<string:map_path>/tiles/<string:layer>/<int:z>/<int:x>/<int:y>')
 def image_tiles(map_path, layer, z, y, x):
     try:
         mbtiles = os.path.join(root_paths['flatmaps'], map_path, '{}.mbtiles'.format(layer))
         reader = MBTilesReader(mbtiles)
-        return send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='image/png')
+        return flask.send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='image/png')
     except ExtractionError:
         pass
     except (InvalidFormatError, sqlite3.OperationalError):
-        abort(404, 'Cannot read tile database')
-    return send_file(blank_tile(), mimetype='image/png')
+        flask.abort(404, 'Cannot read tile database')
+    return flask.send_file(blank_tile(), mimetype='image/png')
 
 @flatmap_blueprint.route('ontology/<string:ontology>')
 def send_ontology(ontology):
     filename = os.path.join(root_paths['ontologies'], ontology)
     if os.path.exists(filename):
-        return send_file(filename, mimetype='application/rdf+xml'
+        return flask.send_file(filename, mimetype='application/rdf+xml'
                                         if os.path.splitext(filename)[1] in ['.owl', '.xml']
                                         else None)
     else:
-        abort(404, 'Missing file: {}'.format(filename))
+        flask.abort(404, 'Missing file: {}'.format(filename))
 
 #===============================================================================
 
