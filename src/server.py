@@ -138,6 +138,11 @@ def styled(map_path):
     filename = os.path.join(root_paths['flatmaps'], map_path, 'styled.json')
     return send_json(filename)
 
+@flatmap_blueprint.route('flatmap/<string:map_path>/markers')
+def markers(map_path):
+    filename = os.path.join(root_paths['flatmaps'], map_path, 'markers.json')
+    return send_json(filename)
+
 @flatmap_blueprint.route('flatmap/<string:map_path>/annotations')
 def map_annotations(map_path):
     filename = os.path.join(root_paths['flatmaps'], map_path, 'annotations.ttl')
