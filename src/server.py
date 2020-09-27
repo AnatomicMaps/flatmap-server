@@ -113,7 +113,7 @@ def maps():
                 if created is not None:
                     flatmap['created'] = created[0]
                 describes = reader._query("SELECT value FROM metadata WHERE name='describes';").fetchone()
-                if describes is not None:
+                if describes is not None and describes[0]:
                     flatmap['describes'] = normalise_identifier(describes[0])
                 flatmap_list.append(flatmap)
     return flask.jsonify(flatmap_list)
