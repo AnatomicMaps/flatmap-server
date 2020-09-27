@@ -1,3 +1,0 @@
-Flask==1.0.3
-flask-cors==3.0.8
-landez==2.5.0
