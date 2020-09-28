@@ -217,7 +217,7 @@ if __name__ == '__main__':
     parser.add_argument('--debug', action='store_true',
                         help="run in debugging mode (NOT FOR PRODUCTION)")
     parser.add_argument('--map-dir', metavar='MAP_DIR', default='./flatmaps',
-                        help='top-level directory containing flatmaps')
+                        help='top-level directory containing flatmaps (default `./flatmaps`)')
     parser.add_argument('--port', type=int, metavar='PORT', default=4329,
                         help='the port to listen on (default 4329)')
 
