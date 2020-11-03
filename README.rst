@@ -14,8 +14,8 @@ Requirements
 Installation
 ============
 
-1) Clone this repository.
-2) Run ``pipenv install``
+1) Download the `latest release <https://github.com/dbrnz/flatmap-server/releases/latest>`_ and extract it to a suitable directory.
+2) Change to this directory and run ``pipenv install``.
 
 
 Running
