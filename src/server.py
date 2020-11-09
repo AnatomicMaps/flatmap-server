@@ -18,6 +18,7 @@
 #
 #===============================================================================
 
+import gzip
 import io
 import json
 import os.path
@@ -77,14 +78,16 @@ def normalise_identifier(id):
 
 #===============================================================================
 
-def get_metadata(map_path, name):
-    mbtiles = os.path.join(root_paths['flatmaps'], map_path, 'index.mbtiles')
-    reader = MBTilesReader(mbtiles)
+def metadata(tile_reader, name):
     try:
-        row = reader._query("SELECT value FROM metadata WHERE name='{}';".format(name)).fetchone()
+        row = tile_reader._query("SELECT value FROM metadata WHERE name='{}';".format(name)).fetchone()
     except (InvalidFormatError, sqlite3.OperationalError):
         flask.abort(404, 'Cannot read tile database')
     return {} if row is None else json.loads(row[0])
+
+def get_metadata(map_path, name):
+    mbtiles = os.path.join(root_paths['flatmaps'], map_path, 'index.mbtiles')
+    return metadata(MBTilesReader(mbtiles), name)
 
 #===============================================================================
 
@@ -175,8 +178,11 @@ def map_background(map_path, image):
 def vector_tiles(map_path, z, y, x):
     try:
         mbtiles = os.path.join(root_paths['flatmaps'], map_path, 'index.mbtiles')
-        reader = MBTilesReader(mbtiles)
-        return flask.send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='application/octet-stream')
+        tile_reader = MBTilesReader(mbtiles)
+        tile_bytes = tile_reader.tile(z, x, y)
+        if metadata(tile_reader, 'compressed'):
+            tile_bytes = gzip.decompress(tile_bytes)
+        return flask.send_file(io.BytesIO(tile_bytes), mimetype='application/octet-stream')
     except ExtractionError:
         pass
     except (InvalidFormatError, sqlite3.OperationalError):
