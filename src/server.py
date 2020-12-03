@@ -85,8 +85,8 @@ def metadata(tile_reader, name):
         flask.abort(404, 'Cannot read tile database')
     return {} if row is None else json.loads(row[0])
 
-def get_metadata(map_path, name):
-    mbtiles = os.path.join(root_paths['flatmaps'], map_path, 'index.mbtiles')
+def get_metadata(map_id, name):
+    mbtiles = os.path.join(root_paths['flatmaps'], map_id, 'index.mbtiles')
     return metadata(MBTilesReader(mbtiles), name)
 
 #===============================================================================
@@ -121,63 +121,63 @@ def maps():
                 flatmap_list.append(flatmap)
     return flask.jsonify(flatmap_list)
 
-@flatmap_blueprint.route('flatmap/<string:map_path>/')
-def map(map_path):
-    filename = os.path.join(root_paths['flatmaps'], map_path, 'index.json')
+@flatmap_blueprint.route('flatmap/<string:map_id>/')
+def map(map_id):
+    filename = os.path.join(root_paths['flatmaps'], map_id, 'index.json')
     return send_json(filename)
 
-@flatmap_blueprint.route('flatmap/<string:map_path>/tilejson')
-def tilejson(map_path):
-    filename = os.path.join(root_paths['flatmaps'], map_path, 'tilejson.json')
+@flatmap_blueprint.route('flatmap/<string:map_id>/tilejson')
+def tilejson(map_id):
+    filename = os.path.join(root_paths['flatmaps'], map_id, 'tilejson.json')
     return send_json(filename)
 
-@flatmap_blueprint.route('flatmap/<string:map_path>/style')
-def style(map_path):
-    filename = os.path.join(root_paths['flatmaps'], map_path, 'style.json')
+@flatmap_blueprint.route('flatmap/<string:map_id>/style')
+def style(map_id):
+    filename = os.path.join(root_paths['flatmaps'], map_id, 'style.json')
     return send_json(filename)
 
-@flatmap_blueprint.route('flatmap/<string:map_path>/styled')
-def styled(map_path):
-    filename = os.path.join(root_paths['flatmaps'], map_path, 'styled.json')
+@flatmap_blueprint.route('flatmap/<string:map_id>/styled')
+def styled(map_id):
+    filename = os.path.join(root_paths['flatmaps'], map_id, 'styled.json')
     return send_json(filename)
 
-@flatmap_blueprint.route('flatmap/<string:map_path>/markers')
-def markers(map_path):
-    filename = os.path.join(root_paths['flatmaps'], map_path, 'markers.json')
+@flatmap_blueprint.route('flatmap/<string:map_id>/markers')
+def markers(map_id):
+    filename = os.path.join(root_paths['flatmaps'], map_id, 'markers.json')
     return send_json(filename)
 
-@flatmap_blueprint.route('flatmap/<string:map_path>/annotations')
-def map_annotations(map_path):
-    filename = os.path.join(root_paths['flatmaps'], map_path, 'annotations.ttl')
+@flatmap_blueprint.route('flatmap/<string:map_id>/annotations')
+def map_annotations(map_id):
+    filename = os.path.join(root_paths['flatmaps'], map_id, 'annotations.ttl')
     if os.path.exists(filename):
         return flask.send_file(filename, mimetype='text/turtle')
     else:
         flask.abort(404, 'Missing RDF annotations')
 
-@flatmap_blueprint.route('flatmap/<string:map_path>/layers')
-def map_layers(map_path):
-    return flask.jsonify(get_metadata(map_path, 'layers'))
+@flatmap_blueprint.route('flatmap/<string:map_id>/layers')
+def map_layers(map_id):
+    return flask.jsonify(get_metadata(map_id, 'layers'))
 
-@flatmap_blueprint.route('flatmap/<string:map_path>/metadata')
-def map_metadata(map_path):
-    return flask.jsonify(get_metadata(map_path, 'annotations'))
+@flatmap_blueprint.route('flatmap/<string:map_id>/metadata')
+def map_metadata(map_id):
+    return flask.jsonify(get_metadata(map_id, 'annotations'))
 
-@flatmap_blueprint.route('flatmap/<string:map_path>/pathways')
-def map_pathways(map_path):
-    return flask.jsonify(get_metadata(map_path, 'pathways'))
+@flatmap_blueprint.route('flatmap/<string:map_id>/pathways')
+def map_pathways(map_id):
+    return flask.jsonify(get_metadata(map_id, 'pathways'))
 
-@flatmap_blueprint.route('flatmap/<string:map_path>/images/<string:image>')
-def map_background(map_path, image):
-    filename = os.path.join(root_paths['flatmaps'], map_path, 'images', image)
+@flatmap_blueprint.route('flatmap/<string:map_id>/images/<string:image>')
+def map_background(map_id, image):
+    filename = os.path.join(root_paths['flatmaps'], map_id, 'images', image)
     if os.path.exists(filename):
         return flask.send_file(filename)
     else:
         flask.abort(404, 'Missing image: {}'.format(filename))
 
-@flatmap_blueprint.route('flatmap/<string:map_path>/mvtiles/<int:z>/<int:x>/<int:y>')
-def vector_tiles(map_path, z, y, x):
+@flatmap_blueprint.route('flatmap/<string:map_id>/mvtiles/<int:z>/<int:x>/<int:y>')
+def vector_tiles(map_id, z, y, x):
     try:
-        mbtiles = os.path.join(root_paths['flatmaps'], map_path, 'index.mbtiles')
+        mbtiles = os.path.join(root_paths['flatmaps'], map_id, 'index.mbtiles')
         tile_reader = MBTilesReader(mbtiles)
         tile_bytes = tile_reader.tile(z, x, y)
         if metadata(tile_reader, 'compressed'):
@@ -189,10 +189,10 @@ def vector_tiles(map_path, z, y, x):
         flask.abort(404, 'Cannot read tile database')
     return flask.make_response('', 204)
 
-@flatmap_blueprint.route('flatmap/<string:map_path>/tiles/<string:layer>/<int:z>/<int:x>/<int:y>')
-def image_tiles(map_path, layer, z, y, x):
+@flatmap_blueprint.route('flatmap/<string:map_id>/tiles/<string:layer>/<int:z>/<int:x>/<int:y>')
+def image_tiles(map_id, layer, z, y, x):
     try:
-        mbtiles = os.path.join(root_paths['flatmaps'], map_path, '{}.mbtiles'.format(layer))
+        mbtiles = os.path.join(root_paths['flatmaps'], map_id, '{}.mbtiles'.format(layer))
         reader = MBTilesReader(mbtiles)
         return flask.send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='image/png')
     except ExtractionError:
