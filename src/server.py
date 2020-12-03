@@ -123,6 +123,10 @@ def maps():
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/')
 def map(map_id):
+    if 'json' not in flask.request.accept_mimetypes.best:
+        filename = os.path.join(root_paths['flatmaps'], map_id, '{}.svg'.format(map_id))
+        if os.path.exists(filename):
+            return flask.send_file(filename, mimetype='image/svg+xml')
     filename = os.path.join(root_paths['flatmaps'], map_id, 'index.json')
     return send_json(filename)
 
