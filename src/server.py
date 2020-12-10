@@ -36,6 +36,11 @@ from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
 
 #===============================================================================
 
+from .generator import Manager
+generator = Manager()
+
+#===============================================================================
+
 from PIL import Image
 
 def blank_tile():
@@ -214,6 +219,25 @@ def send_ontology(ontology):
                                         else None)
     else:
         flask.abort(404, 'Missing file: {}'.format(filename))
+
+
+@flatmap_blueprint.route('generate/map', methods=['POST'])
+def generate_map():
+    options = flask.request.get_json()
+    options['outputDir'] = root_paths['flatmaps']
+    process_id = generator.generate(options)
+    return flask.jsonify({
+        'process': process_id,
+        'status': 'started',
+        'options': options
+    })
+
+@flatmap_blueprint.route('generate/status/<int:process_id>')
+def generate_status(process_id):
+    return flask.jsonify({
+        'process': process_id,
+        'status': generator.status(process_id)
+    })
 
 #===============================================================================
 
