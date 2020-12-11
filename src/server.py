@@ -1,6 +1,6 @@
 #===============================================================================
 #
-#  Flatmap viewer and annotation tool
+#  Flatmap server
 #
 #  Copyright (c) 2019  David Brooks
 #
@@ -242,7 +242,6 @@ def generate_status(process_id):
 #===============================================================================
 
 app.register_blueprint(flatmap_blueprint)
-
 
 if __name__ == '__main__':
     import argparse
