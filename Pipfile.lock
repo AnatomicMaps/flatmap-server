@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "20ba133c514e6d5830a1ad580f0fe0ae3d12242e1c641fff05665bb136b7f865"
+            "sha256": "672c3523053c1032844be8a4a62bf29d3b3dc390e2eb85d9b69393c6ac80c426"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -33,10 +33,10 @@
         },
         "certifi": {
             "hashes": [
-                "sha256:1f422849db327d534e3d0c5f02a263458c3955ec0aae4ff09b95f195c59f4edd",
-                "sha256:f05def092c44fbf25834a51509ef6e631dc19765ab8a57b4e7ab85531f0a9cf4"
+                "sha256:1a4995114262bffbc2413b159f2a1a480c969de6e6eb13ee966d470af86af59c",
+                "sha256:719a74fb9e33b9bd44cc7f3a8d94bc35e4049deebe19ba7d8e108280cfd59830"
             ],
-            "version": "==2020.11.8"
+            "version": "==2020.12.5"
         },
         "chardet": {
             "hashes": [
@@ -186,12 +186,12 @@
             "version": "==1.1.3"
         },
         "mapmaker": {
-            "file": "https://github.com/dbrnz/flatmap-maker/releases/download/0.11.0.b2/mapmaker-0.11.0b2-py3-none-any.whl",
+            "file": "https://github.com/dbrnz/flatmap-maker/releases/download/0.11.0.b3/mapmaker-0.11.0b3-py3-none-any.whl",
             "hashes": [
-                "sha256:957fabd6e8d081d506fa2a0a272548883c00cef3657c3dd15c1d8c58d09b322c"
+                "sha256:44aea41ddb368d0449712e199ebab4f914d967fcc06b2b59448400f9c3f36e11"
             ],
             "index": "pypi",
-            "version": "==0.11.0b2"
+            "version": "==0.11.0b3"
         },
         "markupsafe": {
             "hashes": [
@@ -361,6 +361,14 @@
             ],
             "index": "pypi",
             "version": "==8.0.1"
+        },
+        "pybind11": {
+            "hashes": [
+                "sha256:ab7e60a520fe6ae25eca939191bb2ac416cd58478ce754740238a8bf1af18934",
+                "sha256:c3691da74b670a4850dec30c1145a0dad53a50eeca78b7e7cdc855b5c98fd32d"
+            ],
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'",
+            "version": "==2.6.1"
         },
         "pyclipper": {
             "hashes": [
@@ -595,6 +603,23 @@
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==1.15.0"
         },
+        "skia-python": {
+            "hashes": [
+                "sha256:08fc61d8a02ad689a39f91eb04834d79010dbc69fb7eeeacbee00a6d5a33eaba",
+                "sha256:1d269b940a8c33feb9be530e692a989965a9f6023e8e480577dce40c7813bb2c",
+                "sha256:2042c813038dc9ad64180531f0c06bb2133ab14fdb9fc951a04d8a41b7ed9ba0",
+                "sha256:21bd29fc00eea44551af5cff773a3bd5d411b16a34f469ecb65e1a8f1e65ab2f",
+                "sha256:32ab216143db50700eb27a6c534f1adff2c0f6b2cd5bc4749b87327f63c65f32",
+                "sha256:4abd27e394baf864868ed8c8d16c2cd483f95489efb58791c08c06a9ac042940",
+                "sha256:4c675ba11030210e6193e3bd043de35297817a634808bfe8323d9f589e1f14ee",
+                "sha256:5e27f690a00f4df9c0506910e95a9e8ef1e4af6cff7be3f9d9cfd440ba27492d",
+                "sha256:5eb29a2e558ef5e8484f390876e7dc168c3da9c8f6215339c84e69000011f150",
+                "sha256:5f4cae4544b2c799929497b766259a2825bae458a5bff25861bb30258e4c4088",
+                "sha256:8d7a9234e3baced5cdef5a622cc7c4032c744d6f041a081831042970983a7878",
+                "sha256:d7c5d6cdb1840dc3b39eb6d4e48f9f83b3b66d1188cb493ab58f28844551ce71"
+            ],
+            "version": "==87.0"
+        },
         "sqlalchemy": {
             "hashes": [
                 "sha256:009e8388d4d551a2107632921320886650b46332f61dc935e70c8bcf37d8e0d6",
@@ -664,11 +689,17 @@
         },
         "tqdm": {
             "hashes": [
-                "sha256:5c0d04e06ccc0da1bd3fa5ae4550effcce42fcad947b4a6cafa77bdc9b09ff22",
-                "sha256:9e7b8ab0ecbdbf0595adadd5f0ebbb9e69010e0bd48bbb0c15e550bf2a5292df"
+                "sha256:38b658a3e4ecf9b4f6f8ff75ca16221ae3378b2e175d846b6b33ea3a20852cf5",
+                "sha256:d4f413aecb61c9779888c64ddf0c62910ad56dcbe857d8922bb505d4dbff0df1"
             ],
             "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
-            "version": "==4.54.0"
+            "version": "==4.54.1"
+        },
+        "transforms3d": {
+            "hashes": [
+                "sha256:404c7797c78aa461cb8043081901fc5517cef342d5ff56becd74a7967ba88d78"
+            ],
+            "version": "==0.3.1"
         },
         "urllib3": {
             "hashes": [
