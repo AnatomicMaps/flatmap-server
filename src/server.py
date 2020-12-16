@@ -38,6 +38,23 @@ from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
 
 from .generator import Manager
 generator = Manager()
+# Global settings
+
+from .settings import settings
+
+
+settings['ROOT_PATH'] = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
+
+def normalise_path(path):
+#========================
+    return os.path.normpath(os.path.join(settings['ROOT_PATH'], path))
+
+FLATMAP_ROOT = os.environ.get('FLATMAP_ROOT', './flatmaps')
+settings['FLATMAP_ROOT'] = normalise_path(FLATMAP_ROOT)
+settings['ONTOLOGY_ROOT'] = normalise_path('./ontology')
+
+#===============================================================================
+
 
 #===============================================================================
 
@@ -52,21 +69,14 @@ def blank_tile():
 
 #===============================================================================
 
-flatmap_blueprint = Blueprint('flatmap', __name__, url_prefix='/', static_folder='static',
-                               root_path=os.path.split(os.path.dirname(os.path.abspath(__file__)))[0])
+flatmap_blueprint = Blueprint('flatmap', __name__,
+                                root_path=settings['ROOT_PATH'],
+                                static_folder='static',
+                                url_prefix='/')
 
 
 #===============================================================================
 
-root_paths = {
-    'flatmaps': os.path.normpath(os.path.join(flatmap_blueprint.root_path, './flatmaps')),
-    'ontologies': os.path.normpath(os.path.join(flatmap_blueprint.root_path, './ontology')),
-    }
-
-def set_root_path(id, path):
-#===========================
-    global root_paths
-    root_paths[id] = os.path.normpath(os.path.join(flatmap_blueprint.root_path, path))
 
 #===============================================================================
 
@@ -91,7 +101,7 @@ def metadata(tile_reader, name):
     return {} if row is None else json.loads(row[0])
 
 def get_metadata(map_id, name):
-    mbtiles = os.path.join(root_paths['flatmaps'], map_id, 'index.mbtiles')
+    mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.mbtiles')
     return metadata(MBTilesReader(mbtiles), name)
 
 #===============================================================================
@@ -107,8 +117,8 @@ def send_json(filename):
 @flatmap_blueprint.route('/')
 def maps():
     flatmap_list = []
-    for tile_dir in pathlib.Path(root_paths['flatmaps']).iterdir():
-        mbtiles = os.path.join(root_paths['flatmaps'], tile_dir, 'index.mbtiles')
+    for tile_dir in pathlib.Path(settings['FLATMAP_ROOT']).iterdir():
+        mbtiles = os.path.join(settings['FLATMAP_ROOT'], tile_dir, 'index.mbtiles')
         if os.path.isdir(tile_dir) and os.path.exists(mbtiles):
             reader = MBTilesReader(mbtiles)
             try:
@@ -129,35 +139,35 @@ def maps():
 @flatmap_blueprint.route('flatmap/<string:map_id>/')
 def map(map_id):
     if 'json' not in flask.request.accept_mimetypes.best:
-        filename = os.path.join(root_paths['flatmaps'], map_id, '{}.svg'.format(map_id))
+        filename = os.path.join(settings['FLATMAP_ROOT'], map_id, '{}.svg'.format(map_id))
         if os.path.exists(filename):
             return flask.send_file(filename, mimetype='image/svg+xml')
-    filename = os.path.join(root_paths['flatmaps'], map_id, 'index.json')
+    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.json')
     return send_json(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/tilejson')
 def tilejson(map_id):
-    filename = os.path.join(root_paths['flatmaps'], map_id, 'tilejson.json')
+    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'tilejson.json')
     return send_json(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/style')
 def style(map_id):
-    filename = os.path.join(root_paths['flatmaps'], map_id, 'style.json')
+    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'style.json')
     return send_json(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/styled')
 def styled(map_id):
-    filename = os.path.join(root_paths['flatmaps'], map_id, 'styled.json')
+    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'styled.json')
     return send_json(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/markers')
 def markers(map_id):
-    filename = os.path.join(root_paths['flatmaps'], map_id, 'markers.json')
+    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'markers.json')
     return send_json(filename)
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/annotations')
 def map_annotations(map_id):
-    filename = os.path.join(root_paths['flatmaps'], map_id, 'annotations.ttl')
+    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'annotations.ttl')
     if os.path.exists(filename):
         return flask.send_file(filename, mimetype='text/turtle')
     else:
@@ -177,7 +187,7 @@ def map_pathways(map_id):
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/images/<string:image>')
 def map_background(map_id, image):
-    filename = os.path.join(root_paths['flatmaps'], map_id, 'images', image)
+    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'images', image)
     if os.path.exists(filename):
         return flask.send_file(filename)
     else:
@@ -186,7 +196,7 @@ def map_background(map_id, image):
 @flatmap_blueprint.route('flatmap/<string:map_id>/mvtiles/<int:z>/<int:x>/<int:y>')
 def vector_tiles(map_id, z, y, x):
     try:
-        mbtiles = os.path.join(root_paths['flatmaps'], map_id, 'index.mbtiles')
+        mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.mbtiles')
         tile_reader = MBTilesReader(mbtiles)
         tile_bytes = tile_reader.tile(z, x, y)
         if metadata(tile_reader, 'compressed'):
@@ -201,7 +211,7 @@ def vector_tiles(map_id, z, y, x):
 @flatmap_blueprint.route('flatmap/<string:map_id>/tiles/<string:layer>/<int:z>/<int:x>/<int:y>')
 def image_tiles(map_id, layer, z, y, x):
     try:
-        mbtiles = os.path.join(root_paths['flatmaps'], map_id, '{}.mbtiles'.format(layer))
+        mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, '{}.mbtiles'.format(layer))
         reader = MBTilesReader(mbtiles)
         return flask.send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='image/png')
     except ExtractionError:
@@ -212,7 +222,7 @@ def image_tiles(map_id, layer, z, y, x):
 
 @flatmap_blueprint.route('ontology/<string:ontology>')
 def send_ontology(ontology):
-    filename = os.path.join(root_paths['ontologies'], ontology)
+    filename = os.path.join(settings['ONTOLOGY_ROOT'], ontology)
     if os.path.exists(filename):
         return flask.send_file(filename, mimetype='application/rdf+xml'
                                         if os.path.splitext(filename)[1] in ['.owl', '.xml']
@@ -248,15 +258,16 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='A web-server for flatmaps.')
     parser.add_argument('--debug', action='store_true',
-                        help="run in debugging mode (NOT FOR PRODUCTION)")
+        help="run in debugging mode (NOT FOR PRODUCTION)")
     parser.add_argument('--map-dir', metavar='MAP_DIR', default='./flatmaps',
-                        help='top-level directory containing flatmaps (default `./flatmaps`)')
+        help='top-level directory containing flatmaps (default `{}`)'.format(DEFAULT_FLATMAP_ROOT))
     parser.add_argument('--port', type=int, metavar='PORT', default=4329,
-                        help='the port to listen on (default 4329)')
+        help='the port to listen on (default 4329)')
 
     args = parser.parse_args()
+    settings['FLATMAP_ROOT'] = normalise_path(args.map_dir)
 
-    set_root_path('flatmaps', args.map_dir)
+    app.logger.setLevel(logging.INFO)
 
     app.run(debug=args.debug, host='localhost', port=args.port)
 
