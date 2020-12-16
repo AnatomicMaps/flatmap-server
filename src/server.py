@@ -21,6 +21,7 @@
 import gzip
 import io
 import json
+import logging
 import os.path
 import pathlib
 import sqlite3
