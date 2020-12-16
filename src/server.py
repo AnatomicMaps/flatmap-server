@@ -57,6 +57,9 @@ settings['ONTOLOGY_ROOT'] = normalise_path('./ontology')
 from .maker import Manager
 map_maker = Manager()
 
+# Needed to read JPEG 2000 files with OpenCV2 under Linux
+os.environ['OPENCV_IO_ENABLE_JASPER'] = '1'
+
 #===============================================================================
 
 from PIL import Image
