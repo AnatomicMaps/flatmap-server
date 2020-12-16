@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "9162876afa8e66a1c62c98545a9b862ead71a183c63ff00b52d9511eb5299d6e"
+            "sha256": "2c0273ec2d23b35dfc4bb5b288726ffc8e6f1a4c018bd6e084fb2de515503982"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -181,12 +181,13 @@
             "version": "==1.1.3"
         },
         "mapmaker": {
-            "file": "https://github.com/dbrnz/flatmap-maker/releases/download/0.11.0.b4/mapmaker-0.11.0b4-py3-none-any.whl",
+            "file": "https://github.com/dbrnz/flatmap-maker/releases/download/0.11.0.b5/mapmaker-0.11.0b5-py3-none-any.whl",
             "hashes": [
-                "sha256:ac63c3b53fc183509a5db7d774ea2a8bd3e8bbcb0e9e385622f105e3c5d84468"
+                "sha256:a448e85ba2b78092abd18364203551e42d58e67a1c19258d4f0dbcdbd0f9079a",
+                "sha256:10baad07a798b371d23559fbb1162fb248e731261b79880661febd110f8c38e4"
             ],
             "index": "pypi",
-            "version": "==0.11.0b4"
+            "version": "==0.11.0b5"
         },
         "markupsafe": {
             "hashes": [
