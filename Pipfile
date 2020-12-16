@@ -12,7 +12,7 @@ landez = "*"
 flask-cors = "*"
 owlready2 = "*"
 pillow = "*"
-mapmaker = {file = "https://github.com/dbrnz/flatmap-maker/releases/download/0.11.0.b3/mapmaker-0.11.0b3-py3-none-any.whl"}
+mapmaker = {file = "https://github.com/dbrnz/flatmap-maker/releases/download/0.11.0.b4/mapmaker-0.11.0b4-py3-none-any.whl"}
 
 [requires]
 python_version = "3.8"
