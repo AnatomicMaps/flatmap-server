@@ -37,8 +37,6 @@ from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
 
 #===============================================================================
 
-from .generator import Manager
-generator = Manager()
 # Global settings
 
 from .settings import settings
@@ -56,6 +54,8 @@ settings['ONTOLOGY_ROOT'] = normalise_path('./ontology')
 
 #===============================================================================
 
+from .maker import Manager
+map_maker = Manager()
 
 #===============================================================================
 
@@ -232,22 +232,30 @@ def send_ontology(ontology):
         flask.abort(404, 'Missing file: {}'.format(filename))
 
 
-@flatmap_blueprint.route('generate/map', methods=['POST'])
-def generate_map():
-    options = flask.request.get_json()
-    options['outputDir'] = root_paths['flatmaps']
-    process_id = generator.generate(options)
+@flatmap_blueprint.route('make/map', methods=['POST'])
+def make_map():
+    params = flask.request.get_json()
+    map_source = params.get('source')
+    maker_id = map_maker.make(map_source)
     return flask.jsonify({
-        'process': process_id,
+        'maker': maker_id,
         'status': 'started',
-        'options': options
+        'source': map_source
     })
 
-@flatmap_blueprint.route('generate/status/<int:process_id>')
-def generate_status(process_id):
+@flatmap_blueprint.route('make/log/<int:maker_id>')
+def make_log(maker_id):
+    filename = map_maker.logfile(maker_id)
+    if os.path.exists(filename):
+        return flask.send_file(filename)
+    else:
+        flask.abort(404, 'Missing log file')
+
+@flatmap_blueprint.route('make/status/<int:maker_id>')
+def make_status(maker_id):
     return flask.jsonify({
-        'process': process_id,
-        'status': generator.status(process_id)
+        'maker': maker_id,
+        'status': map_maker.status(maker_id)
     })
 
 #===============================================================================
