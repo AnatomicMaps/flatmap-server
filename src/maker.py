@@ -74,12 +74,6 @@ class Manager(threading.Thread):
             'clean': True,
             'quiet': True
         }
-
-        ## Need to post make request to manager thread...
-        ## and await response... ???
-        ##
-        # Set backgroundTiles True
-        # Set clean True ??
         process = multiprocessing.Process(target=Manager._make_map,
                                           args=(params, settings['MAPMAKER_LOGS']))
         process.start()
