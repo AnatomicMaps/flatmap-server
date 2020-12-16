@@ -235,6 +235,8 @@ def send_ontology(ontology):
 @flatmap_blueprint.route('make/map', methods=['POST'])
 def make_map():
     params = flask.request.get_json()
+    if 'source' not in params:
+        flask.abort(501, 'No source specified in data')
     map_source = params.get('source')
     maker_id = map_maker.make(map_source)
     return flask.jsonify({
