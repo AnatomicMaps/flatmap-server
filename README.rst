@@ -38,12 +38,9 @@ Map viewer
 
 Requires ``node`` and ``npm``.
 
-::
+In the top-level server directory::
 
-    $ git clone https://github.com/dbrnz/flatmap-server
-    $ cd flatmap-server
-    $ git submodule init
-    $ git submodule update
+    $ git clone https://github.com/dbrnz/flatmap-server-viewer viewer
     $ cd viewer
     $ npm install
     $ npm run build
