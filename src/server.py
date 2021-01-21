@@ -275,6 +275,8 @@ def viewer(file_path='index.html'):
 
 app = wsgi_app()
 
+viewer = wsgi_app(True)
+
 #===============================================================================
 
 if __name__ == '__main__':

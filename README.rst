@@ -46,4 +46,7 @@ In the top-level server directory::
     $ npm run build
     $ cd ..
 
-    $ pipenv run gunicorn 'src.server:wsgi_app(viewer=True)'
+
+Run the server with integrated viewer::
+
+    $ pipenv run gunicorn src.server:viewer
