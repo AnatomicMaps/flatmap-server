@@ -40,8 +40,6 @@ from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
 # Global settings
 
 from .settings import settings
-
-
 settings['ROOT_PATH'] = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 
 def normalise_path(path):
@@ -78,15 +76,14 @@ flatmap_blueprint = Blueprint('flatmap', __name__,
                                 static_folder='static',
                                 url_prefix='/')
 
-
 #===============================================================================
 
-
-#===============================================================================
-
-app = Flask(__name__)
-
-CORS(flatmap_blueprint)
+def wsgi_app(viewer=False):
+    settings['MAP_VIEWER'] = viewer
+    app = Flask(__name__)
+    CORS(flatmap_blueprint)
+    app.register_blueprint(flatmap_blueprint)
+    return app
 
 #===============================================================================
 
@@ -265,7 +262,20 @@ def make_status(maker_id):
 
 #===============================================================================
 
-app.register_blueprint(flatmap_blueprint)
+@flatmap_blueprint.route('viewer/')
+@flatmap_blueprint.route('viewer/<path:file_path>')
+def viewer(file_path='index.html'):
+    filename = normalise_path('viewer/dist/{}'.format(file_path))
+    if settings['MAP_VIEWER'] and os.path.exists(filename):
+        return flask.send_file(filename)
+    else:
+        flask.abort(404)
+
+#===============================================================================
+
+app = wsgi_app()
+
+#===============================================================================
 
 if __name__ == '__main__':
     import argparse
