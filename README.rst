@@ -7,7 +7,7 @@ An anatomical flatmap server to provide `Mapbox <https://www.mapbox.com/>`_ comp
 Requirements
 ============
 
-* Python 3.7
+* Python 3.8
 * `pipenv <https://pypi.org/project/pipenv/>`_
 
 
@@ -23,21 +23,30 @@ Running
 
 ::
 
-    $ pipenv shell
-    $ python src/server.py
+    $ pipenv run gunicorn src.server:app
 
-**Options**
+
+* By default, maps are stored in ``./flatmaps``. This can be overridden by setting the ``FLATMAP_ROOT`` environment variable to a directory path.
+* The server listens at ``http://127.0.0.1:8000``. Change this via `Gunicorn <https://docs.gunicorn.org/en/stable/settings.html>`_.
+
+Map making
+==========
+
+
+Map viewer
+==========
+
+Requires ``node`` and ``npm``.
 
 ::
 
-    $ python src/server.py --help
-    usage: server.py [-h] [--debug] [--map-dir MAP_DIR] [--port PORT]
+    $ git clone https://github.com/dbrnz/flatmap-server
+    $ cd flatmap-server
+    $ git submodule init
+    $ git submodule update
+    $ cd viewer
+    $ npm install
+    $ npm run build
+    $ cd ..
 
-    A web-server for flatmaps.
-
-    optional arguments:
-      -h, --help         show this help message and exit
-      --debug            run in debugging mode (NOT FOR PRODUCTION)
-      --map-dir MAP_DIR  top-level directory containing flatmaps (default
-                         `./flatmaps`)
-      --port PORT        the port to listen on (default 4329)
+    $ pipenv run gunicorn 'src.server:wsgi_app(viewer=True)'
