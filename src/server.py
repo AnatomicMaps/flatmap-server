@@ -118,23 +118,25 @@ def send_json(filename):
 @flatmap_blueprint.route('/')
 def maps():
     flatmap_list = []
-    for tile_dir in pathlib.Path(settings['FLATMAP_ROOT']).iterdir():
-        mbtiles = os.path.join(settings['FLATMAP_ROOT'], tile_dir, 'index.mbtiles')
-        if os.path.isdir(tile_dir) and os.path.exists(mbtiles):
-            reader = MBTilesReader(mbtiles)
-            try:
-                source_row = reader._query("SELECT value FROM metadata WHERE name='source';").fetchone()
-            except (InvalidFormatError, sqlite3.OperationalError):
-                flask.abort(404, 'Cannot read tile database: {}'.format(mbtiles))
-            if source_row is not None:
-                flatmap = { 'id': tile_dir.name, 'source': source_row[0] }
-                created = reader._query("SELECT value FROM metadata WHERE name='created';").fetchone()
-                if created is not None:
-                    flatmap['created'] = created[0]
-                describes = reader._query("SELECT value FROM metadata WHERE name='describes';").fetchone()
-                if describes is not None and describes[0]:
-                    flatmap['describes'] = normalise_identifier(describes[0])
-                flatmap_list.append(flatmap)
+    root_path = pathlib.Path(settings['FLATMAP_ROOT'])
+    if root_path.is_dir():
+        for tile_dir in root_path.iterdir():
+            mbtiles = os.path.join(settings['FLATMAP_ROOT'], tile_dir, 'index.mbtiles')
+            if os.path.isdir(tile_dir) and os.path.exists(mbtiles):
+                reader = MBTilesReader(mbtiles)
+                try:
+                    source_row = reader._query("SELECT value FROM metadata WHERE name='source';").fetchone()
+                except (InvalidFormatError, sqlite3.OperationalError):
+                    flask.abort(404, 'Cannot read tile database: {}'.format(mbtiles))
+                if source_row is not None:
+                    flatmap = { 'id': tile_dir.name, 'source': source_row[0] }
+                    created = reader._query("SELECT value FROM metadata WHERE name='created';").fetchone()
+                    if created is not None:
+                        flatmap['created'] = created[0]
+                    describes = reader._query("SELECT value FROM metadata WHERE name='describes';").fetchone()
+                    if describes is not None and describes[0]:
+                        flatmap['describes'] = normalise_identifier(describes[0])
+                    flatmap_list.append(flatmap)
     return flask.jsonify(flatmap_list)
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/')
