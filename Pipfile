@@ -5,6 +5,9 @@ verify_ssl = true
 
 [dev-packages]
 gunicorn = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
+sphinxcontrib-httpdomain = "*"
 
 [packages]
 flask = "*"

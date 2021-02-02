@@ -73,8 +73,13 @@ def blank_tile():
 
 flatmap_blueprint = Blueprint('flatmap', __name__,
                                 root_path=settings['ROOT_PATH'],
-                                static_folder='static',
                                 url_prefix='/')
+
+maker_blueprint = Blueprint('maker', __name__, url_prefix='/make')
+
+viewer_blueprint = Blueprint('viewer', __name__,
+                             root_path=normalise_path('./viewer'),
+                             url_prefix='/viewer')
 
 #===============================================================================
 
@@ -83,6 +88,8 @@ def wsgi_app(viewer=False):
     app = Flask(__name__)
     CORS(flatmap_blueprint)
     app.register_blueprint(flatmap_blueprint)
+    app.register_blueprint(maker_blueprint)
+    app.register_blueprint(viewer_blueprint)
     return app
 
 #===============================================================================
@@ -117,6 +124,14 @@ def send_json(filename):
 
 @flatmap_blueprint.route('/')
 def maps():
+    """
+    Generate a flatmap.
+
+    :>json string id: the status of the map generation process
+    :>json string source: the status of the map generation process
+    :>json string created: the status of the map generation process
+    :>json string describes: the map's source
+    """
     flatmap_list = []
     root_path = pathlib.Path(settings['FLATMAP_ROOT'])
     if root_path.is_dir():
@@ -138,6 +153,8 @@ def maps():
                         flatmap['describes'] = normalise_identifier(describes[0])
                     flatmap_list.append(flatmap)
     return flask.jsonify(flatmap_list)
+
+#===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/')
 def map(map_id):
@@ -223,6 +240,8 @@ def image_tiles(map_id, layer, z, y, x):
         flask.abort(404, 'Cannot read tile database')
     return flask.send_file(blank_tile(), mimetype='image/png')
 
+#===============================================================================
+
 @flatmap_blueprint.route('ontology/<string:ontology>')
 def send_ontology(ontology):
     filename = os.path.join(settings['ONTOLOGY_ROOT'], ontology)
@@ -233,9 +252,19 @@ def send_ontology(ontology):
     else:
         flask.abort(404, 'Missing file: {}'.format(filename))
 
+#===============================================================================
 
-@flatmap_blueprint.route('make/map', methods=['POST'])
+@maker_blueprint.route('/map', methods=['POST'])
 def make_map():
+    """
+    Generate a flatmap.
+
+    :<json string source: the map's source
+
+    :>json int maker: the id of the map generation process
+    :>json string status: the status of the map generation process
+    :>json string source: the map's source
+    """
     params = flask.request.get_json()
     if params is None or 'source' not in params:
         flask.abort(501, 'No source specified in data')
@@ -247,16 +276,31 @@ def make_map():
         'source': map_source
     })
 
-@flatmap_blueprint.route('make/log/<int:maker_id>')
+@maker_blueprint.route('/log/<int:maker_id>')
 def make_log(maker_id):
+    """
+    Return the log file of a map generation process.
+
+    :param maker_id: The id of a maker process
+    :type maker_id: int
+    """
     filename = map_maker.logfile(maker_id)
     if os.path.exists(filename):
         return flask.send_file(filename)
     else:
         flask.abort(404, 'Missing log file')
 
-@flatmap_blueprint.route('make/status/<int:maker_id>')
+@maker_blueprint.route('/status/<int:maker_id>')
 def make_status(maker_id):
+    """
+    Get the status of a map generation process.
+
+    :param maker_id: The id of a maker process
+    :type maker_id: int
+
+    :>json int maker: the id of the map generation process
+    :>json string status: the status of the map generation process
+    """
     return flask.jsonify({
         'maker': maker_id,
         'status': map_maker.status(maker_id)
@@ -264,10 +308,18 @@ def make_status(maker_id):
 
 #===============================================================================
 
-@flatmap_blueprint.route('viewer/')
-@flatmap_blueprint.route('viewer/<path:file_path>')
-def viewer(file_path='index.html'):
-    filename = normalise_path('viewer/dist/{}'.format(file_path))
+@viewer_blueprint.route('/')
+@viewer_blueprint.route('/<path:filename>')
+def viewer(filename='index.html'):
+    """
+    The flatmap viewer application.
+
+    .. :quickref: viewer; Get the flatmap viewer application
+
+    :param filename: The viewer file to get, defaults to ``index.html``
+    :type filename: path
+    """
+    filename = normalise_path('dist/{}'.format(filename))
     if settings['MAP_VIEWER'] and os.path.exists(filename):
         return flask.send_file(filename)
     else:
