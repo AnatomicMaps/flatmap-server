@@ -9,6 +9,10 @@ Prerequisites
 * Python 3.8
 * `pipenv <https://pypi.org/project/pipenv/>`_
 
+Under Ubuntu, for map making::
+
+    # apt-get install libgl-mesa-glx
+
 
 Installation
 ------------
