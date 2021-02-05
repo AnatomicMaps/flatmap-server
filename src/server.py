@@ -39,12 +39,13 @@ from flask_cors import CORS
 # Don't import unnecessary packages when building documentation as otherwise
 # a ``readthedocs`` build aborts with ``excessive memory consumption``
 
-if os.path.basename(sys.argv[0]) != "sphinx-build":
+if 'sphinx' in sys.modules:
     from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
-    from .maker import Manager
 
     # We also don't instantiate a Manager as doing so will prevent Sphinx from
     # exiting (and hang a ``readthedocs`` build)
+
+    from .maker import Manager
 
     map_maker = Manager()
 
