@@ -39,7 +39,7 @@ from flask_cors import CORS
 # Don't import unnecessary packages when building documentation as otherwise
 # a ``readthedocs`` build aborts with ``excessive memory consumption``
 
-if 'sphinx' in sys.modules:
+if 'sphinx' not in sys.modules:
     from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
 
     # We also don't instantiate a Manager as doing so will prevent Sphinx from
