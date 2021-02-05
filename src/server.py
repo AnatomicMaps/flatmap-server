@@ -125,12 +125,12 @@ def send_json(filename):
 @flatmap_blueprint.route('/')
 def maps():
     """
-    Generate a flatmap.
+    Get a list of available flatmaps.
 
-    :>json string id: the status of the map generation process
-    :>json string source: the status of the map generation process
-    :>json string created: the status of the map generation process
-    :>json string describes: the map's source
+    :>jsonarr string id: the flatmap's unique identifier on the server
+    :>jsonarr string source: the map's source URL
+    :>jsonarr string created: when the map was generated
+    :>jsonarr string describes: the map's description
     """
     flatmap_list = []
     root_path = pathlib.Path(settings['FLATMAP_ROOT'])
