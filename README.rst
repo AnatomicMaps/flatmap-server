@@ -9,12 +9,8 @@ Prerequisites
 
 * Python 3.8
 * `pipenv <https://pypi.org/project/pipenv/>`_
-
-Under Ubuntu::
-
-    # apt-get install libgl-mesa-glx
-
-If the server will also generate maps then `Tippecanoe <https://github.com/mapbox/tippecanoe#installation>`_ must be installed.
+* Under Ubuntu, ``sudo apt-get install libgl-mesa-glx``
+* If the server will also generate maps, install `Tippecanoe <https://github.com/mapbox/tippecanoe#installation>`_.
 
 
 Installation
