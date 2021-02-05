@@ -25,6 +25,7 @@ import logging
 import os.path
 import pathlib
 import sqlite3
+import sys
 import time
 
 #===============================================================================
@@ -52,10 +53,17 @@ settings['ONTOLOGY_ROOT'] = normalise_path('./ontology')
 
 #===============================================================================
 
-from .maker import Manager
-map_maker = Manager()
+# Don't create a Manager when building documentation as otherwise Sphinx
+# doesn't exit (and hangs a ``readthedocs`` build)
+
+if os.path.basename(sys.argv[0]) != "sphinx-build":
+    from .maker import Manager
+    map_maker = Manager()
+
+#===============================================================================
 
 # Needed to read JPEG 2000 files with OpenCV2 under Linux
+
 os.environ['OPENCV_IO_ENABLE_JASPER'] = '1'
 
 #===============================================================================
