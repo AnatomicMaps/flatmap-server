@@ -34,7 +34,19 @@ import flask
 from flask import Blueprint, Flask
 from flask_cors import CORS
 
-from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
+#===============================================================================
+
+# Don't import unnecessary packages when building documentation as otherwise
+# a ``readthedocs`` build aborts with ``excessive memory consumption``
+
+if os.path.basename(sys.argv[0]) != "sphinx-build":
+    from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
+    from .maker import Manager
+
+    # We also don't instantiate a Manager as doing so will prevent Sphinx from
+    # exiting (and hang a ``readthedocs`` build)
+
+    map_maker = Manager()
 
 #===============================================================================
 
@@ -50,15 +62,6 @@ def normalise_path(path):
 FLATMAP_ROOT = os.environ.get('FLATMAP_ROOT', './flatmaps')
 settings['FLATMAP_ROOT'] = normalise_path(FLATMAP_ROOT)
 settings['ONTOLOGY_ROOT'] = normalise_path('./ontology')
-
-#===============================================================================
-
-# Don't create a Manager when building documentation as otherwise Sphinx
-# doesn't exit (and hangs a ``readthedocs`` build)
-
-if os.path.basename(sys.argv[0]) != "sphinx-build":
-    from .maker import Manager
-    map_maker = Manager()
 
 #===============================================================================
 
