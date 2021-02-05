@@ -332,23 +332,3 @@ app = wsgi_app()
 viewer = wsgi_app(True)
 
 #===============================================================================
-
-if __name__ == '__main__':
-    import argparse
-
-    parser = argparse.ArgumentParser(description='A web-server for flatmaps.')
-    parser.add_argument('--debug', action='store_true',
-        help="run in debugging mode (NOT FOR PRODUCTION)")
-    parser.add_argument('--map-dir', metavar='MAP_DIR', default='./flatmaps',
-        help='top-level directory containing flatmaps (default `{}`)'.format(DEFAULT_FLATMAP_ROOT))
-    parser.add_argument('--port', type=int, metavar='PORT', default=4329,
-        help='the port to listen on (default 4329)')
-
-    args = parser.parse_args()
-    settings['FLATMAP_ROOT'] = normalise_path(args.map_dir)
-
-    app.logger.setLevel(logging.INFO)
-
-    app.run(debug=args.debug, host='localhost', port=args.port)
-
-#===============================================================================
