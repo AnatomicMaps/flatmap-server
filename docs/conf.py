@@ -32,9 +32,7 @@ author = 'David Brooks'
 # ones.
 extensions = [
     'sphinx_rtd_theme',
-    'sphinx.ext.viewcode',
     'sphinxcontrib.autohttp.flask',
-    'sphinxcontrib.autohttp.flaskqref'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
