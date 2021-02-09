@@ -43,7 +43,7 @@ Optional map viewer
 
 As an option, the server provides a simple flatmap viewer application. Prerequisites are ``node`` and ``npm``. To install the viewer give the following commands from the top-level server directory::
 
-    $ git clone https://github.com/dbrnz/flatmap-server-viewer viewer
+    $ git clone https://github.com/ABI-Software/flatmap-server-viewer viewer
     $ cd viewer
     $ npm install
     $ npm run build
