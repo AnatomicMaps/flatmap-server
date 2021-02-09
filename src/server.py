@@ -36,21 +36,6 @@ from flask_cors import CORS
 
 #===============================================================================
 
-# Don't import unnecessary packages when building documentation as otherwise
-# a ``readthedocs`` build aborts with ``excessive memory consumption``
-
-if 'sphinx' not in sys.modules:
-    from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
-
-    # We also don't instantiate a Manager as doing so will prevent Sphinx from
-    # exiting (and hang a ``readthedocs`` build)
-
-    from .maker import Manager
-
-    map_maker = Manager()
-
-#===============================================================================
-
 # Global settings
 
 from .settings import settings
@@ -72,7 +57,21 @@ os.environ['OPENCV_IO_ENABLE_JASPER'] = '1'
 
 #===============================================================================
 
-from PIL import Image
+# Don't import unnecessary packages when building documentation as otherwise
+# a ``readthedocs`` build aborts with ``excessive memory consumption``
+
+if 'sphinx' not in sys.modules:
+    from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
+    from PIL import Image
+
+    # We also don't instantiate a Manager as doing so will prevent Sphinx from
+    # exiting (and hang a ``readthedocs`` build)
+
+    from .maker import Manager
+
+    map_maker = Manager()
+
+#===============================================================================
 
 def blank_tile():
     tile = Image.new('RGBA', (1, 1), color=(255, 255, 255, 0))
