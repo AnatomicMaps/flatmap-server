@@ -89,7 +89,7 @@ flatmap_blueprint = Blueprint('flatmap', __name__,
 maker_blueprint = Blueprint('maker', __name__, url_prefix='/make')
 
 viewer_blueprint = Blueprint('viewer', __name__,
-                             root_path=normalise_path('./viewer'),
+                             root_path=normalise_path('./viewer/dist'),
                              url_prefix='/viewer')
 
 #===============================================================================
@@ -330,7 +330,7 @@ def viewer(filename='index.html'):
     :param filename: The viewer file to get, defaults to ``index.html``
     :type filename: path
     """
-    filename = normalise_path('dist/{}'.format(filename))
+    filename = os.path.join(viewer_blueprint.root_path, filename)
     if settings['MAP_VIEWER'] and os.path.exists(filename):
         return flask.send_file(filename)
     else:
