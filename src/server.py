@@ -31,8 +31,30 @@ import time
 #===============================================================================
 
 import flask
-from flask import Blueprint, Flask
+from flask import Blueprint, Flask, Response, request
 from flask_cors import CORS
+
+#===============================================================================
+
+try:
+    from werkzeug.wsgi import FileWrapper
+except ImportError:
+    FileWrapper = None
+
+def send_bytes(bytes_io, mimetype):
+    if FileWrapper is not None:
+        return Response(FileWrapper(bytes_io), mimetype=mimetype, direct_passthrough=True)
+    else:
+        return flask.send_file(bytes_io, mimetype=mimetype)
+
+#===============================================================================
+
+def send_json(filename):
+    try:
+        return flask.send_file(filename)
+    except FileNotFoundError:
+        return flask.jsonify({})
+
 
 #===============================================================================
 
@@ -142,14 +164,6 @@ def get_metadata(map_id, name):
 
 #===============================================================================
 
-def send_json(filename):
-    try:
-        return flask.send_file(filename)
-    except FileNotFoundError:
-        return flask.jsonify({})
-
-#===============================================================================
-
 @flatmap_blueprint.route('/')
 def maps():
     """
@@ -249,7 +263,7 @@ def vector_tiles(map_id, z, y, x):
         tile_bytes = tile_reader.tile(z, x, y)
         if metadata(tile_reader, 'compressed'):
             tile_bytes = gzip.decompress(tile_bytes)
-        return flask.send_file(io.BytesIO(tile_bytes), mimetype='application/octet-stream')
+        return send_bytes(io.BytesIO(tile_bytes), 'application/octet-stream')
     except ExtractionError:
         pass
     except (InvalidFormatError, sqlite3.OperationalError):
@@ -261,12 +275,13 @@ def image_tiles(map_id, layer, z, y, x):
     try:
         mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, '{}.mbtiles'.format(layer))
         reader = MBTilesReader(mbtiles)
-        return flask.send_file(io.BytesIO(reader.tile(z, x, y)), mimetype='image/png')
+        image_bytes = io.BytesIO(reader.tile(z, x, y))
+        return send_bytes(image_bytes, 'image/png')
     except ExtractionError:
         pass
     except (InvalidFormatError, sqlite3.OperationalError):
         flask.abort(404, 'Cannot read tile database')
-    return flask.send_file(blank_tile(), mimetype='image/png')
+    return send_bytes(blank_tile(), 'image/png')
 
 #===============================================================================
 
