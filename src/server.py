@@ -137,6 +137,10 @@ def wsgi_app(viewer=False):
     app.register_blueprint(flatmap_blueprint)
     app.register_blueprint(maker_blueprint)
     app.register_blueprint(viewer_blueprint)
+    if __name__ != '__main__':
+        gunicorn_logger = logging.getLogger('gunicorn.error')
+        app.logger.handlers = gunicorn_logger.handlers
+        app.logger.setLevel(gunicorn_logger.level)
     if not viewer and not settings['BEARER_TOKENS']:
         # Only warn once...
         app.logger.warning('No bearer tokens defined')
