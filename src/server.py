@@ -287,51 +287,55 @@ def make_map():
     """
     Generate a flatmap.
 
-    :<json string source: the map's source
+    :<json string source: the map's manifest
 
-    :>json int maker: the id of the map generation process
+    :>json int process: the id of the map generation process
+    :>json string map: the unique identifier for the map
+    :>json string source: the map's manifest
     :>json string status: the status of the map generation process
-    :>json string source: the map's source
     """
     params = flask.request.get_json()
     if params is None or 'source' not in params:
+        app.logger.error('No source specified in data')
         flask.abort(501, 'No source specified in data')
     map_source = params.get('source')
-    maker_id = map_maker.make(map_source)
-    return flask.jsonify({
-        'maker': maker_id,
-        'status': 'started',
-        'source': map_source
-    })
+    maker_process = map_maker.make(map_source)
+    s = {
+        'process': maker_process.process_id,
+        'map': maker_process.map_id,
+        'source': map_source,
+        'status': 'started'
+    }
+    return flask.jsonify(s)
 
-@maker_blueprint.route('/log/<int:maker_id>')
-def make_log(maker_id):
+@maker_blueprint.route('/log/<int:process_id>')
+def make_log(process_id):
     """
     Return the log file of a map generation process.
 
-    :param maker_id: The id of a maker process
-    :type maker_id: int
+    :param process_id: The id of a maker process
+    :type process_id: int
     """
-    filename = map_maker.logfile(maker_id)
+    filename = map_maker.logfile(process_id)
     if os.path.exists(filename):
         return flask.send_file(filename)
     else:
         flask.abort(404, 'Missing log file')
 
-@maker_blueprint.route('/status/<int:maker_id>')
-def make_status(maker_id):
+@maker_blueprint.route('/status/<int:process_id>')
+def make_status(process_id):
     """
     Get the status of a map generation process.
 
-    :param maker_id: The id of a maker process
-    :type maker_id: int
+    :param process_id: The id of a maker process
+    :type process_id: int
 
     :>json int maker: the id of the map generation process
     :>json string status: the status of the map generation process
     """
     return flask.jsonify({
-        'maker': maker_id,
-        'status': map_maker.status(maker_id)
+        'process': process_id,
+        'status': map_maker.status(process_id)
     })
 
 #===============================================================================

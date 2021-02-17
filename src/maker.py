@@ -18,6 +18,7 @@
 #
 #===============================================================================
 
+import hashlib
 import logging
 import multiprocessing
 import multiprocessing.connection
@@ -38,6 +39,31 @@ from mapmaker.utils import log
 # Base directory for logs (relative to ``ROOT_PATH``)
 
 LOG_DIRECTORY = './mapmaker/log'
+
+#===============================================================================
+
+class MakerProcess(object):
+    def __init__(self, map_id, process):
+        self.__map_id = map_id
+        self.__process = process
+
+    @property
+    def exitcode(self):
+        return self.__process.exitcode if self.__process is not None else -1
+
+    @property
+    def map_id(self):
+        return self.__map_id
+
+    @property
+    def process_id(self):
+        return self.__process.pid if self.__process is not None else None
+
+    def terminate(self):
+        self.__process = None
+
+    def is_alive(self):
+        return self.__process is not None and self.__process.is_alive()
 
 #===============================================================================
 
@@ -67,8 +93,10 @@ class Manager(threading.Thread):
 
     def make(self, map_source):
     #==========================
+        map_id = hashlib.sha256(map_source.encode('utf8')).hexdigest()
         params = {
             'source': map_source,
+            'id': map_id,
             'output': self.__map_dir,
             'backgroundTiles': True,
             'clean': True,
@@ -77,18 +105,19 @@ class Manager(threading.Thread):
         process = multiprocessing.Process(target=Manager._make_map,
                                           args=(params, settings['MAPMAKER_LOGS']))
         process.start()
-        self.__processes_by_id[process.pid] = process  # Also save params, logfile name
+        maker_process = MakerProcess(map_id, process)
+        self.__processes_by_id[process.pid] = maker_process
         self.__pids_by_sentinel[process.sentinel] = process.pid
-        return process.pid
+        return maker_process
 
     def status(self, process_id):
     #============================
         if process_id in self.__processes_by_id:
             process = self.__processes_by_id[process_id]
-            if process is None:
-                return 'aborted'
-            elif process.is_alive():
+            if process.is_alive():
                 return 'running'
+            elif process.exists():
+                return 'aborted'
             del self.__processes_by_id[process_id]
             try:
                 del self.__pids_by_sentinel[process.sentinel]
@@ -107,7 +136,7 @@ class Manager(threading.Thread):
                 try:
                     process = self.__processes_by_id[process_id]
                     if process.exitcode != 0:
-                        self.__processes_by_id[process_id] = None
+                        self.__processes_by_id[process_id].terminate()
                     else:
                         del self.__processes_by_id[process_id]
                 except KeyError:
