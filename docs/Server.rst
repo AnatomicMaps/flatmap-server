@@ -6,4 +6,3 @@ Map server
    :blueprints: flatmap
    :undoc-endpoints: flatmap.send_ontology
    :undoc-static:
-   :include-empty-docstring:
