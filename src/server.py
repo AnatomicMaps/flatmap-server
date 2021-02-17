@@ -49,6 +49,8 @@ FLATMAP_ROOT = os.environ.get('FLATMAP_ROOT', './flatmaps')
 settings['FLATMAP_ROOT'] = normalise_path(FLATMAP_ROOT)
 settings['ONTOLOGY_ROOT'] = normalise_path('./ontology')
 
+settings['BEARER_TOKENS'] = os.environ.get('BEARER_TOKENS', '').split()
+
 #===============================================================================
 
 # Needed to read JPEG 2000 files with OpenCV2 under Linux
@@ -86,7 +88,19 @@ flatmap_blueprint = Blueprint('flatmap', __name__,
                                 root_path=settings['ROOT_PATH'],
                                 url_prefix='/')
 
+
 maker_blueprint = Blueprint('maker', __name__, url_prefix='/make')
+
+@maker_blueprint.before_request
+def maker_auth_check():
+    if not settings['BEARER_TOKENS']:
+        return None  # no security defined; permit all access.
+    auth = request.headers.get('Authorization')
+    if auth.startswith('Bearer '):
+        if auth.split()[1] in settings['BEARER_TOKENS']:
+            return None
+    return flask.make_response('{"error": "unauthorized"}', 403)
+
 
 viewer_blueprint = Blueprint('viewer', __name__,
                              root_path=normalise_path('./viewer/dist'),
@@ -101,6 +115,9 @@ def wsgi_app(viewer=False):
     app.register_blueprint(flatmap_blueprint)
     app.register_blueprint(maker_blueprint)
     app.register_blueprint(viewer_blueprint)
+    if not viewer and not settings['BEARER_TOKENS']:
+        # Only warn once...
+        app.logger.warning('No bearer tokens defined')
     return app
 
 #===============================================================================
