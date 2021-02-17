@@ -204,6 +204,18 @@ def maps():
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/')
 def map(map_id):
+    """
+    Return a representation of a flatmap.
+
+    :param map_id: The flatmap identifier
+    :type map_id: string
+
+    :reqheader Accept: Determines the response content
+
+    If an SVG representation of the map exists and the :mailheader:`Accept` header
+    doesn't specify a JSON response then the SVG is returned, otherwise the
+    flatmap's ``index.json`` is returned.
+    """
     if 'json' not in flask.request.accept_mimetypes.best:
         filename = os.path.join(settings['FLATMAP_ROOT'], map_id, '{}.svg'.format(map_id))
         if os.path.exists(filename):
