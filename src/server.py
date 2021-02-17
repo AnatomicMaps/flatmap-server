@@ -383,6 +383,7 @@ def viewer(filename='index.html'):
 
 app = wsgi_app()
 
-viewer = wsgi_app(True)
+def viewer():
+    return wsgi_app(True)
 
 #===============================================================================

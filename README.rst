@@ -55,7 +55,7 @@ Running
 
 To run the server with the integrated viewer::
 
-    $ pipenv run gunicorn src.server:viewer
+    $ pipenv run gunicorn 'src.server:viewer()'
 
 and open `<http://localhost:8000/viewer>`_ in a browser.
 
