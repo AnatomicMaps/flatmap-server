@@ -231,20 +231,20 @@ def markers(map_id):
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'markers.json')
     return send_json(filename)
 
-@flatmap_blueprint.route('flatmap/<string:map_id>/annotations')
-def map_annotations(map_id):
-    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'annotations.ttl')
+@flatmap_blueprint.route('flatmap/<string:map_id>/metadata')
+def map_metadata(map_id):
+    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'metadata.ttl')
     if os.path.exists(filename):
         return flask.send_file(filename, mimetype='text/turtle')
     else:
-        flask.abort(404, 'Missing RDF annotations')
+        flask.abort(404, 'Missing RDF metadata')
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/layers')
 def map_layers(map_id):
     return flask.jsonify(get_metadata(map_id, 'layers'))
 
-@flatmap_blueprint.route('flatmap/<string:map_id>/metadata')
-def map_metadata(map_id):
+@flatmap_blueprint.route('flatmap/<string:map_id>/annotations')
+def map_annotations(map_id):
     return flask.jsonify(get_metadata(map_id, 'annotations'))
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/pathways')
