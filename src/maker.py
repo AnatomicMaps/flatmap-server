@@ -31,7 +31,7 @@ import urllib.error
 
 from .settings import settings
 
-from mapmaker.maker import Flatmap
+from mapmaker.maker import MapMaker
 from mapmaker.utils import log
 
 #===============================================================================
@@ -152,8 +152,8 @@ class Manager(threading.Thread):
         params['logFile'] = os.path.join(log_directory,
                             '{:08d}.log'.format(os.getpid()))
         try:
-            flatmap = Flatmap(params)
-            flatmap.make()
+            mapmaker = MapMaker(params)
+            mapmaker.make()
         except Exception as err:
             log.error(str(err))
             sys.exit(1)
