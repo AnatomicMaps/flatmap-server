@@ -46,6 +46,8 @@ class MakerProcess(object):
     def __init__(self, map_id, process):
         self.__map_id = map_id
         self.__process = process
+        self.__process_id = process.pid
+        self.__sentinel = process.sentinel
 
     @property
     def exitcode(self):
@@ -57,13 +59,20 @@ class MakerProcess(object):
 
     @property
     def process_id(self):
-        return self.__process.pid if self.__process is not None else None
+        return self.__process_id
 
-    def terminate(self):
-        self.__process = None
+    @property
+    def sentinel(self):
+        return self.__sentinel
+
+    def exists(self):
+        return self.__process is not None
 
     def is_alive(self):
         return self.__process is not None and self.__process.is_alive()
+
+    def terminate(self):
+        self.__process = None
 
 #===============================================================================
 
@@ -100,10 +109,11 @@ class Manager(threading.Thread):
             'output': self.__map_dir,
             'backgroundTiles': True,
             'clean': True,
-            'quiet': True
+            'quiet': True,
+            'logFile': os.path.join(settings['MAPMAKER_LOGS'],
+                                    '{:08d}.log'.format(os.getpid()))
         }
-        process = multiprocessing.Process(target=Manager._make_map,
-                                          args=(params, settings['MAPMAKER_LOGS']))
+        process = multiprocessing.Process(target=Manager._make_map, args=(params, ))
         process.start()
         maker_process = MakerProcess(map_id, process)
         self.__processes_by_id[process.pid] = maker_process
@@ -113,14 +123,14 @@ class Manager(threading.Thread):
     def status(self, process_id):
     #============================
         if process_id in self.__processes_by_id:
-            process = self.__processes_by_id[process_id]
-            if process.is_alive():
+            maker_process = self.__processes_by_id[process_id]
+            if maker_process.is_alive():
                 return 'running'
-            elif process.exists():
+            elif maker_process.exists():
                 return 'aborted'
             del self.__processes_by_id[process_id]
             try:
-                del self.__pids_by_sentinel[process.sentinel]
+                del self.__pids_by_sentinel[maker_process.sentinel]
             except KeyError:
                 pass
         return 'terminated'
@@ -147,10 +157,8 @@ class Manager(threading.Thread):
         pass
 
     @staticmethod
-    def _make_map(params, log_directory):
-    #====================================
-        params['logFile'] = os.path.join(log_directory,
-                            '{:08d}.log'.format(os.getpid()))
+    def _make_map(params):
+    #=====================
         try:
             mapmaker = MapMaker(params)
             mapmaker.make()
