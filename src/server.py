@@ -117,7 +117,7 @@ maker_blueprint = Blueprint('maker', __name__, url_prefix='/make')
 def maker_auth_check():
     if not settings['BEARER_TOKENS']:
         return None  # no security defined; permit all access.
-    auth = request.headers.get('Authorization')
+    auth = request.headers.get('Authorization', '')
     if auth.startswith('Bearer '):
         if auth.split()[1] in settings['BEARER_TOKENS']:
             return None
