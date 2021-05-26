@@ -253,14 +253,17 @@ def map_metadata(map_id):
         flask.abort(404, 'Missing RDF metadata')
 '''
 
+@flatmap_blueprint.route('flatmap/<string:map_id>/annotations')
+def map_annotations(map_id):
+    return flask.jsonify(get_metadata(map_id, 'annotations'))
+
 @flatmap_blueprint.route('flatmap/<string:map_id>/layers')
 def map_layers(map_id):
     return flask.jsonify(get_metadata(map_id, 'layers'))
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/metadata')
-@flatmap_blueprint.route('flatmap/<string:map_id>/annotations')
-def map_annotations(map_id):
-    return flask.jsonify(get_metadata(map_id, 'annotations'))
+def map_metadata(map_id):
+    return flask.jsonify(get_metadata(map_id, 'metadata'))
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/pathways')
 def map_pathways(map_id):
