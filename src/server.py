@@ -50,11 +50,16 @@ def send_bytes(bytes_io, mimetype):
 #===============================================================================
 
 def send_json(filename):
+#=======================
     try:
         return flask.send_file(filename)
     except FileNotFoundError:
         return flask.jsonify({})
 
+def error_abort(msg):
+#====================
+    app.logger.error(msg)
+    flask.abort(501, msg)
 
 #===============================================================================
 
@@ -110,6 +115,7 @@ flatmap_blueprint = Blueprint('flatmap', __name__,
                                 root_path=settings['ROOT_PATH'],
                                 url_prefix='/')
 
+#===============================================================================
 
 maker_blueprint = Blueprint('maker', __name__, url_prefix='/make')
 
@@ -123,6 +129,7 @@ def maker_auth_check():
             return None
     return flask.make_response('{"error": "unauthorized"}', 403)
 
+#===============================================================================
 
 viewer_blueprint = Blueprint('viewer', __name__,
                              root_path=normalise_path('./viewer/dist'),
@@ -333,8 +340,7 @@ def make_map():
     """
     params = flask.request.get_json()
     if params is None or 'source' not in params:
-        app.logger.error('No source specified in data')
-        flask.abort(501, 'No source specified in data')
+        error_abort('No source specified in data')
     map_source = params.get('source')
     maker_process = map_maker.make(map_source)
     s = {
