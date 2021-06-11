@@ -64,13 +64,22 @@ Map generation
 
 The flatmap server can also generate maps. To generate a map, ``POST`` a request to the ``/make/map`` end-point specifying a directory containing a map's ``manifest.json``. The server will respond with the id of the maker process. The ``/make/status/PROCESS_ID`` end-point allows the process's status to be queried and ``/make/log/PROCESS_ID`` will return a log of a running process.
 
+Authentication
+--------------
+
+Bearer tokens (`RFC 6750 <https://datatracker.ietf.org/doc/html/rfc6750>`_) may be used to control access to map generation services. To enable this, set the ``BEARER_TOKENS`` environment variable to a space separated list of valid tokens, before starting the server. e.g::
+
+    $ export BEARER_TOKENS="token1 token2"
+    $ pipenv run gunicorn src.server:app
+
+
 Examples
 --------
 
 A local map source::
 
     $ curl -H "Content-Type: application/json" -X POST \
-           -d '{"source":"/Users/dave//build/Flatmaps/new-maker/tests/gradients"}'  \
+           -d '{"source":"/Users/dave/build/Flatmaps/new-maker/tests/gradients/manifest.json"}'  \
            http://localhost:8000/make/map
 
     {"maker":18259,"source":"/Users/dave//build/Flatmaps/new-maker/tests/gradients","status":"started"}
@@ -105,71 +114,68 @@ A local map source::
     2021-01-22 09:14:09,065 Generated map: gradients
 
 
-A particular version of the rat flatmap held in PMR::
+A particular version of the rat flatmap held in a publicly accessible PMR workspace, with a ``BEARER_TOKEN`` used to authenticate the user to the map server::
 
-    $ curl -H "Content-Type: application/json" -X POST \
-           -d '{"source":"https://models.physiomeproject.org/workspace/62f/rawfile/5a36c5db64705bdc9c4e11fb22760a57e79166e2"}'  \
+    $ curl -H "Content-Type: application/json"  \
+           -H "Authorization: Bearer BEARER_TOKEN"  \
+           -X POST \
+           -d '{"source":"https://models.physiomeproject.org/workspace/693/rawfile/aa83dc1b19c03101d6a5306c77d144823fd59ea5/vagus_test.manifest.json"}'  \
            http://localhost:8000/make/map
 
-    {"maker":17142,"source":"https://models.physiomeproject.org/workspace/62f/rawfile/5a36c5db64705bdc9c4e11fb22760a57e79166e2","status":"started"}
+    {"map":"83f6c97d571b67fb4c273e20287b53b4f0a1f70780d3d6a2a282e66cef5f9473","process":57906,"source":"https://models.physiomeproject.org/workspace/693/rawfile/aa83dc1b19c03101d6a5306c77d144823fd59ea5/vagus_test.manifest.json","status":"started"}
 
 ::
 
-    $ curl http://localhost:8000/make/status/17142
+    $  curl  -H "Authorization: Bearer BEARER_TOKEN" http://localhost:8000/make/status/57906
 
-    {"maker":17142,"status":"running"}
-
-::
-
-    $ curl http://localhost:8000/make/log/17142
-
-    2021-01-22 08:57:11,424 Mapmaker 1.0.0b1
-    2021-01-22 09:00:23,601 Adding details...
-    2021-01-22 09:00:23,849 Outputting GeoJson features...
-    2021-01-22 09:00:23,849 Layer:whole-rat
-    2021-01-22 09:00:29,716 Layer:whole-rat_details
-    2021-01-22 09:00:30,273 Running tippecanoe...
-    2021-01-22 09:00:45,213 Generating background tiles (may take a while...)
-    2021-01-22 09:00:45,234 Tiling whole-rat_image...
-    2021-01-22 09:01:00,435 Tiling zoom level 10 for whole-rat_image
+    {"process":57906,"status":"running"}
 
 ::
 
-    $ curl http://localhost:8000/make/status/17142
+    $ curl -H "Authorization: Bearer BEARER_TOKEN" http://localhost:8000/make/log/57906
 
-    {"maker":17142,"status":"terminated"}
+    2021-06-11 13:46:17,386 INFO: Mapmaker 1.2.0b3
+    2021-06-11 13:46:17,903 INFO: Making map: 83f6c97d571b67fb4c273e20287b53b4f0a1f70780d3d6a2a282e66cef5f9473
+    2021-06-11 13:46:20,148 WARNING: Unknown anatomical entity: SAO:1770195789
+    2021-06-11 13:46:20,724 INFO: Adding details...
+    2021-06-11 13:46:20,728 INFO: Routing paths...
+    2021-06-11 13:46:20,728 INFO: Outputting GeoJson features...
+    2021-06-11 13:46:20,728 INFO: Layer: vagus_test
+    2021-06-11 13:46:20,800 INFO: Layer: vagus_test_routes
+    2021-06-11 13:46:20,800 INFO: Running tippecanoe...
+    2021-06-11 13:46:20,996 INFO: Generating background tiles (may take a while...)
+    2021-06-11 13:46:20,998 INFO: Tiling vagus_test_image...
+    2021-06-11 13:46:21,019 INFO: Tiling zoom level 10 for vagus_test_image
 
 ::
 
-    $ curl http://localhost:8000/make/log/17142
+    $  curl  -H "Authorization: Bearer BEARER_TOKEN" http://localhost:8000/make/status/57906
 
-    2021-01-22 08:57:11,424 Mapmaker 1.0.0b1
-    2021-01-22 09:00:23,601 Adding details...
-    2021-01-22 09:00:23,849 Outputting GeoJson features...
-    2021-01-22 09:00:23,849 Layer:whole-rat
-    2021-01-22 09:00:29,716 Layer:whole-rat_details
-    2021-01-22 09:00:30,273 Running tippecanoe...
-    2021-01-22 09:00:45,213 Generating background tiles (may take a while...)
-    2021-01-22 09:00:45,234 Tiling whole-rat_image...
-    2021-01-22 09:01:00,435 Tiling zoom level 10 for whole-rat_image
-    2021-01-22 09:02:13,641 Tiling zoom level 9 for whole-rat_image
-    2021-01-22 09:02:19,173 Tiling zoom level 8 for whole-rat_image
-    2021-01-22 09:02:21,002 Tiling zoom level 7 for whole-rat_image
-    2021-01-22 09:02:21,668 Tiling zoom level 6 for whole-rat_image
-    2021-01-22 09:02:21,887 Tiling zoom level 5 for whole-rat_image
-    2021-01-22 09:02:21,970 Tiling zoom level 4 for whole-rat_image
-    2021-01-22 09:02:22,002 Tiling zoom level 3 for whole-rat_image
-    2021-01-22 09:02:22,020 Tiling zoom level 2 for whole-rat_image
-    2021-01-22 09:02:22,877 Tiling whole-rat_details_vagus_image...
-    2021-01-22 09:02:22,941 Tiling zoom level 10 for whole-rat_details_vagus_image
-    2021-01-22 09:02:23,283 Tiling zoom level 9 for whole-rat_details_vagus_image
-    2021-01-22 09:02:23,359 Tiling zoom level 8 for whole-rat_details_vagus_image
-    2021-01-22 09:02:23,395 Tiling zoom level 7 for whole-rat_details_vagus_image
-    2021-01-22 09:02:23,535 Tiling whole-rat_details_tissue-slide_image...
-    2021-01-22 09:02:23,660 Making image snapshot...
-    2021-01-22 09:02:23,683 Tiling zoom level 10 for whole-rat_details_tissue-slide_image
-    2021-01-22 09:02:23,790 Tiling zoom level 9 for whole-rat_details_tissue-slide_image
-    2021-01-22 09:02:23,806 Tiling zoom level 8 for whole-rat_details_tissue-slide_image
-    2021-01-22 09:02:23,811 Tiling zoom level 7 for whole-rat_details_tissue-slide_image
-    2021-01-22 09:02:23,824 Creating index and style files...
-    2021-01-22 09:02:24,052 Generated map: whole-rat for NCBITaxon:10114
+    {"process":57906,"status":"terminated"}
+
+::
+
+    $ curl -H "Authorization: Bearer BEARER_TOKEN" http://localhost:8000/make/log/57906
+
+    2021-06-11 13:46:17,386 INFO: Mapmaker 1.2.0b3
+    2021-06-11 13:46:17,903 INFO: Making map: 83f6c97d571b67fb4c273e20287b53b4f0a1f70780d3d6a2a282e66cef5f9473
+    2021-06-11 13:46:20,148 WARNING: Unknown anatomical entity: SAO:1770195789
+    2021-06-11 13:46:20,724 INFO: Adding details...
+    2021-06-11 13:46:20,728 INFO: Routing paths...
+    2021-06-11 13:46:20,728 INFO: Outputting GeoJson features...
+    2021-06-11 13:46:20,728 INFO: Layer: vagus_test
+    2021-06-11 13:46:20,800 INFO: Layer: vagus_test_routes
+    2021-06-11 13:46:20,800 INFO: Running tippecanoe...
+    2021-06-11 13:46:20,996 INFO: Generating background tiles (may take a while...)
+    2021-06-11 13:46:20,998 INFO: Tiling vagus_test_image...
+    2021-06-11 13:46:21,019 INFO: Tiling zoom level 10 for vagus_test_image
+    2021-06-11 13:46:23,802 INFO: Tiling zoom level 9 for vagus_test_image
+    2021-06-11 13:46:23,969 INFO: Tiling zoom level 8 for vagus_test_image
+    2021-06-11 13:46:24,034 INFO: Tiling zoom level 7 for vagus_test_image
+    2021-06-11 13:46:24,062 INFO: Tiling zoom level 6 for vagus_test_image
+    2021-06-11 13:46:24,079 INFO: Tiling zoom level 5 for vagus_test_image
+    2021-06-11 13:46:24,097 INFO: Tiling zoom level 4 for vagus_test_image
+    2021-06-11 13:46:24,116 INFO: Tiling zoom level 3 for vagus_test_image
+    2021-06-11 13:46:24,136 INFO: Tiling zoom level 2 for vagus_test_image
+    2021-06-11 13:46:24,188 INFO: Creating index and style files...
+    2021-06-11 13:46:24,195 INFO: Generated map: 83f6c97d571b67fb4c273e20287b53b4f0a1f70780d3d6a2a282e66cef5f9473
