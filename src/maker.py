@@ -98,7 +98,7 @@ class Manager(threading.Thread):
     def logfile(self, process_id):
     #=============================
         return os.path.join(settings['MAPMAKER_LOGS'],
-                            '{:08d}.log'.format(process_id))
+                            '{}.log'.format(process_id))
 
     def make(self, map_source):
     #==========================
@@ -110,8 +110,7 @@ class Manager(threading.Thread):
             'backgroundTiles': True,
             'clean': True,
             'quiet': True,
-            'logFile': os.path.join(settings['MAPMAKER_LOGS'],
-                                    '{:08d}.log'.format(os.getpid()))
+            'logPath': settings['MAPMAKER_LOGS']  # Logfile name is `PROCESS_ID.log`
         }
         process = multiprocessing.Process(target=Manager._make_map, args=(params, ))
         process.start()
