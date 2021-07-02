@@ -73,26 +73,37 @@ Bearer tokens (`RFC 6750 <https://datatracker.ietf.org/doc/html/rfc6750>`_) may 
     $ pipenv run gunicorn src.server:app
 
 
+When ``BEARER_TOKENS`` have been defined, any map generation request **must** specify a valid token using the HTTP ``Authorization`` header. With ``curl`` this is done using the ``-H "Authorization: Bearer BEARER_TOKEN"`` option.
+
 Examples
 --------
 
-A local map source::
+A local map source
+~~~~~~~~~~~~~~~~~~
 
-    $ curl -H "Content-Type: application/json" -X POST \
-           -d '{"source":"/Users/dave/build/Flatmaps/new-maker/tests/gradients/manifest.json"}'  \
+Request generation::
+
+    $ curl -H "Content-Type: application/json" -X POST
+           -d '{"source":"/Users/dave/build/Flatmaps/new-maker/tests/gradients/manifest.json"}'
            http://localhost:8000/make/map
+
+Response::
 
     {"maker":18259,"source":"/Users/dave//build/Flatmaps/new-maker/tests/gradients","status":"started"}
 
-::
+Query build status::
 
     $ curl http://localhost:8000/make/status/18259
 
+Response::
+
     {"maker":18259,"status":"terminated"}
 
-::
+Get log of build::
 
     $ curl http://localhost:8000/make/log/18259
+
+Response::
 
     2021-01-22 09:14:05,925 Mapmaker 1.0.0b1
     2021-01-22 09:14:05,928 Adding details...
@@ -114,25 +125,34 @@ A local map source::
     2021-01-22 09:14:09,065 Generated map: gradients
 
 
-A particular version of the rat flatmap held in a publicly accessible PMR workspace, with a ``BEARER_TOKEN`` used to authenticate the user to the map server::
 
-    $ curl -H "Content-Type: application/json"  \
-           -H "Authorization: Bearer BEARER_TOKEN"  \
-           -X POST \
-           -d '{"source":"https://models.physiomeproject.org/workspace/693/rawfile/aa83dc1b19c03101d6a5306c77d144823fd59ea5/vagus_test.manifest.json"}'  \
+A remote map source
+~~~~~~~~~~~~~~~~~~~
+
+This generates a flatmap showing part of the vagus nerve, from sources held in a publicly accessible PMR workspace::
+
+    $ curl -H "Content-Type: application/json"
+           -X POST
+           -d '{"source":"https://models.physiomeproject.org/workspace/693/rawfile/aa83dc1b19c03101d6a5306c77d144823fd59ea5/vagus_test.manifest.json"}'
            http://localhost:8000/make/map
+
+Response::
 
     {"map":"83f6c97d571b67fb4c273e20287b53b4f0a1f70780d3d6a2a282e66cef5f9473","process":57906,"source":"https://models.physiomeproject.org/workspace/693/rawfile/aa83dc1b19c03101d6a5306c77d144823fd59ea5/vagus_test.manifest.json","status":"started"}
 
-::
+Query build status::
 
-    $  curl  -H "Authorization: Bearer BEARER_TOKEN" http://localhost:8000/make/status/57906
+    $  curl http://localhost:8000/make/status/57906
+
+Response shows ``running``::
 
     {"process":57906,"status":"running"}
 
-::
+Get log showing progress::
 
-    $ curl -H "Authorization: Bearer BEARER_TOKEN" http://localhost:8000/make/log/57906
+    $ curl http://localhost:8000/make/log/57906
+
+Response::
 
     2021-06-11 13:46:17,386 INFO: Mapmaker 1.2.0b3
     2021-06-11 13:46:17,903 INFO: Making map: 83f6c97d571b67fb4c273e20287b53b4f0a1f70780d3d6a2a282e66cef5f9473
@@ -147,15 +167,19 @@ A particular version of the rat flatmap held in a publicly accessible PMR worksp
     2021-06-11 13:46:20,998 INFO: Tiling vagus_test_image...
     2021-06-11 13:46:21,019 INFO: Tiling zoom level 10 for vagus_test_image
 
-::
+Check status ::
 
-    $  curl  -H "Authorization: Bearer BEARER_TOKEN" http://localhost:8000/make/status/57906
+    $  curl http://localhost:8000/make/status/57906
+
+Response shows ``terminated``::
 
     {"process":57906,"status":"terminated"}
 
-::
+Get full log::
 
-    $ curl -H "Authorization: Bearer BEARER_TOKEN" http://localhost:8000/make/log/57906
+    $ curl http://localhost:8000/make/log/57906
+
+Response::
 
     2021-06-11 13:46:17,386 INFO: Mapmaker 1.2.0b3
     2021-06-11 13:46:17,903 INFO: Making map: 83f6c97d571b67fb4c273e20287b53b4f0a1f70780d3d6a2a282e66cef5f9473
