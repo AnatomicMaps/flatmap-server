@@ -67,13 +67,13 @@ The flatmap server can also generate maps. To generate a map, ``POST`` a request
 Authentication
 --------------
 
-Bearer tokens (`RFC 6750 <https://datatracker.ietf.org/doc/html/rfc6750>`_) may be used to control access to map generation services. To enable this, set the ``BEARER_TOKENS`` environment variable to a space separated list of valid tokens, before starting the server. e.g::
+Any publicly accessible map server **must** control who can generate maps — we use bearer tokens (`RFC 6750 <https://datatracker.ietf.org/doc/html/rfc6750>`_) for this. To enable, set the ``BEARER_TOKENS`` environment variable to a space separated list of valid tokens, before starting the server. e.g::
 
     $ export BEARER_TOKENS="token1 token2"
     $ pipenv run gunicorn src.server:app
 
 
-When ``BEARER_TOKENS`` have been defined, any map generation request **must** specify a valid token using the HTTP ``Authorization`` header. With ``curl`` this is done using the ``-H "Authorization: Bearer BEARER_TOKEN"`` option.
+When ``BEARER_TOKENS`` have been defined, every request to a map generation endpoint **must** specify a valid token using the HTTP ``Authorization`` header. With ``curl`` this is done using the ``-H "Authorization: Bearer BEARER_TOKEN"`` option.
 
 Examples
 --------
