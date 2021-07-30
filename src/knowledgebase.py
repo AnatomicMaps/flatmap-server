@@ -30,22 +30,37 @@ KNOWLEDGE_BASE = 'knowledgebase.db'
 
 class KnowledgeBase(object):
     def __init__(self, directory_path):
-        database = Path(directory_path, KNOWLEDGE_BASE).resolve()
-        if not database.exists():
-            db = sqlite3.connect(database.as_posix())
-            # create empty tables (schema...)
-            db.close()
-        self.__db = sqlite3.connect('{}?mode=ro'.format(database.as_uri()))
+        self.__database = Path(directory_path, KNOWLEDGE_BASE).resolve()
+        try:
+            if not self.__database.exists():
+                db = sqlite3.connect(self.__database.as_posix())
+                # create empty tables (schema...)
+                db.close()
+            self.__db = sqlite3.connect('{}?mode=ro'.format(self.__database.as_uri()))
+            self.__error = None
+        except (sqlite3.DatabaseError, sqlite3.OperationalError) as error:
+            self.__db = None
+            self.__error = str(error)
+
+    @property
+    def database(self):
+        return self.__database
+
+    @property
+    def error(self):
+        return self.__error
 
     def query(self, sql, *params):
-        result = {}
+        if self.__db is None:
+            return { 'error': self.__error }
         try:
             cursor = self.__db.cursor()
             rows = cursor.execute(sql, *params).fetchall()
-            result['keys'] = tuple(d[0] for d in cursor.description)
-            result['values'] = rows
-        except (sqlite3.ProgrammingError, sqlite3.OperationalError) as error:
-            result['error'] = str(error)
-        return result
+            return {
+                'keys': tuple(d[0] for d in cursor.description),
+                'values': rows
+            }
+        except (sqlite3.DatabaseError, sqlite3.ProgrammingError, sqlite3.OperationalError) as error:
+            return { 'error': str(error) }
 
 #===============================================================================

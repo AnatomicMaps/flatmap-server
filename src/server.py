@@ -124,6 +124,8 @@ flatmap_blueprint = Blueprint('flatmap', __name__,
 
 knowledge_blueprint = Blueprint('knowledge', __name__, url_prefix='/knowledge')
 
+knowledge_base = None
+
 #===============================================================================
 
 maker_blueprint = Blueprint('maker', __name__, url_prefix='/make')
@@ -183,10 +185,6 @@ def metadata(tile_reader, name):
 def get_metadata(map_id, name):
     mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.mbtiles')
     return metadata(MBTilesReader(mbtiles), name)
-
-#===============================================================================
-
-knowledge_base = KnowledgeBase(settings['FLATMAP_ROOT'])
 
 #===============================================================================
 
@@ -440,6 +438,14 @@ def viewer(filename='index.html'):
 app = wsgi_app()
 
 def viewer():
-    return wsgi_app(True)
+    global app
+    app = wsgi_app(True)
+    return app
+
+#===============================================================================
+
+knowledge_base = KnowledgeBase(settings['FLATMAP_ROOT'])
+if knowledge_base.error is not None:
+    app.logger.error('{}: {}'.format(knowledge_base.database, knowledge_base.error))
 
 #===============================================================================
