@@ -53,11 +53,10 @@ class KnowledgeBase(object):
         if self.__db is None:
             return { 'error': self.__error }
         try:
-            cursor = self.__db.cursor()
-            rows = cursor.execute(sql, *params).fetchall()
+            cursor = self.__db.execute(sql, *params)
             return {
                 'keys': tuple(d[0] for d in cursor.description),
-                'values': rows
+                'values': cursor.fetchall()
             }
         except (sqlite3.DatabaseError, sqlite3.ProgrammingError, sqlite3.OperationalError) as error:
             return { 'error': str(error) }
