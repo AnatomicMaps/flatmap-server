@@ -6,6 +6,7 @@ Web API
    :maxdepth: 2
    :caption: Contents:
 
-   Maker
    Server
    Viewer
+   Knowledge
+   Maker
