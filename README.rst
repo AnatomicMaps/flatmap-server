@@ -8,7 +8,7 @@ Prerequisites
 -------------
 
 * Python 3.8
-* `pipenv <https://pypi.org/project/pipenv/>`_
+* `poetry <https://python-poetry.org/docs/#installation>`_
 * Under Ubuntu, ``sudo apt-get install libgl-mesa-glx``
 * If the server will also generate maps, install `Tippecanoe <https://github.com/mapbox/tippecanoe#installation>`_.
 
@@ -17,7 +17,7 @@ Installation
 ------------
 
 1) Download the `latest release <https://github.com/dbrnz/flatmap-server/releases/latest>`_ and extract it to a suitable directory.
-2) Change to this directory and run ``pipenv install``.
+2) Change to this directory and run ``poetry install``.
 
 
 Running
@@ -25,7 +25,7 @@ Running
 
 ::
 
-    $ pipenv run gunicorn src.server:app
+    $ poetry run gunicorn src.server:app
 
 
 * By default, maps are stored in ``./flatmaps``. This can be overridden by setting the ``FLATMAP_ROOT`` environment variable to a directory path.
@@ -55,7 +55,7 @@ Running
 
 To run the server with the integrated viewer::
 
-    $ pipenv run gunicorn 'src.server:viewer()'
+    $ poetry run gunicorn 'src.server:viewer()'
 
 and open `<http://localhost:8000/viewer>`_ in a browser.
 
@@ -70,7 +70,7 @@ Authentication
 Any publicly accessible map server **must** control who can generate maps — we use bearer tokens (`RFC 6750 <https://datatracker.ietf.org/doc/html/rfc6750>`_) for this. To enable, set the ``BEARER_TOKENS`` environment variable to a space separated list of valid tokens, before starting the server. e.g::
 
     $ export BEARER_TOKENS="token1 token2"
-    $ pipenv run gunicorn src.server:app
+    $ poetry run gunicorn src.server:app
 
 
 When ``BEARER_TOKENS`` have been defined, every request to a map generation endpoint **must** specify a valid token using the HTTP ``Authorization`` header. With ``curl`` this is done using the ``-H "Authorization: Bearer BEARER_TOKEN"`` option.

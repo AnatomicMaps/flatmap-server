@@ -1,6 +1,0 @@
--i https://pypi.org/simple
-flask-cors==3.0.10
-flask==1.1.2
-sphinx-rtd-theme==0.5.1
-sphinx==3.4.3
-sphinxcontrib-httpdomain==1.7.0
