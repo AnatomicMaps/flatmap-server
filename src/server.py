@@ -34,12 +34,16 @@ import flask
 from flask import Blueprint, Flask, Response, request
 from flask_cors import CORS
 
-#===============================================================================
-
 try:
     from werkzeug.wsgi import FileWrapper
 except ImportError:
     FileWrapper = None
+
+#===============================================================================
+
+from .knowledgebase import KnowledgeBase
+
+#===============================================================================
 
 def send_bytes(bytes_io, mimetype):
     if FileWrapper is not None:
@@ -110,10 +114,15 @@ def blank_tile():
     return file
 
 #===============================================================================
+#===============================================================================
 
 flatmap_blueprint = Blueprint('flatmap', __name__,
                                 root_path=settings['ROOT_PATH'],
                                 url_prefix='/')
+
+#===============================================================================
+
+knowledge_blueprint = Blueprint('knowledge', __name__, url_prefix='/knowledge')
 
 #===============================================================================
 
@@ -136,12 +145,14 @@ viewer_blueprint = Blueprint('viewer', __name__,
                              url_prefix='/viewer')
 
 #===============================================================================
+#===============================================================================
 
 def wsgi_app(viewer=False):
     settings['MAP_VIEWER'] = viewer
     app = Flask(__name__)
     CORS(flatmap_blueprint)
     app.register_blueprint(flatmap_blueprint)
+    app.register_blueprint(knowledge_blueprint)
     app.register_blueprint(maker_blueprint)
     app.register_blueprint(viewer_blueprint)
     if __name__ != '__main__':
@@ -172,6 +183,10 @@ def metadata(tile_reader, name):
 def get_metadata(map_id, name):
     mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.mbtiles')
     return metadata(MBTilesReader(mbtiles), name)
+
+#===============================================================================
+
+knowledge_base = KnowledgeBase(settings['FLATMAP_ROOT'])
 
 #===============================================================================
 
@@ -323,6 +338,26 @@ def send_ontology(ontology):
                                         else None)
     else:
         flask.abort(404, 'Missing file: {}'.format(filename))
+
+#===============================================================================
+
+@knowledge_blueprint.route('query/', methods=['POST'])
+def knowledge_query():
+    """
+    Query the flatmap server's knowledge base.
+
+    :<json string sql: SQL code to execute
+    :<jsonarr string params: any parameters for the query
+
+    :>json array(string) keys: column names of result values
+    :>json array(array(string)) values: result data rows
+    :>json string error: any error message
+    """
+    params = flask.request.get_json()
+    if params is None or 'sql' not in params:
+        return flask.jsonify({'error': 'No SQL specified in request'})
+    else:
+        return flask.jsonify(knowledge_base.query(params.get('sql'), params.get('params', [])))
 
 #===============================================================================
 

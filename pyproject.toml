@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "flatmap-server"
-version = "0.10.7"
+version = "0.10.8"
 description = ""
 authors = ["David Brooks <d.brooks@auckland.ac.nz>"]
 
