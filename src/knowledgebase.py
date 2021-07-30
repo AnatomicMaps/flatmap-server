@@ -33,10 +33,9 @@ class KnowledgeBase(object):
         self.__database = Path(directory_path, KNOWLEDGE_BASE).resolve()
         try:
             if not self.__database.exists():
-                db = sqlite3.connect(self.__database.as_posix())
-                # create empty tables (schema...)
+                db = sqlite3.connect(self.__database)
                 db.close()
-            self.__db = sqlite3.connect('{}?mode=ro'.format(self.__database.as_uri()))
+            self.__db = sqlite3.connect('{}?mode=ro'.format(self.__database.as_uri()), uri=True)
             self.__error = None
         except (sqlite3.DatabaseError, sqlite3.OperationalError) as error:
             self.__db = None
