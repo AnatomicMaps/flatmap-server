@@ -187,6 +187,7 @@ def get_metadata(map_id, name):
     return metadata(MBTilesReader(mbtiles), name)
 
 #===============================================================================
+#===============================================================================
 
 @flatmap_blueprint.route('/')
 def maps():
@@ -243,25 +244,35 @@ def map(map_id):
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.json')
     return send_json(filename)
 
+#===============================================================================
+
 @flatmap_blueprint.route('flatmap/<string:map_id>/tilejson')
 def tilejson(map_id):
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'tilejson.json')
     return send_json(filename)
+
+#===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/style')
 def style(map_id):
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'style.json')
     return send_json(filename)
 
+#===============================================================================
+
 @flatmap_blueprint.route('flatmap/<string:map_id>/styled')
 def styled(map_id):
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'styled.json')
     return send_json(filename)
 
+#===============================================================================
+
 @flatmap_blueprint.route('flatmap/<string:map_id>/markers')
 def markers(map_id):
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'markers.json')
     return send_json(filename)
+
+#===============================================================================
 
 '''
 @flatmap_blueprint.route('flatmap/<string:map_id>/metadata')
@@ -273,21 +284,31 @@ def map_metadata(map_id):
         flask.abort(404, 'Missing RDF metadata')
 '''
 
+#===============================================================================
+
 @flatmap_blueprint.route('flatmap/<string:map_id>/annotations')
 def map_annotations(map_id):
     return flask.jsonify(get_metadata(map_id, 'annotations'))
+
+#===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/layers')
 def map_layers(map_id):
     return flask.jsonify(get_metadata(map_id, 'layers'))
 
+#===============================================================================
+
 @flatmap_blueprint.route('flatmap/<string:map_id>/metadata')
 def map_metadata(map_id):
     return flask.jsonify(get_metadata(map_id, 'metadata'))
 
+#===============================================================================
+
 @flatmap_blueprint.route('flatmap/<string:map_id>/pathways')
 def map_pathways(map_id):
     return flask.jsonify(get_metadata(map_id, 'pathways'))
+
+#===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/images/<string:image>')
 def map_background(map_id, image):
@@ -296,6 +317,8 @@ def map_background(map_id, image):
         return flask.send_file(filename)
     else:
         flask.abort(404, 'Missing image: {}'.format(filename))
+
+#===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/mvtiles/<int:z>/<int:x>/<int:y>')
 def vector_tiles(map_id, z, y, x):
@@ -311,6 +334,8 @@ def vector_tiles(map_id, z, y, x):
     except (InvalidFormatError, sqlite3.OperationalError):
         flask.abort(404, 'Cannot read tile database')
     return flask.make_response('', 204)
+
+#===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/tiles/<string:layer>/<int:z>/<int:x>/<int:y>')
 def image_tiles(map_id, layer, z, y, x):
@@ -338,6 +363,7 @@ def send_ontology(ontology):
         flask.abort(404, 'Missing file: {}'.format(filename))
 
 #===============================================================================
+#===============================================================================
 
 @knowledge_blueprint.route('query/', methods=['POST'])
 def knowledge_query():
@@ -357,6 +383,7 @@ def knowledge_query():
     else:
         return flask.jsonify(knowledge_base.query(params.get('sql'), params.get('params', [])))
 
+#===============================================================================
 #===============================================================================
 
 @maker_blueprint.route('/map', methods=['POST'])
@@ -415,6 +442,7 @@ def make_status(process_id):
     })
 
 #===============================================================================
+#===============================================================================
 
 @viewer_blueprint.route('/')
 @viewer_blueprint.route('/<path:filename>')
@@ -433,6 +461,7 @@ def viewer(filename='index.html'):
     else:
         flask.abort(404)
 
+#===============================================================================
 #===============================================================================
 
 app = wsgi_app()
