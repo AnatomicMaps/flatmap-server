@@ -49,11 +49,11 @@ class KnowledgeBase(object):
     def error(self):
         return self.__error
 
-    def query(self, sql, *params):
+    def query(self, sql, params):
         if self.__db is None:
             return { 'error': self.__error }
         try:
-            cursor = self.__db.execute(sql, *params)
+            cursor = self.__db.execute(sql, params)
             return {
                 'keys': tuple(d[0] for d in cursor.description),
                 'values': cursor.fetchall()
