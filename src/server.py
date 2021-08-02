@@ -177,7 +177,7 @@ def normalise_identifier(id):
 
 def metadata(tile_reader, name):
     try:
-        row = tile_reader._query("SELECT value FROM metadata WHERE name='{}';".format(name)).fetchone()
+        row = tile_reader._query("SELECT value FROM metadata WHERE name='{}'".format(name)).fetchone()
     except (InvalidFormatError, sqlite3.OperationalError):
         flask.abort(404, 'Cannot read tile database')
     return {} if row is None else json.loads(row[0])
@@ -212,10 +212,10 @@ def maps():
                     flask.abort(404, 'Cannot read tile database: {}'.format(mbtiles))
                 if source_row is not None:
                     flatmap = { 'id': tile_dir.name, 'source': source_row[0] }
-                    created = reader._query("SELECT value FROM metadata WHERE name='created';").fetchone()
+                    created = reader._query("SELECT value FROM metadata WHERE name='created'").fetchone()
                     if created is not None:
                         flatmap['created'] = created[0]
-                    describes = reader._query("SELECT value FROM metadata WHERE name='describes';").fetchone()
+                    describes = reader._query("SELECT value FROM metadata WHERE name='describes'").fetchone()
                     if describes is not None and describes[0]:
                         flatmap['describes'] = normalise_identifier(describes[0])
                     flatmap_list.append(flatmap)
