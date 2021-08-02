@@ -30,12 +30,10 @@ Running
 
 ::
 
-    $ poetry run gunicorn src.server:app
-
+    $ poetry run mapserver
 
 * By default, maps are stored in ``./flatmaps``. This can be overridden by setting the ``FLATMAP_ROOT`` environment variable to a directory path.
-* The server listens at ``http://localhost:8000``. Change this via `Gunicorn <https://docs.gunicorn.org/en/stable/settings.html>`_.
-
+* The server listens at ``http://localhost:8000``. Change this by adding options for `Gunicorn <https://docs.gunicorn.org/en/stable/settings.html>`_ applications to the ``mapserver`` command, e.g. ``poetry run mapserver -b 127.0.0.1:4300``.
 
 
 Optional map viewer
@@ -55,7 +53,7 @@ Running
 
 To run the server with the integrated viewer::
 
-    $ poetry run gunicorn 'src.server:viewer()'
+    $ poetry run mapviewer
 
 and open `<http://localhost:8000/viewer>`_ in a browser.
 

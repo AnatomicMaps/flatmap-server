@@ -93,8 +93,6 @@ flatmap_blueprint = Blueprint('flatmap', __name__,
 
 knowledge_blueprint = Blueprint('knowledge', __name__, url_prefix='/knowledge')
 
-knowledge_base = None
-
 #===============================================================================
 
 maker_blueprint = Blueprint('maker', __name__, url_prefix='/make')
@@ -118,7 +116,13 @@ viewer_blueprint = Blueprint('viewer', __name__,
 #===============================================================================
 #===============================================================================
 
+app = None
+knowledge_base = None
+
+#===============================================================================
+
 def wsgi_app(viewer=False):
+    global app, knowledge_base
     settings['MAP_VIEWER'] = viewer
     app = Flask(__name__)
     CORS(flatmap_blueprint)
@@ -133,11 +137,13 @@ def wsgi_app(viewer=False):
     if not viewer and not settings['BEARER_TOKENS']:
         # Only warn once...
         app.logger.warning('No bearer tokens defined')
+
+    # Open our knowledge base
+    knowledge_base = KnowledgeBase(settings['FLATMAP_ROOT'])
+    if knowledge_base.error is not None:
+        app.logger.error('{}: {}'.format(knowledge_base.database, knowledge_base.error))
+
     return app
-
-#===============================================================================
-
-app = wsgi_app()
 
 #===============================================================================
 #===============================================================================
@@ -493,15 +499,11 @@ def viewer(filename='index.html'):
 #===============================================================================
 #===============================================================================
 
+def server():
+    return wsgi_app(False)
+
 def viewer():
-    global app
-    app = wsgi_app(True)
-    return app
+    return wsgi_app(True)
 
 #===============================================================================
-
-knowledge_base = KnowledgeBase(settings['FLATMAP_ROOT'])
-if knowledge_base.error is not None:
-    app.logger.error('{}: {}'.format(knowledge_base.database, knowledge_base.error))
-
 #===============================================================================

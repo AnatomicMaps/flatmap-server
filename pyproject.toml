@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "flatmap-server"
 version = "0.10.8"
+name = "src"
 description = ""
 authors = ["David Brooks <d.brooks@auckland.ac.nz>"]
 
@@ -16,6 +16,10 @@ mapmaker = {url = "https://github.com/dbrnz/flatmap-maker/releases/download/v1.3
 sphinx = "4.0.3"
 sphinx-rtd-theme = "*"
 sphinxcontrib-httpdomain = "*"
+
+[tool.poetry.scripts]
+mapserver = 'src.__main__:main'
+mapviewer = 'src.__main__:viewer'
 
 [build-system]
 # See https://github.com/chrahunt/rtd-poetry/issues/3
