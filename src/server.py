@@ -134,7 +134,8 @@ def wsgi_app(viewer=False):
         gunicorn_logger = logging.getLogger('gunicorn.error')
         app.logger.handlers = gunicorn_logger.handlers
         app.logger.setLevel(gunicorn_logger.level)
-    if not viewer and not settings['BEARER_TOKENS']:
+
+    if not settings['BEARER_TOKENS']:
         # Only warn once...
         app.logger.warning('No bearer tokens defined')
 
