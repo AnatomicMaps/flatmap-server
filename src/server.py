@@ -45,28 +45,6 @@ from .knowledgebase import KnowledgeBase
 
 #===============================================================================
 
-def send_bytes(bytes_io, mimetype):
-    if FileWrapper is not None:
-        return Response(FileWrapper(bytes_io), mimetype=mimetype, direct_passthrough=True)
-    else:
-        return flask.send_file(bytes_io, mimetype=mimetype)
-
-#===============================================================================
-
-def send_json(filename):
-#=======================
-    try:
-        return flask.send_file(filename)
-    except FileNotFoundError:
-        return flask.jsonify({})
-
-def error_abort(msg):
-#====================
-    app.logger.error(msg)
-    flask.abort(501, msg)
-
-#===============================================================================
-
 # Global settings
 
 from .settings import settings
@@ -103,15 +81,6 @@ if 'sphinx' not in sys.modules:
     from .maker import Manager
 
     map_maker = Manager()
-
-#===============================================================================
-
-def blank_tile():
-    tile = Image.new('RGBA', (1, 1), color=(255, 255, 255, 0))
-    file = io.BytesIO()
-    tile.save(file, 'png')
-    file.seek(0)
-    return file
 
 #===============================================================================
 #===============================================================================
@@ -168,6 +137,44 @@ def wsgi_app(viewer=False):
 
 #===============================================================================
 
+app = wsgi_app()
+
+#===============================================================================
+#===============================================================================
+
+def send_bytes(bytes_io, mimetype):
+    if FileWrapper is not None:
+        return Response(FileWrapper(bytes_io), mimetype=mimetype, direct_passthrough=True)
+    else:
+        return flask.send_file(bytes_io, mimetype=mimetype)
+
+#===============================================================================
+
+def send_json(filename):
+#=======================
+    try:
+        return flask.send_file(filename)
+    except FileNotFoundError:
+        return flask.jsonify({})
+
+#===============================================================================
+
+def error_abort(msg):
+#====================
+    app.logger.error(msg)
+    flask.abort(501, msg)
+
+#===============================================================================
+
+def blank_tile():
+    tile = Image.new('RGBA', (1, 1), color=(255, 255, 255, 0))
+    file = io.BytesIO()
+    tile.save(file, 'png')
+    file.seek(0)
+    return file
+
+#===============================================================================
+
 def normalise_identifier(id):
 #============================
     return ':'.join([(s[:-1].lstrip('0') + s[-1])
@@ -175,7 +182,7 @@ def normalise_identifier(id):
 
 #===============================================================================
 
-def metadata(tile_reader, name):
+def read_metadata(tile_reader, name):
     try:
         row = tile_reader._query("SELECT value FROM metadata WHERE name='{}'".format(name)).fetchone()
     except (InvalidFormatError, sqlite3.OperationalError):
@@ -184,7 +191,7 @@ def metadata(tile_reader, name):
 
 def get_metadata(map_id, name):
     mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.mbtiles')
-    return metadata(MBTilesReader(mbtiles), name)
+    return read_metadata(MBTilesReader(mbtiles), name)
 
 #===============================================================================
 #===============================================================================
@@ -202,23 +209,45 @@ def maps():
     flatmap_list = []
     root_path = pathlib.Path(settings['FLATMAP_ROOT'])
     if root_path.is_dir():
-        for tile_dir in root_path.iterdir():
-            mbtiles = os.path.join(settings['FLATMAP_ROOT'], tile_dir, 'index.mbtiles')
-            if os.path.isdir(tile_dir) and os.path.exists(mbtiles):
+        for flatmap_dir in root_path.iterdir():
+            index = os.path.join(settings['FLATMAP_ROOT'], flatmap_dir, 'index.json')
+            mbtiles = os.path.join(settings['FLATMAP_ROOT'], flatmap_dir, 'index.mbtiles')
+            if os.path.isdir(flatmap_dir) and os.path.exists(index) and os.path.exists(mbtiles):
+                with open(index) as fp:
+                    index = json.loads(fp.read())
+                version = index.get('version', 1.0)
                 reader = MBTilesReader(mbtiles)
-                try:
-                    source_row = reader._query("SELECT value FROM metadata WHERE name='source';").fetchone()
-                except (InvalidFormatError, sqlite3.OperationalError):
-                    flask.abort(404, 'Cannot read tile database: {}'.format(mbtiles))
-                if source_row is not None:
-                    flatmap = { 'id': tile_dir.name, 'source': source_row[0] }
+                if version >= 1.3:
+                    metadata = read_metadata(reader, 'metadata')
+                    if flatmap_dir.name != metadata['id']:
+                        app.logger.error('Flatmap id mismatch: {}'.format(flatmap_dir))
+                        continue
+                    flatmap = {
+                        'id': metadata['id'],
+                        'source': metadata['source']
+                    }
+                    if 'created' in metadata:
+                        flatmap['created'] = metadata['created']
+                    if 'describes' in metadata:
+                        flatmap['describes'] = normalise_identifier(metadata['describes'])
+                else:
+                    try:
+                        source_row = reader._query("SELECT value FROM metadata WHERE name='source'").fetchone()
+                    except (InvalidFormatError, sqlite3.OperationalError):
+                        flask.abort(404, 'Cannot read tile database: {}'.format(mbtiles))
+                    if source_row is None:
+                        continue
+                    flatmap = {
+                        'id': flatmap_dir.name,
+                        'source': source_row[0]
+                    }
                     created = reader._query("SELECT value FROM metadata WHERE name='created'").fetchone()
                     if created is not None:
                         flatmap['created'] = created[0]
                     describes = reader._query("SELECT value FROM metadata WHERE name='describes'").fetchone()
                     if describes is not None and describes[0]:
                         flatmap['describes'] = normalise_identifier(describes[0])
-                    flatmap_list.append(flatmap)
+                flatmap_list.append(flatmap)
     return flask.jsonify(flatmap_list)
 
 #===============================================================================
@@ -326,7 +355,7 @@ def vector_tiles(map_id, z, y, x):
         mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.mbtiles')
         tile_reader = MBTilesReader(mbtiles)
         tile_bytes = tile_reader.tile(z, x, y)
-        if metadata(tile_reader, 'compressed'):
+        if read_metadata(tile_reader, 'compressed'):
             tile_bytes = gzip.decompress(tile_bytes)
         return send_bytes(io.BytesIO(tile_bytes), 'application/octet-stream')
     except ExtractionError:
@@ -463,8 +492,6 @@ def viewer(filename='index.html'):
 
 #===============================================================================
 #===============================================================================
-
-app = wsgi_app()
 
 def viewer():
     global app
