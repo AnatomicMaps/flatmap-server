@@ -64,6 +64,9 @@ Map generation
 
 The flatmap server can also generate maps. To generate a map, ``POST`` a request to the ``/make/map`` end-point specifying a directory containing a map's ``manifest.json``. The server will respond with the id of the maker process. The ``/make/status/PROCESS_ID`` end-point allows the process's status to be queried and ``/make/log/PROCESS_ID`` will return a log of a running process.
 
+`SciCrunch <https://scicrunch.org/>`_ is used to lookup attributes (e.g. labels) of anatomical entities when making maps. In order to use these services a valid SciCrunch API key must be provided as the ``SCICRUNCH_API_KEY`` environment variable. (Keys are obtained by registering as a SciCrunch user).
+
+
 Authentication
 --------------
 
