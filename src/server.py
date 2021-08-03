@@ -419,6 +419,8 @@ def knowledge_query():
         knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'])
         result = knowledge_store.query(params.get('sql'), params.get('params', []))
         knowledge_store.close()
+        if 'error' in result:
+            app.logger.warning('SQL: {}'.format(result['error']))
         return flask.jsonify(result)
 
 #===============================================================================
