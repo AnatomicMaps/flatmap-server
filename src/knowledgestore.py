@@ -18,46 +18,37 @@
 #
 #===============================================================================
 
-from pathlib import Path
-
 import sqlite3
 
 #===============================================================================
 
-KNOWLEDGE_BASE = 'knowledgebase.db'
+from mapmaker.knowledgebase import KnowledgeBase
 
 #===============================================================================
 
-class KnowledgeBase(object):
-    def __init__(self, directory_path):
-        self.__database = Path(directory_path, KNOWLEDGE_BASE).resolve()
+class KnowledgeStore(KnowledgeBase):
+    def __init__(self, directory_path, create=False):
         try:
-            if not self.__database.exists():
-                db = sqlite3.connect(self.__database)
-                db.close()
-            self.__db = sqlite3.connect('{}?mode=ro'.format(self.__database.as_uri()), uri=True)
+            super().__init__(directory_path, read_only=True, create=create)
             self.__error = None
         except (sqlite3.DatabaseError, sqlite3.OperationalError) as error:
-            self.__db = None
             self.__error = str(error)
-
-    @property
-    def database(self):
-        return self.__database
 
     @property
     def error(self):
         return self.__error
 
     def query(self, sql, params):
-        if self.__db is None:
+        if self.__error is not None:
             return { 'error': self.__error }
         try:
-            cursor = self.__db.execute(sql, params)
-            return {
+            cursor = self.db.execute(sql, params)
+            result = {
                 'keys': tuple(d[0] for d in cursor.description),
                 'values': cursor.fetchall()
             }
+            cursor.close()
+            return result
         except (sqlite3.DatabaseError, sqlite3.ProgrammingError, sqlite3.OperationalError) as error:
             return { 'error': str(error) }
 

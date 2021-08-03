@@ -41,7 +41,7 @@ except ImportError:
 
 #===============================================================================
 
-from .knowledgebase import KnowledgeBase
+from .knowledgestore import KnowledgeStore
 
 #===============================================================================
 
@@ -117,12 +117,11 @@ viewer_blueprint = Blueprint('viewer', __name__,
 #===============================================================================
 
 app = None
-knowledge_base = None
 
 #===============================================================================
 
 def wsgi_app(viewer=False):
-    global app, knowledge_base
+    global app
     settings['MAP_VIEWER'] = viewer
     app = Flask(__name__)
     CORS(flatmap_blueprint)
@@ -140,9 +139,9 @@ def wsgi_app(viewer=False):
         app.logger.warning('No bearer tokens defined')
 
     # Open our knowledge base
-    knowledge_base = KnowledgeBase(settings['FLATMAP_ROOT'])
-    if knowledge_base.error is not None:
-        app.logger.error('{}: {}'.format(knowledge_base.database, knowledge_base.error))
+    knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=True)
+    if knowledge_store.error is not None:
+        app.logger.error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
 
     return app
 
@@ -417,7 +416,10 @@ def knowledge_query():
     if params is None or 'sql' not in params:
         return flask.jsonify({'error': 'No SQL specified in request'})
     else:
-        return flask.jsonify(knowledge_base.query(params.get('sql'), params.get('params', [])))
+        knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'])
+        result = knowledge_store.query(params.get('sql'), params.get('params', []))
+        knowledge_store.close()
+        return flask.jsonify(result)
 
 #===============================================================================
 #===============================================================================
