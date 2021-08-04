@@ -126,6 +126,7 @@ def wsgi_app(viewer=False):
     app = Flask(__name__)
     CORS(flatmap_blueprint)
     app.register_blueprint(flatmap_blueprint)
+    CORS(knowledge_blueprint)
     app.register_blueprint(knowledge_blueprint)
     app.register_blueprint(maker_blueprint)
     app.register_blueprint(viewer_blueprint)
