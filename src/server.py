@@ -237,6 +237,8 @@ def maps():
                         flatmap['created'] = metadata['created']
                     if 'describes' in metadata:
                         flatmap['describes'] = normalise_identifier(metadata['describes'])
+                    if 'name' in metadata:
+                        flatmap['name'] = metadata['name']
                 else:
                     try:
                         source_row = reader._query("SELECT value FROM metadata WHERE name='source'").fetchone()
