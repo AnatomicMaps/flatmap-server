@@ -235,8 +235,12 @@ def maps():
                     }
                     if 'created' in metadata:
                         flatmap['created'] = metadata['created']
-                    if 'describes' in metadata:
-                        flatmap['describes'] = normalise_identifier(metadata['describes'])
+                    if 'taxon' in metadata:
+                        flatmap['taxon'] = normalise_identifier(metadata['taxon'])
+                        flatmap['describes'] = metadata['describes'] if 'describes' in metadata else flatmap['taxon']
+                    elif 'describes' in metadata:
+                        flatmap['taxon'] = normalise_identifier(metadata['describes'])
+                        flatmap['describes'] = flatmap['taxon']
                     if 'name' in metadata:
                         flatmap['name'] = metadata['name']
                 else:
