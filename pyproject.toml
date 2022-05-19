@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "src"
-version = "0.10.15"
+version = "0.11.1"
 description = ""
 authors = ["David Brooks <d.brooks@auckland.ac.nz>"]
 
