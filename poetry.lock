@@ -240,7 +240,7 @@ source = ["Cython (>=0.29.7)"]
 
 [[package]]
 name = "mapknowledge"
-version = "0.9.8"
+version = "0.9.9"
 description = ""
 category = "main"
 optional = false
@@ -253,11 +253,11 @@ requests = "*"
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.9.8/mapknowledge-0.9.8-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.9.9/mapknowledge-0.9.9-py3-none-any.whl"
 
 [[package]]
 name = "mapmaker"
-version = "1.4.2a4"
+version = "1.4.2a5"
 description = ""
 category = "main"
 optional = false
@@ -267,7 +267,7 @@ python-versions = ">=3.8,<4.0"
 beziers = "*"
 cssselect2 = "*"
 lxml = "*"
-mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.9.8/mapknowledge-0.9.8-py3-none-any.whl"}
+mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.9.9/mapknowledge-0.9.9-py3-none-any.whl"}
 mbutil = "*"
 mercantile = "*"
 networkx = "*"
@@ -294,7 +294,7 @@ xmltodict = ">=0.12.0,<0.13.0"
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.4.2a4/mapmaker-1.4.2a4-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.4.2a5/mapmaker-1.4.2a5-py3-none-any.whl"
 [[package]]
 name = "markupsafe"
 version = "2.1.1"
@@ -861,7 +861,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "9343ac42142965bf69a46903817de8ae94a57b8a9e0dffd30a67d4d95fa5df42"
+content-hash = "fa49794ec1a7ce84493db5d7853cf9fdc2a704c7aed0fabb3da0128e84c28b54"
 
 [metadata.files]
 alabaster = [
