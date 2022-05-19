@@ -22,14 +22,14 @@ import sqlite3
 
 #===============================================================================
 
-from mapmaker.knowledgebase import KnowledgeBase
+import mapmaker.knowledgebase
 
 #===============================================================================
 
-class KnowledgeStore(KnowledgeBase):
+class KnowledgeStore(mapmaker.knowledgebase.KnowledgeStore):
     def __init__(self, directory_path, create=False):
         try:
-            super().__init__(directory_path, read_only=True, create=create)
+            super().__init__(directory_path, create=create, read_only=True)
             self.__error = None
         except (sqlite3.DatabaseError, sqlite3.OperationalError) as error:
             self.__error = str(error)
