@@ -15,8 +15,8 @@ Prerequisites
 * Python 3.8
 * `poetry <https://python-poetry.org/docs/#installation>`_
 * Under Ubuntu, ``sudo apt-get install libgl-mesa-glx``
-* If the server will also generate maps, install `Tippecanoe <https://github.com/mapbox/tippecanoe#installation>`_.
-
+* If the server will also generate maps, install `Tippecanoe <https://github.com/mapbox/tippecanoe#installation>`_
+  and the `COIN-OR CBC solver <https://github.com/coin-or/Cbc#binaries>`_.
 
 Installation
 ------------
