@@ -231,7 +231,8 @@ def maps():
                         continue
                     flatmap = {
                         'id': metadata['id'],
-                        'source': metadata['source']
+                        'source': metadata['source'],
+                        'version': version
                     }
                     if 'created' in metadata:
                         flatmap['created'] = metadata['created']
