@@ -10,7 +10,7 @@ flask = "*"
 gunicorn = "*"
 landez = "*"
 flask-cors = "*"
-mapmaker = {url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.4.2a5/mapmaker-1.4.2a5-py3-none-any.whl"}
+mapmaker = {url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.4.2b1/mapmaker-1.4.2b1-py3-none-any.whl"}
 
 [tool.poetry.dev-dependencies]
 sphinx = "4.0.3"
