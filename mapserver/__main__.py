@@ -29,10 +29,10 @@ def run_app(app):
     WSGIApplication("%(prog)s [OPTIONS] [APP_MODULE]").run()
 
 def main():
-    run_app('src.server:server()')
+    run_app('mapserver.server:server()')
 
 def viewer():
-    run_app('src.server:viewer()')
+    run_app('mapserver.server:viewer()')
 
 #===============================================================================
 

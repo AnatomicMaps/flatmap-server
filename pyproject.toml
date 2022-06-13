@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "src"
+name = "mapserver"
 version = "0.11.4"
 description = ""
 authors = ["David Brooks <d.brooks@auckland.ac.nz>"]
@@ -18,8 +18,8 @@ sphinx-rtd-theme = "*"
 sphinxcontrib-httpdomain = "*"
 
 [tool.poetry.scripts]
-mapserver = 'src.__main__:main'
-mapviewer = 'src.__main__:viewer'
+mapserver = 'mapserver.__main__:main'
+mapviewer = 'mapserver.__main__:viewer'
 
 [build-system]
 # See https://github.com/chrahunt/rtd-poetry/issues/3
