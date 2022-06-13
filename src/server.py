@@ -42,6 +42,7 @@ except ImportError:
 #===============================================================================
 
 from .knowledgestore import KnowledgeStore
+from . import __version__
 
 #===============================================================================
 
@@ -135,6 +136,7 @@ def wsgi_app(viewer=False):
         app.logger.handlers = gunicorn_logger.handlers
         app.logger.setLevel(gunicorn_logger.level)
 
+    app.logger.info(f'Started flatmap server version {__version__}')
     if not settings['BEARER_TOKENS']:
         # Only warn once...
         app.logger.warning('No bearer tokens defined')
