@@ -36,9 +36,9 @@ from mapmaker.utils import log
 
 #===============================================================================
 
-# Base directory for logs (relative to ``ROOT_PATH``)
+# Base directory for logs (relative to ``MAPMAKER_ROOT``)
 
-LOG_DIRECTORY = './mapmaker/log'
+LOG_DIRECTORY = os.path.join(settings['MAPMAKER_ROOT'], 'log')
 
 #===============================================================================
 

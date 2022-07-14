@@ -61,6 +61,12 @@ settings['ONTOLOGY_ROOT'] = normalise_path('./ontology')
 
 settings['BEARER_TOKENS'] = os.environ.get('BEARER_TOKENS', '').split()
 
+MAPMAKER_ROOT = os.environ.get('MAPMAKER_ROOT', './mapmaker')
+settings['MAPMAKER_ROOT'] = normalise_path(MAPMAKER_ROOT)
+# Do we have a copy of ``mapmaker`` available?
+HAVE_MAPMAKER = pathlib.Path(os.path.join(settings['MAPMAKER_ROOT'],
+                                          'mapmaker/__init__.py')).exists()
+
 #===============================================================================
 
 # Needed to read JPEG 2000 files with OpenCV2 under Linux
@@ -79,9 +85,12 @@ if 'sphinx' not in sys.modules:
     # We also don't instantiate a Manager as doing so will prevent Sphinx from
     # exiting (and hang a ``readthedocs`` build)
 
-    from .maker import Manager
-
-    map_maker = Manager()
+    if HAVE_MAPMAKER:
+        sys.path.insert(0, settings['MAPMAKER_ROOT'])
+        from .maker import Manager
+        map_maker = Manager()
+else:
+    map_maker = None
 
 #===============================================================================
 #===============================================================================
@@ -100,12 +109,13 @@ maker_blueprint = Blueprint('maker', __name__, url_prefix='/make')
 
 @maker_blueprint.before_request
 def maker_auth_check():
-    if not settings['BEARER_TOKENS']:
-        return None  # no security defined; permit all access.
-    auth = request.headers.get('Authorization', '')
-    if auth.startswith('Bearer '):
-        if auth.split()[1] in settings['BEARER_TOKENS']:
-            return None
+    if map_maker is not None:
+        if not settings['BEARER_TOKENS']:
+            return None  # no security defined; permit all access.
+        auth = request.headers.get('Authorization', '')
+        if auth.startswith('Bearer '):
+            if auth.split()[1] in settings['BEARER_TOKENS']:
+                return None
     return flask.make_response('{"error": "unauthorized"}', 403)
 
 #===============================================================================

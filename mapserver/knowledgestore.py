@@ -22,11 +22,11 @@ import sqlite3
 
 #===============================================================================
 
-import mapmaker.knowledgebase
+import flatmapknowledge
 
 #===============================================================================
 
-class KnowledgeStore(mapmaker.knowledgebase.KnowledgeStore):
+class KnowledgeStore(flatmapknowledge.KnowledgeStore):
     def __init__(self, directory_path, create=False):
         try:
             super().__init__(directory_path, create=create, read_only=True)
