@@ -1,2 +1,5 @@
 flatmaps/
 mapmaker/
+viewer/
+*.pyc
+.DS_Store
