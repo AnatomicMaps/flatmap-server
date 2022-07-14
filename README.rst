@@ -60,7 +60,7 @@ and open `<http://localhost:8000/viewer>`_ in a browser.
 Map generation
 ==============
 
-The flatmap server can also generate maps. This requires a separate installation of ``mapmaker``; if it a location other than ``./mapmaker`` under the top-level server directory then the ``MAPMAKER_ROOT`` environment variable must be set to point to where mapmaker is installed.
+The flatmap server can also generate maps. This requires a separate installation of ``mapmaker``; if this is to a location other than ``./mapmaker`` under the top-level server directory then the ``MAPMAKER_ROOT`` environment variable must be set to point to where mapmaker is installed.
 
 *   First install mapmaker's pre-requisites as `here <https://github.com/AnatomicMaps/flatmap-maker#requirements>`_.
 *   Then::
