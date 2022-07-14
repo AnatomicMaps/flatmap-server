@@ -57,7 +57,6 @@ def normalise_path(path):
 
 FLATMAP_ROOT = os.environ.get('FLATMAP_ROOT', './flatmaps')
 settings['FLATMAP_ROOT'] = normalise_path(FLATMAP_ROOT)
-settings['ONTOLOGY_ROOT'] = normalise_path('./ontology')
 
 settings['BEARER_TOKENS'] = os.environ.get('BEARER_TOKENS', '').split()
 
@@ -404,18 +403,6 @@ def image_tiles(map_id, layer, z, y, x):
     except (InvalidFormatError, sqlite3.OperationalError):
         flask.abort(404, 'Cannot read tile database')
     return send_bytes(blank_tile(), 'image/png')
-
-#===============================================================================
-
-@flatmap_blueprint.route('ontology/<string:ontology>')
-def send_ontology(ontology):
-    filename = os.path.join(settings['ONTOLOGY_ROOT'], ontology)
-    if os.path.exists(filename):
-        return flask.send_file(filename, mimetype='application/rdf+xml'
-                                        if os.path.splitext(filename)[1] in ['.owl', '.xml']
-                                        else None)
-    else:
-        flask.abort(404, 'Missing file: {}'.format(filename))
 
 #===============================================================================
 #===============================================================================
