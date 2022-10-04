@@ -423,7 +423,7 @@ def knowledge_query():
     if params is None or 'sql' not in params:
         return flask.jsonify({'error': 'No SQL specified in request'})
     else:
-        knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'])
+        knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=False, read_only=True)
         result = knowledge_store.query(params.get('sql'), params.get('params', []))
         knowledge_store.close()
         if 'error' in result:
