@@ -55,6 +55,8 @@ def normalise_path(path):
 #========================
     return os.path.normpath(os.path.join(settings['ROOT_PATH'], path))
 
+#===============================================================================
+
 FLATMAP_ROOT = os.environ.get('FLATMAP_ROOT', './flatmaps')
 settings['FLATMAP_ROOT'] = normalise_path(FLATMAP_ROOT)
 
@@ -203,9 +205,9 @@ def normalise_identifier(id):
 def read_metadata(tile_reader, name):
     try:
         row = tile_reader._query("SELECT value FROM metadata WHERE name='{}'".format(name)).fetchone()
+        return {} if row is None else json.loads(row[0])
     except (InvalidFormatError, sqlite3.OperationalError):
         flask.abort(404, 'Cannot read tile database')
-    return {} if row is None else json.loads(row[0])
 
 def get_metadata(map_id, name):
     mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.mbtiles')
