@@ -237,8 +237,9 @@ def maps():
                 reader = MBTilesReader(mbtiles)
                 if version >= 1.3:
                     metadata = read_metadata(reader, 'metadata')
-                    if flatmap_dir.name != metadata['id']:
-                        app.logger.error('Flatmap id mismatch: {}'.format(flatmap_dir))
+                    if (('id' not in metadata or flatmap_dir.name != metadata['id'])
+                     and ('uuid' not in metadata or flatmap_dir.name != metadata['uuid'].split(':')[-1])):
+                        app.logger.error(f'Flatmap id mismatch: {flatmap_dir}')
                         continue
                     flatmap = {
                         'id': metadata['id'],
@@ -253,6 +254,8 @@ def maps():
                     elif 'describes' in metadata:
                         flatmap['taxon'] = normalise_identifier(metadata['describes'])
                         flatmap['describes'] = flatmap['taxon']
+                    if 'uuid' in metadata:
+                        flatmap['uuid'] = metadata['uuid']
                     if 'name' in metadata:
                         flatmap['name'] = metadata['name']
                 else:
