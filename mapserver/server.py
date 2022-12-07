@@ -254,6 +254,8 @@ def maps():
                     elif 'describes' in metadata:
                         flatmap['taxon'] = normalise_identifier(metadata['describes'])
                         flatmap['describes'] = flatmap['taxon']
+                    if 'biological-sex' in metadata:
+                        flatmap['biologicalSex'] = metadata['biological-sex']
                     if 'uuid' in metadata:
                         flatmap['uuid'] = metadata['uuid']
                     if 'name' in metadata:
