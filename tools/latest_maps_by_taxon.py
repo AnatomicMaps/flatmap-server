@@ -111,14 +111,15 @@ def main():
                 flatmaps_by_dir[str(flatmap_dir)] = flatmap
 
     if not args.all_maps:
-        maps_by_taxon = {}
+        maps_by_taxon_sex = {}
         for flatmap_dir, flatmap in flatmaps_by_dir.items():
             if ((created := flatmap.get('created')) is not None
             and (taxon := flatmap.get('taxon', flatmap.get('describes'))) is not None):
-                if (taxon not in maps_by_taxon
-                 or created > maps_by_taxon[taxon][0]):
-                    maps_by_taxon[taxon] = (created, flatmap_dir, flatmap)
-        flatmaps_by_dir = { flatmap_dir: flatmap for _, flatmap_dir, flatmap in maps_by_taxon.values() }
+                map_key = (taxon, flatmap.get('biologicalSex', ''))
+                if (map_key not in maps_by_taxon_sex
+                 or created > maps_by_taxon_sex[map_key][0]):
+                    maps_by_taxon_sex[map_key] = (created, flatmap_dir, flatmap)
+        flatmaps_by_dir = { flatmap_dir: flatmap for _, flatmap_dir, flatmap in maps_by_taxon_sex.values() }
 
     print(json.dumps(flatmaps_by_dir, indent=4))
 
