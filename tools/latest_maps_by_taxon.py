@@ -1,6 +1,6 @@
 #===============================================================================
 #
-#  Flatmap server tools
+#  Flatmap tools
 #
 #  Copyright (c) 2023 David Brooks
 #
@@ -114,7 +114,7 @@ def main():
             if ((created := flatmap.get('created')) is not None
             and (taxon := flatmap.get('taxon', flatmap.get('describes'))) is not None):
                 if (taxon not in maps_by_taxon
-                 or maps_by_taxon[taxon][0] > created):
+                 or created > maps_by_taxon[taxon][0]):
                     maps_by_taxon[taxon] = (created, flatmap_dir, flatmap)
         latest_maps_by_dir = { flatmap_dir: flatmap for _, flatmap_dir, flatmap in maps_by_taxon.values() }
         print(json.dumps(latest_maps_by_dir, indent=4))
