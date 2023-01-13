@@ -50,6 +50,8 @@ def main():
 
     parser = argparse.ArgumentParser(description='Print latest maps on a map server')
     parser.add_argument('--all-maps', action='store_true', help='Print all maps')
+    parser.add_argument('--tar-script', metavar='TAR_SCRIPT', help='Script to create to archive flatmap directories', default='tar_latest.sh')
+    parser.add_argument('--archive-name', metavar='ARCHIVE_NAME', help='Name of archive to create', default='./latest_flatmaps.tar.gz')
     parser.add_argument('--flatmaps', dest='flatmap_root', metavar='FLATMAP_ROOT', default='./flatmaps')
     args = parser.parse_args()
 
@@ -116,10 +118,17 @@ def main():
                 if (taxon not in maps_by_taxon
                  or created > maps_by_taxon[taxon][0]):
                     maps_by_taxon[taxon] = (created, flatmap_dir, flatmap)
-        latest_maps_by_dir = { flatmap_dir: flatmap for _, flatmap_dir, flatmap in maps_by_taxon.values() }
-        print(json.dumps(latest_maps_by_dir, indent=4))
-    else:
-        print(json.dumps(flatmaps_by_dir, indent=4))
+        flatmaps_by_dir = { flatmap_dir: flatmap for _, flatmap_dir, flatmap in maps_by_taxon.values() }
+
+    print(json.dumps(flatmaps_by_dir, indent=4))
+
+    if args.tar_script:
+        root_path_len = len(str(root_path)) + 1
+        with open(args.tar_script, 'w') as fp:
+            fp.write('#!/bin/sh\n\n')
+            fp.write('  \\\n    '.join([f'tar czvf {args.archive_name} -C {root_path}']
+                                     + [flatmap_dir[root_path_len:] for flatmap_dir in flatmaps_by_dir.keys()]))
+            fp.write('\n')
 
 #===============================================================================
 
