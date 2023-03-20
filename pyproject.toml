@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mapserver"
-version = "0.12.4"
+version = "0.12.5"
 description = ""
 authors = ["David Brooks <d.brooks@auckland.ac.nz>"]
 
