@@ -27,7 +27,7 @@ import os.path
 import pathlib
 import sqlite3
 import sys
-from urllib.parse import parse_qs
+from urllib.parse import urlparse
 
 #===============================================================================
 
@@ -73,8 +73,8 @@ HAVE_MAPMAKER = pathlib.Path(os.path.join(settings['MAPMAKER_ROOT'],
 
 #===============================================================================
 
-VALID_SERVERS = ['https://flatmaps.celldl.org']
-LOCAL_SERVERS = ['http://localhost', 'http://127.0.0.1']
+VALID_SERVERS = ['https://flatmaps.celldl.org/']
+LOCAL_HOSTS = ['localhost', '127.0.0.1']
 
 GITHUB_CLIENT = os.environ.get('GITHUB_CLIENT', '')
 GITHUB_SECRET = os.environ.get('GITHUB_SECRET', '')
@@ -545,15 +545,17 @@ def github_user_data(token):
 
 @flatmap_blueprint.route('/login')
 def login():
-    if github is not None:
-        if ((oauth_token := flask.request.cookies.get(AUTHORISATION_COOKIE))
+    if urlparse(request.url_root).hostname in LOCAL_HOSTS:
+        response = flask.make_response('{"success": "logged in"}', 200, {'mimetype': 'application/json'})
+    elif request.url_root in VALID_SERVERS and github is not None:
+        if ((oauth_token := request.cookies.get(AUTHORISATION_COOKIE))
         and (user_data := github_user_data(oauth_token)) is not None):
             return flask.jsonify(user_data)
         return github.authorize()
     else:
         response = flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
-        response.set_cookie(AUTHORISATION_COOKIE, '', expires=0)
-        return response
+    response.set_cookie(AUTHORISATION_COOKIE, '', expires=0)
+    return response
 
 @flatmap_blueprint.route('/logout')
 def logout():
