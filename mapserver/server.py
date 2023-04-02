@@ -22,17 +22,19 @@ import gzip
 import io
 import json
 import logging
+import os
 import os.path
 import pathlib
 import sqlite3
 import sys
-import time
+from urllib.parse import parse_qs
 
 #===============================================================================
 
 import flask
 from flask import Blueprint, Flask, Response, request
 from flask_cors import CORS
+from flask_github import GitHub
 
 try:
     from werkzeug.wsgi import FileWrapper
@@ -68,6 +70,17 @@ settings['MAPMAKER_ROOT'] = normalise_path(MAPMAKER_ROOT)
 HAVE_MAPMAKER = pathlib.Path(os.path.join(settings['MAPMAKER_ROOT'],
                                           'mapmaker/__init__.py')).exists()
 
+
+#===============================================================================
+
+VALID_SERVERS = ['https://flatmaps.celldl.org']
+LOCAL_SERVERS = ['http://localhost', 'http://127.0.0.1']
+
+GITHUB_CLIENT = os.environ.get('GITHUB_CLIENT', '')
+GITHUB_SECRET = os.environ.get('GITHUB_SECRET', '')
+
+AUTHORISATION_COOKIE = 'AnnotationUser'
+
 #===============================================================================
 
 # Needed to read JPEG 2000 files with OpenCV2 under Linux
@@ -94,7 +107,6 @@ else:
     map_maker = None
 
 #===============================================================================
-#===============================================================================
 
 flatmap_blueprint = Blueprint('flatmap', __name__,
                                 root_path=settings['ROOT_PATH'],
@@ -115,7 +127,7 @@ def maker_auth_check():
             return None  # no security defined; permit all access.
         auth = request.headers.get('Authorization', '')
         if auth.startswith('Bearer '):
-            if auth.split()[1] in settings['BEARER_TOKENS']:
+            if auth.split()[1] in settings['BEARER_TOKENS']:  #### not in ?????
                 return None
     return flask.make_response('{"error": "unauthorized"}', 403)
 
@@ -129,11 +141,12 @@ viewer_blueprint = Blueprint('viewer', __name__,
 #===============================================================================
 
 app = None
+github = None
 
 #===============================================================================
 
 def wsgi_app(viewer=False):
-    global app
+    global app, github
     settings['MAP_VIEWER'] = viewer
     app = Flask(__name__)
     CORS(flatmap_blueprint)
@@ -142,6 +155,13 @@ def wsgi_app(viewer=False):
     app.register_blueprint(knowledge_blueprint)
     app.register_blueprint(maker_blueprint)
     app.register_blueprint(viewer_blueprint)
+
+    # We use GitHub for authentication when annotating a ``VALID_SERVER``
+    if GITHUB_CLIENT:
+        app.config['GITHUB_CLIENT_ID'] = GITHUB_CLIENT
+        app.config['GITHUB_CLIENT_SECRET'] = GITHUB_SECRET
+        github = GitHub(app)
+
     if __name__ != '__main__':
         gunicorn_logger = logging.getLogger('gunicorn.error')
         app.logger.handlers = gunicorn_logger.handlers
@@ -238,7 +258,7 @@ def maps():
                 version = index.get('version', 1.0)
                 reader = MBTilesReader(mbtiles)
                 if version >= 1.3:
-                    metadata = read_metadata(reader, 'metadata')
+                    metadata: dict[str, str] = read_metadata(reader, 'metadata')
                     if (('id' not in metadata or flatmap_dir.name != metadata['id'])
                      and ('uuid' not in metadata or flatmap_dir.name != metadata['uuid'].split(':')[-1])):
                         app.logger.error(f'Flatmap id mismatch: {flatmap_dir}')
@@ -263,6 +283,7 @@ def maps():
                     if 'name' in metadata:
                         flatmap['name'] = metadata['name']
                 else:
+                    source_row = None
                     try:
                         source_row = reader._query("SELECT value FROM metadata WHERE name='source'").fetchone()
                     except (InvalidFormatError, sqlite3.OperationalError):
@@ -332,24 +353,6 @@ def styled(map_id):
 def markers(map_id):
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'markers.json')
     return send_json(filename)
-
-#===============================================================================
-
-'''
-@flatmap_blueprint.route('flatmap/<string:map_id>/metadata')
-def map_metadata(map_id):
-    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'metadata.ttl')
-    if os.path.exists(filename):
-        return flask.send_file(filename, mimetype='text/turtle')
-    else:
-        flask.abort(404, 'Missing RDF metadata')
-'''
-
-#===============================================================================
-
-@flatmap_blueprint.route('flatmap/<string:map_id>/annotations')
-def map_annotations(map_id):
-    return flask.jsonify(get_metadata(map_id, 'annotations'))
 
 #===============================================================================
 
@@ -514,6 +517,48 @@ def viewer(filename='index.html'):
         return flask.send_file(filename)
     else:
         flask.abort(404)
+
+#===============================================================================
+#===============================================================================
+
+def valid_token(token):
+    if github is not None:
+        response = github.session.post('https://api.github.com/user',
+                                        data={'access_token': token})
+        params = parse_qs(response.content)
+        print(params)
+    return False
+
+if GITHUB_CLIENT:
+    @flatmap_blueprint.route('/login')
+    def login():
+        if ((oauth_token := flask.request.cookies.get(AUTHORISATION_COOKIE))
+        and valid_token(oauth_token)):
+            return flask.jsonify({'token': oauth_token})
+        return github.authorize()
+
+    @flatmap_blueprint.route('/github')
+    def authorized(oauth_token):
+        if 'code' in request.args:
+            data = github._handle_response()
+        else:
+            data = github._handle_invalid_response()
+
+        print(oauth_token, data)
+
+        response = flask.make_response()
+        response.mimetype = 'application/json'
+        if oauth_token is None:
+            response.set_data(json.dumps({'access_token': ''}))
+            response.set_cookie(AUTHORISATION_COOKIE, '', expires=0)
+        else:
+            response.set_data(json.dumps({'token': oauth_token}))
+            response.set_cookie(AUTHORISATION_COOKIE, oauth_token, secure=True)
+        return response
+
+#===============================================================================
+
+from .annotation import map_annotations, feature_annotations
 
 #===============================================================================
 #===============================================================================
