@@ -129,7 +129,7 @@ def maker_auth_check():
         if auth.startswith('Bearer '):
             if auth.split()[1] in settings['BEARER_TOKENS']:  #### not in ?????
                 return None
-    return flask.make_response('{"error": "unauthorized"}', 403)
+    return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
 
 #===============================================================================
 
