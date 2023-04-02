@@ -73,9 +73,6 @@ HAVE_MAPMAKER = pathlib.Path(os.path.join(settings['MAPMAKER_ROOT'],
 
 #===============================================================================
 
-VALID_SERVERS = ['https://flatmaps.celldl.org/']
-LOCAL_HOSTS = ['localhost', '127.0.0.1']
-
 GITHUB_CLIENT = os.environ.get('GITHUB_CLIENT', '')
 GITHUB_SECRET = os.environ.get('GITHUB_SECRET', '')
 
@@ -156,7 +153,6 @@ def wsgi_app(viewer=False):
     app.register_blueprint(maker_blueprint)
     app.register_blueprint(viewer_blueprint)
 
-    # We use GitHub for authentication when annotating a ``VALID_SERVER``
     if GITHUB_CLIENT:
         app.config['GITHUB_CLIENT_ID'] = GITHUB_CLIENT
         app.config['GITHUB_CLIENT_SECRET'] = GITHUB_SECRET
@@ -545,9 +541,7 @@ def github_user_data(token):
 
 @flatmap_blueprint.route('/login')
 def login():
-    if urlparse(request.url_root).hostname in LOCAL_HOSTS:
-        response = flask.make_response('{"success": "logged in"}', 200, {'mimetype': 'application/json'})
-    elif request.url_root in VALID_SERVERS and github is not None:
+    if github is not None:
         if ((oauth_token := request.cookies.get(AUTHORISATION_COOKIE))
         and (user_data := github_user_data(oauth_token)) is not None):
             return flask.jsonify(user_data)
