@@ -521,40 +521,54 @@ def viewer(filename='index.html'):
 #===============================================================================
 #===============================================================================
 
-def check_valid_token(token):
+GITUB_USER_FIELDS = [
+    'login',
+    'name',
+    'company',
+    'location',
+    'email',
+]
+
+def github_user_data(token):
+    data = {}
     if github is not None:
-        response = github.session.post('https://api.github.com/user',
-                                        data={'access_token': 'token'})
-        params = parse_qs(response.content)
-        print(params)
-    return False
+        response = github.session.get('https://api.github.com/user',
+                                      headers={
+                                        'Accept': 'application/vnd.github+json',
+                                        'Authorization': f'Bearer {token}',
+                                        'X-GitHub-Api-Version': '2022-11-28',
+                                      })
+        for key, value in response.json.items():
+            if key in GITUB_USER_FIELDS:
+                data[key] = value
+    return data
 
-if GITHUB_CLIENT:
-    @flatmap_blueprint.route('/login')
-    def login():
+@flatmap_blueprint.route('/login')
+def login():
+    if github is not None:
         if ((oauth_token := flask.request.cookies.get(AUTHORISATION_COOKIE))
-        and check_valid_token(oauth_token)):
-            return flask.jsonify({'token': oauth_token})
+        and (user_data := github_user_data(oauth_token)) is not None):
+            return flask.jsonify(user_data)
         return github.authorize()
+    else:
+        return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
 
-    @flatmap_blueprint.route('/github')
-    def authorized():
-        if 'code' in request.args:
-            data = github._handle_response()
-            oauth_token = data.get('access_token')
-            check_valid_token(oauth_token)
-        else:
-            oauth_token = None
+@flatmap_blueprint.route('/github')
+def authorized():
+    if github is not None and 'code' in request.args:
+        data = github._handle_response()
+        oauth_token = data.get('access_token')
+    else:
+        oauth_token = None
 
-        response = flask.make_response()
+    if oauth_token is not None:
+        response = flask.make_response(json.dumps(github_user_data(oauth_token)))
         response.mimetype = 'application/json'
-        if oauth_token is None:
-            response.set_data(json.dumps({'access_token': ''}))
-            response.set_cookie(AUTHORISATION_COOKIE, '', expires=0)
-        else:
-            response.set_data(json.dumps({'token': oauth_token}))
-            response.set_cookie(AUTHORISATION_COOKIE, oauth_token, secure=True)
-        return response
+        response.set_cookie(AUTHORISATION_COOKIE, oauth_token, secure=True)
+    else:
+        response = flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
+        response.set_cookie(AUTHORISATION_COOKIE, '', expires=0)
+    return response
 
 #===============================================================================
 
