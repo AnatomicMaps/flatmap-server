@@ -521,10 +521,10 @@ def viewer(filename='index.html'):
 #===============================================================================
 #===============================================================================
 
-def valid_token(token):
+def check_valid_token(token):
     if github is not None:
         response = github.session.post('https://api.github.com/user',
-                                        data={'access_token': token})
+                                        data={'access_token': 'token'})
         params = parse_qs(response.content)
         print(params)
     return False
@@ -533,18 +533,18 @@ if GITHUB_CLIENT:
     @flatmap_blueprint.route('/login')
     def login():
         if ((oauth_token := flask.request.cookies.get(AUTHORISATION_COOKIE))
-        and valid_token(oauth_token)):
+        and check_valid_token(oauth_token)):
             return flask.jsonify({'token': oauth_token})
         return github.authorize()
 
     @flatmap_blueprint.route('/github')
-    def authorized(oauth_token):
+    def authorized():
         if 'code' in request.args:
             data = github._handle_response()
+            oauth_token = data.get('access_token')
+            check_valid_token(oauth_token)
         else:
-            data = github._handle_invalid_response()
-
-        print(oauth_token, data)
+            oauth_token = None
 
         response = flask.make_response()
         response.mimetype = 'application/json'
