@@ -551,7 +551,15 @@ def login():
             return flask.jsonify(user_data)
         return github.authorize()
     else:
-        return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
+        response = flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
+        response.set_cookie(AUTHORISATION_COOKIE, '', expires=0)
+        return response
+
+@flatmap_blueprint.route('/logout')
+def logout():
+    response = flask.make_response('{"success": "logged out"}', 200, {'mimetype': 'application/json'})
+    response.set_cookie(AUTHORISATION_COOKIE, '', expires=0)
+    return response
 
 @flatmap_blueprint.route('/github')
 def authorized():
