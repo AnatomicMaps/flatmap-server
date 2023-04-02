@@ -129,7 +129,7 @@ def maker_auth_check():
         if auth.startswith('Bearer '):
             if auth.split()[1] in settings['BEARER_TOKENS']:  #### not in ?????
                 return None
-    return flask.make_response('{"error": "unauthorized"}', 403)
+    return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
 
 #===============================================================================
 
@@ -538,7 +538,7 @@ def github_user_data(token):
                                         'Authorization': f'Bearer {token}',
                                         'X-GitHub-Api-Version': '2022-11-28',
                                       })
-        for key, value in response.json.items():
+        for key, value in response.json().items():
             if key in GITUB_USER_FIELDS:
                 data[key] = value
     return data
