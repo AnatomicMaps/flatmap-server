@@ -32,7 +32,7 @@ from .server import flatmap_blueprint, get_metadata, settings
 
 ANNOTATION_SCHEMA = """
     begin;
-    create table annotations (map text, feature text, created timestamp, creator text, property text, value text);
+    create table annotations (map text, feature text, created text, creator text, property text, value text);
     create index annotations_index on annotations(map, feature, created, creator, property);
     commit;
 """
@@ -44,12 +44,10 @@ class AnnotationDatabase:
         # Create knowledge base if it doesn't exist and we are allowed to
         db_name = Path(db_path).resolve()
         if not db_name.exists():
-            db = sqlite3.connect(db_name,
-                detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+            db = sqlite3.connect(db_name)
             db.executescript(ANNOTATION_SCHEMA)
             db.close()
-        self.__db = sqlite3.connect(db_name, uri=True,
-                                    detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+        self.__db = sqlite3.connect(db_name)
 
     def close(self):
         if self.__db is not None:
@@ -59,27 +57,27 @@ class AnnotationDatabase:
     def get_annotations(self, map_id: str, feature_id: str) -> list[dict]:
         result = []
         if self.__db is not None:
-            created = None
+            creation = None
             properties = {}
             for row in self.__db.execute('''select created, creator, property, value
                                             from annotations where map=? and feature=?
                                             order by created desc, creator''',
-                                        (map_id, feature_id)):
-                if created is None:
-                    created = (row[0], row[1])
-                elif created != (row[0], row[1]):
+                                        (map_id, feature_id)).fetchall():
+                if creation is None:
+                    creation = (row[0], row[1])
+                elif creation != (row[0], row[1]):
                     result.append({
-                        'created': created[0],
-                        'creator': created[1],
+                        'created': creation[0],
+                        'creator': json.loads(creation[1]),
                         'properties': properties
                     })
-                    created = None
+                    creation = (row[0], row[1])
                     properties = {}
                 properties[row[2]] = json.loads(row[3])
-            if created is not None:
+            if len(properties) and creation is not None:
                 result.append({
-                    'created': created[0],
-                    'creator': created[1],
+                    'created': creation[0],
+                    'creator': json.loads(creation[1]),
                     'properties': properties
                 })
         return result
@@ -92,7 +90,7 @@ class AnnotationDatabase:
             self.__db.executemany('''insert into annotations
                                         (map, feature, created, creator, property, value)
                                         values (?, ?, ?, ?, ?, ?)''',
-                [(map_id, feature_id, created, creator, property, json.dumps(value))
+                [(map_id, feature_id, created, json.dumps(creator), property, json.dumps(value))
                     for property, value in annotations.get('properties', {}).items()])
             self.__db.commit()
 
