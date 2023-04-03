@@ -124,7 +124,7 @@ def map_annotations(map_id):
 
 #===============================================================================
 
-@flatmap_blueprint.route('flatmap/<string:map_id>/annotations/<string:feature_id>', methods=['GET', 'POST'])
+@flatmap_blueprint.route('flatmap/<string:map_id>/annotations/<path:feature_id>', methods=['GET', 'POST'])
 def feature_annotations(map_id, feature_id):
     annotation_db = AnnotationDatabase(os.path.join(settings['FLATMAP_ROOT'], 'annotation.db'))
     if flask.request.method == 'GET':
