@@ -37,6 +37,11 @@ ANNOTATION_SCHEMA = """
     commit;
 """
 
+PROVENANCE_PROPERTIES = [
+    'rdfs:comment',
+    'prov:wasDerivedFrom',
+]
+
 #===============================================================================
 
 class AnnotationDatabase:
@@ -50,11 +55,23 @@ class AnnotationDatabase:
         self.__db = sqlite3.connect(db_name)
 
     def close(self):
+    #===============
         if self.__db is not None:
             self.__db.close()
             self.__db = None
 
     def get_annotations(self, map_id: str, feature_id: str) -> list[dict]:
+    #=====================================================================
+        def provenance_dict(creation, properties):
+            prov_record = properties.copy()
+            prov_record.update({
+                'rdf:type': 'prov:Entity',
+                'dct:subject': f'flatmaps:{map_id}/{feature_id}',
+                'dct:created': creation[0],
+                'dct:creator': json.loads(creation[1])
+            })
+            return prov_record
+
         result = []
         if self.__db is not None:
             creation = None
@@ -66,35 +83,29 @@ class AnnotationDatabase:
                 if creation is None:
                     creation = (row[0], row[1])
                 elif creation != (row[0], row[1]):
-                    result.append({
-                        'created': creation[0],
-                        'creator': json.loads(creation[1]),
-                        'properties': properties
-                    })
+                    result.append(provenance_dict(creation, properties))
                     creation = (row[0], row[1])
                     properties = {}
                 properties[row[2]] = json.loads(row[3])
             if len(properties) and creation is not None:
-                result.append({
-                    'created': creation[0],
-                    'creator': json.loads(creation[1]),
-                    'properties': properties
-                })
+                result.append(provenance_dict(creation, properties))
         return result
 
-    def post_annotations(self, map_id: str, feature_id: str, annotations: dict):
-        if self.__db is not None:
+    def update_annotation(self, map_id: str, feature_id: str, annotation: dict):
+    #===========================================================================
+        if self.__db is not None and annotation.get('rdf:type') == 'prov:Entity':
             self.__db.execute('begin')
             created = datetime.now(tz=timezone.utc).isoformat(timespec='seconds')
-            creator = annotations.get('creator', '')
+            creator = annotation.get('dct:creator', '')
             self.__db.executemany('''insert into annotations
                                         (map, feature, created, creator, property, value)
                                         values (?, ?, ?, ?, ?, ?)''',
                 [(map_id, feature_id, created, json.dumps(creator), property, json.dumps(value))
-                    for property, value in annotations.get('properties', {}).items()])
+                    for (property, value) in [(property, annotation.get(property))
+                                                for property in PROVENANCE_PROPERTIES]
+                                          if value is not None
+                ])
             self.__db.commit()
-
-#===============================================================================
 
 #===============================================================================
 
@@ -130,9 +141,8 @@ def feature_annotations(map_id, feature_id):
         annotation_db.close()
         return flask.jsonify(annotations)
     elif flask.request.method == 'POST':
-        annotations = json.loads(flask.request.get_json())
-        annotation_db.post_annotations(map_id, feature_id, annotations)
+        annotation = flask.request.get_json()
+        annotation_db.update_annotation(map_id, feature_id, annotation)
         annotation_db.close()
-        audit(remote_addr(flask.request), annotations)
-        return 'Annotations posted'
-
+        audit(remote_addr(flask.request), annotation)
+        return flask.jsonify({'success': 'Annotation updated'})
