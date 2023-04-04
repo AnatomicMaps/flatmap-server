@@ -34,7 +34,6 @@ from urllib.parse import urlparse
 import flask
 from flask import Blueprint, Flask, Response, request
 from flask_cors import CORS
-from flask_github import GitHub
 
 try:
     from werkzeug.wsgi import FileWrapper
@@ -43,6 +42,7 @@ except ImportError:
 
 #===============================================================================
 
+from .github import GitHub
 from .knowledgestore import KnowledgeStore
 from . import __version__
 
