@@ -27,7 +27,6 @@ import os.path
 import pathlib
 import sqlite3
 import sys
-from urllib.parse import urlparse
 from typing import Optional
 
 #===============================================================================
@@ -500,7 +499,7 @@ def make_status(process_id):
 
 @viewer_blueprint.route('/')
 @viewer_blueprint.route('/<path:filename>')
-def viewer(filename='index.html'):
+def viewer_app(filename='index.html'):
     """
     The flatmap viewer application.
 
@@ -582,8 +581,10 @@ def authorized():
     return response
 
 #===============================================================================
+#===============================================================================
 
-from .annotation import map_annotations, feature_annotations
+# Add annotation routes
+from .annotation import map_annotation, feature_annotation
 
 #===============================================================================
 #===============================================================================

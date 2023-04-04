@@ -128,13 +128,13 @@ def audit(user_ip, new_value):
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/annotations')
-def map_annotations(map_id):
+def map_annotation(map_id):
     return flask.jsonify(get_metadata(map_id, 'annotations'))
 
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/annotations/<path:feature_id>', methods=['GET', 'POST'])
-def feature_annotations(map_id, feature_id):
+def feature_annotation(map_id, feature_id):
     annotation_db = AnnotationDatabase(os.path.join(settings['FLATMAP_ROOT'], 'annotation.db'))
     if flask.request.method == 'GET':
         annotations = annotation_db.get_annotations(map_id, feature_id)
