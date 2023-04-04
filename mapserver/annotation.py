@@ -146,3 +146,5 @@ def feature_annotations(map_id, feature_id):
         annotation_db.close()
         audit(remote_addr(flask.request), annotation)
         return flask.jsonify({'success': 'Annotation updated'})
+
+#===============================================================================
