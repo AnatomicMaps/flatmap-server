@@ -26,7 +26,7 @@ import sqlite3
 
 import flask
 
-from .server import flatmap_blueprint, get_metadata, settings
+from .server import flatmap_blueprint, get_metadata, settings, logged_in_user
 
 #===============================================================================
 
@@ -142,9 +142,12 @@ def feature_annotations(map_id, feature_id):
         return flask.jsonify(annotations)
     elif flask.request.method == 'POST':
         annotation = flask.request.get_json()
-        annotation_db.update_annotation(map_id, feature_id, annotation)
-        annotation_db.close()
-        audit(remote_addr(flask.request), annotation)
-        return flask.jsonify({'success': 'Annotation updated'})
+        if annotation.get('dct:creator', '') != logged_in_user():
+            return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
+        else:
+            annotation_db.update_annotation(map_id, feature_id, annotation)
+            annotation_db.close()
+            audit(remote_addr(flask.request), annotation)
+            return flask.jsonify({'success': 'Annotation updated'})
 
 #===============================================================================

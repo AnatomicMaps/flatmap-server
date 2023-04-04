@@ -28,6 +28,7 @@ import pathlib
 import sqlite3
 import sys
 from urllib.parse import urlparse
+from typing import Optional
 
 #===============================================================================
 
@@ -525,8 +526,8 @@ GITUB_USER_FIELDS = [
     'email',
 ]
 
-def github_user_data(token):
-    data = {}
+def github_user(token) -> dict:
+    user = {}
     if github is not None:
         response = github.session.get('https://api.github.com/user',
                                       headers={
@@ -536,15 +537,20 @@ def github_user_data(token):
                                       })
         for key, value in response.json().items():
             if key in GITUB_USER_FIELDS:
-                data[key] = value
-    return data
+                user[key] = value
+    return user
+
+def logged_in_user() -> Optional[dict]:
+    if github is not None:
+        if ((oauth_token := request.cookies.get(AUTHORISATION_COOKIE))
+        and (user := github_user(oauth_token)) is not None):
+            return user
 
 @flatmap_blueprint.route('/login')
 def login():
-    if github is not None:
-        if ((oauth_token := request.cookies.get(AUTHORISATION_COOKIE))
-        and (user_data := github_user_data(oauth_token)) is not None):
-            return flask.jsonify(user_data)
+    if (user := logged_in_user()) is not None:
+        return flask.jsonify(user)
+    elif github is not None:
         return github.authorize()
     else:
         response = flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
@@ -566,7 +572,8 @@ def authorized():
         oauth_token = None
 
     if oauth_token is not None:
-        response = flask.make_response(json.dumps(github_user_data(oauth_token)))
+        user = github_user(oauth_token)
+        response = flask.make_response(json.dumps(user))
         response.mimetype = 'application/json'
         response.set_cookie(AUTHORISATION_COOKIE, oauth_token, secure=True)
     else:
