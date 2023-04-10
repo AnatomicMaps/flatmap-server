@@ -598,7 +598,7 @@ def authorized():
 #===============================================================================
 
 # Add annotator routes
-from .annotator import annotate_feature
+from .annotator import annotated_features, annotate_feature
 
 #===============================================================================
 #===============================================================================

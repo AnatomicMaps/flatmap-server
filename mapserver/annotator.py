@@ -60,6 +60,17 @@ class AnnotatorDatabase:
             self.__db.close()
             self.__db = None
 
+    def annotated_features(self, map_id: str):
+    #=========================================
+        result = []
+        if self.__db is not None:
+            result = [row[0]
+                        for row in self.__db.execute('''select distinct feature
+                                                        from annotations where map=?
+                                                         order by feature''',
+                                                    (map_id, )).fetchall()]
+        return result
+
     def get_annotations(self, map_id: str, feature_id: str) -> list[dict]:
     #=====================================================================
         def provenance_dict(creation, properties):
@@ -124,6 +135,16 @@ def audit(user_ip, new_value):
             'ip': user_ip,
             'new': json.dumps(new_value)
         })))
+
+#===============================================================================
+
+@annotator_blueprint.route('<string:map_id>/', methods=['GET'])
+def annotated_features(map_id):
+    annotator_db = AnnotatorDatabase(os.path.join(settings['FLATMAP_ROOT'], 'annotation.db'))
+    if flask.request.method == 'GET':
+        features = annotator_db.annotated_features(map_id)
+        annotator_db.close()
+        return flask.jsonify(features)
 
 #===============================================================================
 
