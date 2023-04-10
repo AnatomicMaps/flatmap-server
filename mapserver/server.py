@@ -111,6 +111,12 @@ flatmap_blueprint = Blueprint('flatmap', __name__,
 
 #===============================================================================
 
+annotator_blueprint = Blueprint('annotator', __name__,
+                                root_path=settings['ROOT_PATH'],
+                                url_prefix='/annotator')
+
+#===============================================================================
+
 knowledge_blueprint = Blueprint('knowledge', __name__, url_prefix='/knowledge')
 
 #===============================================================================
@@ -146,6 +152,8 @@ def wsgi_app(viewer=False):
     global app, github
     settings['MAP_VIEWER'] = viewer
     app = Flask(__name__)
+    CORS(annotator_blueprint)
+    app.register_blueprint(annotator_blueprint)
     CORS(flatmap_blueprint)
     app.register_blueprint(flatmap_blueprint)
     CORS(knowledge_blueprint)
@@ -411,6 +419,12 @@ def image_tiles(map_id, layer, z, y, x):
     return send_bytes(blank_tile(), 'image/png')
 
 #===============================================================================
+
+@flatmap_blueprint.route('flatmap/<string:map_id>/annotations')
+def map_annotation(map_id):
+    return flask.jsonify(get_metadata(map_id, 'annotations'))
+
+#===============================================================================
 #===============================================================================
 
 @knowledge_blueprint.route('query/', methods=['POST'])
@@ -583,8 +597,8 @@ def authorized():
 #===============================================================================
 #===============================================================================
 
-# Add annotation routes
-from .annotation import map_annotation, feature_annotation
+# Add annotator routes
+from .annotator import annotate_feature
 
 #===============================================================================
 #===============================================================================

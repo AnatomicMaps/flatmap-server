@@ -24,9 +24,9 @@ import json
 import os
 import sqlite3
 
-import flask
+import flask            # type: ignore
 
-from .server import flatmap_blueprint, get_metadata, settings, logged_in_user
+from .server import annotator_blueprint, settings, logged_in_user
 
 #===============================================================================
 
@@ -44,7 +44,7 @@ PROVENANCE_PROPERTIES = [
 
 #===============================================================================
 
-class AnnotationDatabase:
+class AnnotatorDatabase:
     def __init__(self, db_path):
         # Create knowledge base if it doesn't exist and we are allowed to
         db_name = Path(db_path).resolve()
@@ -127,26 +127,20 @@ def audit(user_ip, new_value):
 
 #===============================================================================
 
-@flatmap_blueprint.route('flatmap/<string:map_id>/annotations')
-def map_annotation(map_id):
-    return flask.jsonify(get_metadata(map_id, 'annotations'))
-
-#===============================================================================
-
-@flatmap_blueprint.route('flatmap/<string:map_id>/annotations/<path:feature_id>', methods=['GET', 'POST'])
-def feature_annotation(map_id, feature_id):
-    annotation_db = AnnotationDatabase(os.path.join(settings['FLATMAP_ROOT'], 'annotation.db'))
+@annotator_blueprint.route('<string:map_id>/<path:feature_id>', methods=['GET', 'POST'])
+def annotate_feature(map_id, feature_id):
+    annotator_db = AnnotatorDatabase(os.path.join(settings['FLATMAP_ROOT'], 'annotation.db'))
     if flask.request.method == 'GET':
-        annotations = annotation_db.get_annotations(map_id, feature_id)
-        annotation_db.close()
+        annotations = annotator_db.get_annotations(map_id, feature_id)
+        annotator_db.close()
         return flask.jsonify(annotations)
     elif flask.request.method == 'POST':
         annotation = flask.request.get_json()
         if annotation.get('dct:creator', '') != logged_in_user():
             return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
         else:
-            annotation_db.update_annotation(map_id, feature_id, annotation)
-            annotation_db.close()
+            annotator_db.update_annotation(map_id, feature_id, annotation)
+            annotator_db.close()
             audit(remote_addr(flask.request), annotation)
             return flask.jsonify({'success': 'Annotation updated'})
 
