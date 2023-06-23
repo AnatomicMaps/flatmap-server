@@ -12,7 +12,7 @@ Documentation
 Prerequisites
 -------------
 
-* Python 3.8
+* Python 3.10
 * `poetry <https://python-poetry.org/docs/#installation>`_
 * Under Ubuntu, ``sudo apt-get install libgl-mesa-glx``
 
