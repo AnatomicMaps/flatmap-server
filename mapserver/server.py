@@ -414,6 +414,16 @@ def image_tiles(map_id, layer, z, y, x):
 #===============================================================================
 #===============================================================================
 
+@knowledge_blueprint.route('label/<string:entity>')
+def knowledge_label(entity: str):
+    """
+    Find an entity's label from the flatmap server's knowledge base.
+    """
+    knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=False, read_only=False)
+    label = knowledge_store.label(entity)
+    knowledge_store.close()
+    return flask.jsonify({'entity': entity, 'label': label})
+
 @knowledge_blueprint.route('query/', methods=['POST'])
 def knowledge_query():
     """
