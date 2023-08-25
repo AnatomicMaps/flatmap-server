@@ -10,7 +10,7 @@ flask = "*"
 gunicorn = "*"
 landez = "*"
 flask-cors = "*"
-flatmapknowledge = {url="https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.4.1/flatmapknowledge-1.4.1-py3-none-any.whl"}
+flatmapknowledge = {url="https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.4.2/flatmapknowledge-1.4.2-py3-none-any.whl"}
 Pillow = "^9.3.0"
 
 [tool.poetry.dev-dependencies]
