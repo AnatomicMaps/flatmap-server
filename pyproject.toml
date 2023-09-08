@@ -13,7 +13,6 @@ flask-cors = "^3.0.10"
 flatmapknowledge = {url="https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.4.1/flatmapknowledge-1.4.1-py3-none-any.whl"}
 github-flask = {url="https://github.com/dbrnz/github-flask/releases/download/v3.2.1/github_flask-3.2.1-py3-none-any.whl"}
 Pillow = "^9.3.0"
-cors-testing = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
 sphinx = "4.0.3"
