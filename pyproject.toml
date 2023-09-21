@@ -10,7 +10,7 @@ flask = "^2.2.2"
 gunicorn = "^20.1.0"
 landez = "^2.5.0"
 flask-cors = "^3.0.10"
-flatmapknowledge = {url="https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.5.0/flatmapknowledge-1.5.0-py3-none-any.whl"}
+flatmapknowledge = {url="https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.6.0/flatmapknowledge-1.6.0-py3-none-any.whl"}
 github-flask = {url="https://github.com/dbrnz/github-flask/releases/download/v3.2.1/github_flask-3.2.1-py3-none-any.whl"}
 Pillow = "^9.3.0"
 
