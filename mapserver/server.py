@@ -267,8 +267,9 @@ def maps():
                      and ('uuid' not in metadata or flatmap_dir.name != metadata['uuid'].split(':')[-1])):
                         app.logger.error(f'Flatmap id mismatch: {flatmap_dir}')
                         continue
+                    id = metadata['id']
                     flatmap = {
-                        'id': metadata['id'],
+                        'id': id,
                         'source': metadata['source'],
                         'version': version
                     }
@@ -284,8 +285,10 @@ def maps():
                         flatmap['biologicalSex'] = metadata['biological-sex']
                     if 'uuid' in metadata:
                         flatmap['uuid'] = metadata['uuid']
+                        id = metadata['uuid']
                     if 'name' in metadata:
                         flatmap['name'] = metadata['name']
+                    flatmap['uri'] = f'{request.url_root}flatmap/{id}/'
                 else:
                     source_row = None
                     try:
