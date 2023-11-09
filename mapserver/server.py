@@ -151,7 +151,8 @@ github = None
 def wsgi_app(viewer=False):
     global app, github
     settings['MAP_VIEWER'] = viewer
-    app = Flask(__name__)
+    app = Flask('mapserver')
+    app.config['CORS_HEADERS'] = 'Content-Type'
     CORS(annotator_blueprint)
     app.register_blueprint(annotator_blueprint)
     CORS(flatmap_blueprint)
@@ -171,6 +172,7 @@ def wsgi_app(viewer=False):
         app.logger.handlers = gunicorn_logger.handlers
         app.logger.setLevel(gunicorn_logger.level)
 
+    settings['LOGGER'] = app.logger
     app.logger.info(f'Started flatmap server version {__version__}')
     if not settings['BEARER_TOKENS']:
         # Only warn once...

@@ -19,6 +19,7 @@
 #===============================================================================
 
 from datetime import datetime, timezone
+from functools import wraps
 from pathlib import Path
 import json
 import os
@@ -27,6 +28,13 @@ import sqlite3
 import flask            # type: ignore
 
 from .server import annotator_blueprint, settings, logged_in_user
+from .pennsieve import user_data
+
+#===============================================================================
+
+AUTHENTICATED_COOKIE  = 'annotation-authenticated'
+UPDATE_ALLOWED_COOKIE = 'update-allowed'
+COOKIE_MAX_AGE        = 86400   # seconds, one day
 
 #===============================================================================
 
@@ -164,5 +172,30 @@ def annotate_feature(map_id, feature_id):
             annotator_db.close()
             audit(remote_addr(flask.request), annotation)
             return flask.jsonify({'success': 'Annotation updated'})
+
+#===============================================================================
+
+@annotator_blueprint.route('authenticate', methods=['GET'])
+def authenticate():
+    parameters = flask.request.args
+    if (key := parameters.get('key')) is not None:
+        response = flask.make_response(json.dumps(user_data(key)))
+        response.set_cookie(AUTHENTICATED_COOKIE, key, secure=True, max_age=COOKIE_MAX_AGE)
+        response.set_cookie(UPDATE_ALLOWED_COOKIE, 'Y', secure=True, max_age=COOKIE_MAX_AGE)
+    else:
+        response = flask.make_response('{"error": "unauthorized"}', 403)
+        response.set_cookie(AUTHENTICATED_COOKIE, '', expires=0)
+        response.set_cookie(UPDATE_ALLOWED_COOKIE, '', expires=0)
+    response.mimetype = 'application/json'
+    return response
+
+#===============================================================================
+
+@annotator_blueprint.route('unauthenticate/', methods=['GET'])
+def unauthenticate():
+    response = flask.make_response('{"success": "Unauthenticated"}')
+    response.set_cookie(AUTHENTICATED_COOKIE, '', expires=0)
+    response.mimetype = 'application/json'
+    return response
 
 #===============================================================================

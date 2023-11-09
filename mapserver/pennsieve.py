@@ -19,60 +19,70 @@
 #===============================================================================
 
 import json
-from pprint import pprint
+import os
+from typing import Any, Optional
 
+#===============================================================================
+
+import flask
 import requests
 
 #===============================================================================
 
-SPARC_ORGANISATION = 'N:organization:618e8dd9-f8d2-4dc4-9abb-c6aaab2e78a0'
-KEAST_TEAM = 'N:team:e32b2168-a0c5-4564-8ed8-8ba1078421fd'
-
-# Set by environment variables
-ORGANISATION_ID = SPARC_ORGANISATION
-TEAM_ID = KEAST_TEAM
-
-# Comes from token in HTTP request
-API_KEY = 'eyJraWQiOiJwcjhTaWE2dm9FZTcxNyttOWRiYXRlc3lJZkx6K3lIdDE4RGR5aGVodHZNPSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiI5ZWQyMTY4MS1lNzQ5LTQ5NDUtOWVkOS1hOWM4NjA1YTBiNDYiLCJ0b2tlbl91c2UiOiJhY2Nlc3MiLCJzY29wZSI6Im9wZW5pZCIsImF1dGhfdGltZSI6MTY5NjkxMDQ3MSwiaXNzIjoiaHR0cHM6XC9cL2NvZ25pdG8taWRwLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tXC91cy1lYXN0LTFfYjFOeXhZY3IwIiwiZXhwIjoxNjk2OTE0MDcxLCJpYXQiOjE2OTY5MTA0NzEsInZlcnNpb24iOjIsImp0aSI6ImE0YzU0MmNiLWEwYTUtNDg0Zi04NTAyLThjY2ExYTdjNGU3MCIsImNsaWVudF9pZCI6IjY3MG1vN3NpODFwY2Mzc2Z1YjdvMTkxNGQ4IiwidXNlcm5hbWUiOiI5ZWQyMTY4MS1lNzQ5LTQ5NDUtOWVkOS1hOWM4NjA1YTBiNDYifQ.LWmbP4iDT39Cdk8FCLLPtHT5KHfJ5FymDranCOONvJUIrdJsbm9j8iBc7NgPW5Hcmaw_-NdaZXLQe1ugD3e7VsROWzpbkyIZymizYVB-F5By6B_dmAt9yMh7QaFsUTyUzGyy3eD0M1fO7hQaPietKDY_Y09v2jBsmLR5n-NJaecMqU5-w6ZtGtjCJxEgWURJxlfj2qgvmDdDJ1s5qNUukFuHMFHYAGvpijhvX7A1g93EWtIV7BofIcj0GJtIdodHZEuzMRvsrgc_IDi35beBEzwnThW509Rl5hE1VmR7aPwr9R2uFgGiavWUUUTkGh9ukL4sujTiuSnx3lHmqaL_Fg'
+from .settings import settings
 
 #===============================================================================
 
-def query(url):
+PENSIEVE_API = 'https://api.pennsieve.io'
+
+#===============================================================================
+
+## Environment...
+# export SPARC_ORGANISATION_ID=N:organization:618e8dd9-f8d2-4dc4-9abb-c6aaab2e78a0
+# export SPARC_ANNOTATION_TEAM_ID=N:team:031b434c-41ab-4ecf-92a9-050fc1b3211a
+
+SPARC_ORGANISATION_ID = os.environ.get('SPARC_ORGANISATION_ID')
+SPARC_ANNOTATION_TEAM_ID = os.environ.get('SPARC_ANNOTATION_TEAM_ID')
+
+#===============================================================================
+
+def query(url) -> Any:
     headers = {"accept": "*/*"}
     response = requests.get(url, headers=headers)
-    return json.loads(response.text)
+    if response.status_code == 200:
+        try:
+            return json.loads(response.text)
+        except requests.exceptions.JSONDecodeError:
+            pass
+    return {
+        'error': f'{response.status_code}: {response.reason}'
+    }
 
 #===============================================================================
 
-'''
-# Or find Annotation team with:
-TEAM_ID = NONE
-teams = query(f'https://api.pennsieve.io/organizations/{ORGANISATION_ID}/teams?api_key={API_KEY}')
-for team on teams['team']:
-    if team['name'] == 'Annotation team':
-        TEAM_ID = team['id']
-        break
-if TEAM_ID is None:
-    pass
-    # error....
-'''
+annotation_team = None
+
+def get_annotation_team(key: str) -> Optional[list[str]]:
+    if SPARC_ORGANISATION_ID is None or SPARC_ANNOTATION_TEAM_ID is None:
+        settings['LOGGER'].warning('Pennsieve IDs of SPARC and MAP Annotation Team are not defined')
+    team_query = query(f'{PENSIEVE_API}/organizations/{SPARC_ORGANISATION_ID}/teams/{SPARC_ANNOTATION_TEAM_ID}/members?api_key={key}')
+    if 'error' not in team_query:
+        return [id for member in team_query if (id := member.get('id')) is not None]
 
 #===============================================================================
 
-# Cache API_KEY to user/team membership, with time out of old API_KEYs (24 hours)?
-# Cache team member table with say one hour timeout? Or (better?) update team members
-# whenever API_KEY changes? (Then logout and back in when someone added to team in Pennsieve will
-# see updated team.)
-
-team_members = query(f'https://api.pennsieve.io/organizations/{ORGANISATION_ID}/teams/{TEAM_ID}/members?api_key={API_KEY}')
-team_member_ids = [member['id'] for member in team_members]
-print(team_member_ids)
-
-user = query(f'https://api.pennsieve.io/user/?api_key={API_KEY}')
-user_id = user.get('id', '')
-if user_id in team_member_ids:
-    user['annotator'] = True
-    pprint(user)
-
+def user_data(key: str) -> dict:
+    global annotation_team
+    if annotation_team is None:
+        annotation_team = get_annotation_team(key)
+    user_query = query(f'https://api.pennsieve.io/user/?api_key={key}')
+    if 'error' in user_query:
+        return user_query
+    return {
+        'name': ' '.join([user_query.get('firstName', ''), user_query.get('lastName', '')]),
+        'email': user_query.get('email', ''),
+        'orcid': user_query.get('orcid', {}).get('orcid', ''),
+        'canUpdate': annotation_team is not None and user_query.get('id', '') in annotation_team
+    }
 
 #===============================================================================
