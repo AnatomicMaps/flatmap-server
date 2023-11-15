@@ -255,7 +255,7 @@ def annotations(resource_id: str, item_id: str):
 
 @annotator_blueprint.route('annotation/<string:annotation_id>', methods=['GET'])
 @__authenticated
-def annotation(annotation_id: str, item_id: str):
+def annotation(annotation_id: str):
     annotation_store = AnnotationStore()
     annotation = annotation_store.annotation(annotation_id)
     annotation_store.close()
