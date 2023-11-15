@@ -38,7 +38,7 @@ def run_app(app):
         allow_methods=["*"],
         allow_headers=["*"])
     fastapi.mount('/', WSGIMiddleware(app))
-    uvicorn.run(fastapi)
+    uvicorn.run(fastapi, access_log=False)
 
 def mapserver():
     run_app(server())
