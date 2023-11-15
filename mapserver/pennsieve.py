@@ -71,7 +71,7 @@ def get_annotation_team(key: str) -> Optional[list[str]]:
 
 #===============================================================================
 
-def user_data(key: str) -> dict:
+def get_user(key: str) -> dict:
     global annotation_team
     if annotation_team is None:
         annotation_team = get_annotation_team(key)
