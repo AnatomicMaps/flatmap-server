@@ -24,6 +24,7 @@ from pathlib import Path
 import json
 import os
 import sqlite3
+from typing import Optional
 import uuid
 
 import flask            # type: ignore
@@ -163,7 +164,25 @@ class AnnotationStore:
 
 #===============================================================================
 
-def authenticated(f):
+__sessions: dict[str, dict] = {}
+
+def __session_key(key: str) -> str:
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, key))
+
+def __new_session(key: str, data: dict) -> str:
+    session_key = __session_key(key)
+    __sessions[session_key] = data
+    return session_key
+
+def __session_data(session_key: str) -> Optional[dict]:
+    return __sessions.get(session_key)
+
+def __del_session(session_key: str) -> bool:
+    return __sessions.pop(session_key, None) is not None
+
+#===============================================================================
+
+def __authenticated(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if flask.request.method == 'GET':
@@ -172,9 +191,11 @@ def authenticated(f):
             parameters = flask.request.get_json()
         else:
             parameters = {}
-        session_key = parameters.get('session', '')
-        if session_key[:-1] == str(uuid.uuid5(uuid.NAMESPACE_URL, parameters.get('key', ''))):
-            flask.g.update = session_key[-1] == 'Y'
+        if ((key := parameters.get('key')) is not None
+          and (session_key := parameters.get('session')) is not None
+          and session_key == __session_key(key)
+          and (data := __session_data(session_key)) is not None):
+            flask.g.update = data.get('canUpdate', False)
             return f(*args, **kwargs)
         response = flask.make_response('{"error": "forbidden"}', 403)
         return response
@@ -190,8 +211,7 @@ def authenticate():
     else:
         user_data = {'error': 'forbidden'}
     if 'error' not in user_data:
-        session_key = (str(uuid.uuid5(uuid.NAMESPACE_URL, key))
-                    + ('Y' if user_data.get('canUpdate', False) else 'N'))
+        session_key = __new_session(key, user_data)
         response = flask.make_response(json.dumps({
             'session': session_key,
             'data': user_data
@@ -212,7 +232,7 @@ def unauthenticate():
 #===============================================================================
 
 @annotator_blueprint.route('items/<string:resource_id>', methods=['GET'])
-@authenticated
+@__authenticated
 def annotated_items(resource_id: str):
     annotation_store = AnnotationStore()
     items = annotation_store.annotated_items(resource_id)
@@ -222,7 +242,7 @@ def annotated_items(resource_id: str):
 #===============================================================================
 
 @annotator_blueprint.route('annotations/<string:resource_id>/<string:item_id>', methods=['GET'])
-@authenticated
+@__authenticated
 def annotations(resource_id: str, item_id: str):
     annotation_store = AnnotationStore()
     items = annotation_store.annotations(resource_id, item_id)
@@ -232,7 +252,7 @@ def annotations(resource_id: str, item_id: str):
 #===============================================================================
 
 @annotator_blueprint.route('annotation/<string:annotation_id>', methods=['GET'])
-@authenticated
+@__authenticated
 def annotation(annotation_id: str, item_id: str):
     annotation_store = AnnotationStore()
     annotation = annotation_store.annotation(annotation_id)
@@ -242,7 +262,7 @@ def annotation(annotation_id: str, item_id: str):
 #===============================================================================
 
 @annotator_blueprint.route('annotation/', methods=['POST'])
-@authenticated
+@__authenticated
 def add_annotation():
     annotation_store = AnnotationStore()
     if flask.request.method == 'POST' and flask.g.update:
