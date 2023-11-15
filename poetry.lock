@@ -240,24 +240,6 @@ type = "url"
 url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.6.0/flatmapknowledge-1.6.0-py3-none-any.whl"
 
 [[package]]
-name = "github-flask"
-version = "3.2.1"
-description = ""
-optional = false
-python-versions = ">=3.8,<4.0"
-files = [
-    {file = "github_flask-3.2.1-py3-none-any.whl", hash = "sha256:a15352065bd10960cfbcd81315b280a29abd2628e2c900403fa587bf7d9655ee"},
-]
-
-[package.dependencies]
-Flask = ">=2.2.3,<3.0.0"
-requests = ">=2.28.2,<3.0.0"
-
-[package.source]
-type = "url"
-url = "https://github.com/dbrnz/github-flask/releases/download/v3.2.1/github_flask-3.2.1-py3-none-any.whl"
-
-[[package]]
 name = "gunicorn"
 version = "20.1.0"
 description = "WSGI HTTP Server for UNIX"
@@ -882,4 +864,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<4.0"
-content-hash = "062b32a9ab3e42a47edba2d0145b44bca24e05beb5d3f953e0890660d095509b"
+content-hash = "23f96eca522a48f34ab567d0acc033c87a71fbc2d74d95352137891e01946d31"

@@ -42,7 +42,6 @@ except ImportError:
 
 #===============================================================================
 
-from .github import GitHub
 from .knowledgestore import KnowledgeStore
 from . import __version__
 
@@ -69,14 +68,6 @@ settings['MAPMAKER_ROOT'] = normalise_path(MAPMAKER_ROOT)
 # Do we have a copy of ``mapmaker`` available?
 HAVE_MAPMAKER = pathlib.Path(os.path.join(settings['MAPMAKER_ROOT'],
                                           'mapmaker/__init__.py')).exists()
-
-
-#===============================================================================
-
-GITHUB_CLIENT = os.environ.get('GITHUB_CLIENT', '')
-GITHUB_SECRET = os.environ.get('GITHUB_SECRET', '')
-
-AUTHORISATION_COOKIE = 'AnnotationUser'
 
 #===============================================================================
 
@@ -144,12 +135,11 @@ viewer_blueprint = Blueprint('viewer', __name__,
 #===============================================================================
 
 app = None
-github = None
 
 #===============================================================================
 
 def wsgi_app(viewer=False):
-    global app, github
+    global app
     settings['MAP_VIEWER'] = viewer
     app = Flask('mapserver')
     app.config['CORS_HEADERS'] = 'Content-Type'
@@ -161,11 +151,6 @@ def wsgi_app(viewer=False):
     app.register_blueprint(knowledge_blueprint)
     app.register_blueprint(maker_blueprint)
     app.register_blueprint(viewer_blueprint)
-
-    if GITHUB_CLIENT:
-        app.config['GITHUB_CLIENT_ID'] = GITHUB_CLIENT
-        app.config['GITHUB_CLIENT_SECRET'] = GITHUB_SECRET
-        github = GitHub(app)
 
     if __name__ != '__main__':
         gunicorn_logger = logging.getLogger('gunicorn.error')
@@ -542,72 +527,6 @@ def viewer_app(filename='index.html'):
         return flask.send_file(filename)
     else:
         flask.abort(404)
-
-#===============================================================================
-#===============================================================================
-
-GITUB_USER_FIELDS = [
-    'login',
-    'name',
-    'company',
-    'location',
-    'email',
-]
-
-def github_user(token) -> dict:
-    user = {}
-    if github is not None:
-        response = github.session.get('https://api.github.com/user',
-                                      headers={
-                                        'Accept': 'application/vnd.github+json',
-                                        'Authorization': f'Bearer {token}',
-                                        'X-GitHub-Api-Version': '2022-11-28',
-                                      })
-        for key, value in response.json().items():
-            if key in GITUB_USER_FIELDS:
-                user[key] = value
-    return user
-
-def logged_in_user() -> Optional[dict]:
-    if github is not None:
-        if ((oauth_token := request.cookies.get(AUTHORISATION_COOKIE))
-        and (user := github_user(oauth_token)) is not None):
-            return user
-
-@flatmap_blueprint.route('/login')
-def login():
-    if (user := logged_in_user()) is not None:
-        return flask.jsonify(user)
-    elif github is not None:
-        return github.authorize()
-    else:
-        response = flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
-    response.set_cookie(AUTHORISATION_COOKIE, '', expires=0)
-    return response
-
-@flatmap_blueprint.route('/logout')
-def logout():
-    response = flask.make_response('{"success": "logged out"}', 200, {'mimetype': 'application/json'})
-    response.set_cookie(AUTHORISATION_COOKIE, '', expires=0)
-    return response
-
-@flatmap_blueprint.route('/github')
-def authorized():
-    if github is not None and 'code' in request.args:
-        data = github._handle_response()
-        oauth_token = data.get('access_token')
-    else:
-        oauth_token = None
-
-    if oauth_token is not None:
-        user = github_user(oauth_token)
-        response = flask.make_response(json.dumps(user))
-        response.mimetype = 'application/json'
-        response.set_cookie(AUTHORISATION_COOKIE, oauth_token, secure=True)
-    else:
-        response = flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
-        response.set_cookie(AUTHORISATION_COOKIE, '', expires=0)
-    return response
 
 #===============================================================================
 #===============================================================================
