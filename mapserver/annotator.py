@@ -33,13 +33,38 @@ from .server import annotator_blueprint, settings
 from .pennsieve import get_user
 
 #===============================================================================
+'''
+/**
+ * Annotation about an item in a resource.
+ */
+export interface UserAnnotation
+{
+    resource: string
+    item: string
+    evidence: URL[]
+    comment: string
+}
+
+interface AnnotationRequest extends UserAnnotation
+{
+    created: string    // timestamp...
+    creator: UserData
+}
+
+/**
+ * Full annotation about an item in a resource.
+ */
+export interface Annotation extends AnnotationRequest
+{
+    id: URL
+}
+'''
 #===============================================================================
 
 ANNOTATION_STORE_SCHEMA = """
     begin;
-    create table annotations (annotation text, resource text, item text, created text, creator text, property text, value text);
-    create index annotation_index on annotations(annotation);
-    create index annotations_index on annotations(resource, item, created, creator, property);
+    create table annotations (resource text, item text, created text, creator text, annotation text);
+    create index annotations_index on annotations(resource, item, created, creator);
     commit;
 """
 
@@ -70,97 +95,74 @@ class AnnotationStore:
 
     def annotated_items(self, resource_id: str) -> list[str]:
     #========================================================
-        result = []
+        items = []
         if self.__db is not None:
-            result = [row[0]
+            items = [row[0]
                         for row in self.__db.execute('''select distinct item
                                                         from annotations where resource=?
                                                          order by item''',
                                                     (resource_id, )).fetchall()]
-        return result
+        return items
 
     def annotations(self, resource_id: str, item_id: str) -> list[dict]:
     #===================================================================
-        def provenance_dict(id_creation, properties):
-            prov_record = properties.copy()
-            prov_record.update({
-                'rdf:type': 'prov:Entity',
-                'dct:subject': f'flatmaps:{resource_id}/{item_id}',
-                'dct:created': id_creation[1],
-                'dct:creator': json.loads(id_creation[2])
-            })
-            return prov_record
-
         result = []
         if self.__db is not None:
-            id_creation = None
-            properties = {}
-            for row in self.__db.execute('''select id, created, creator, property, value
-                                            from annotations where resource=? and item=?
-                                            order by id, created desc, creator''',
-                                        (resource_id, item_id)).fetchall():
-                if id_creation is None:
-                    id_creation = (row[0], row[1], row[2])
-                elif id_creation != (row[0], row[1], row[2]):
-                    result.append(provenance_dict(id_creation, properties))
-                    id_creation = (row[0], row[1], row[2])
-                    properties = {}
-                properties[row[3]] = json.loads(row[4])
-            if len(properties) and id_creation is not None:
-                result.append(provenance_dict(id_creation, properties))
+            for row in self.__db.execute('''select created, creator, annotation
+                                        from annotations where resource=? and item=?
+                                        order by created desc, creator''',
+                                    (resource_id, item_id)).fetchall():
+                annotation = {
+                    'resource': resource_id,
+                    'item': item_id,
+                    'created': row[0],
+                    'creator': json.loads(row[1])
+                }
+                annotation.update(json.loads(row[2]))
+                result.append(annotation)
         return result
 
     def annotation(self, annotation_id) -> dict:
     #===========================================
-        result = []
+        annotation = {}
         if self.__db is not None:
-            creation = None
-            properties = {}
-            for row in self.__db.execute('''select created, creator, property, value
-                                            from annotations where id=?
-                                            order by created desc, creator''',
-                                        (annotation_id, )).fetchall():
-                if creation is None:
-                    creation = (row[0], row[1])
-                elif creation != (row[0], row[1]):
-                    result.append(provenance_dict(creation, properties))
-                    id_creation = (row[0], row[1])
-                    properties = {}
-                properties[row[2]] = json.loads(row[3])
-            if len(properties) and creation is not None:
-                result.append(provenance_dict(creation, properties))
-        return result
+            row = self.__db.execute('''select resource, item, created, creator, annotation
+                                        from annotations where rowid=?''',
+                                        (annotation_id, )).fetchone()
+            if row is not None:
+                annotation = {
+                    'resource': row[0],
+                    'item': row[1],
+                    'created': row[2],
+                    'creator': json.loads(row[3])
+                }
+                annotation.update(json.loads(row[4]))
+        return annotation
 
     def add_annotation(self, annotation: dict) -> dict:
     #==================================================
-        error = ''
+        result = {}
         if self.__db is not None:
-            created = annotation.get('created')
+            created = annotation.pop('created', None)
             if created is None:
                 created = datetime.now(tz=timezone.utc).isoformat(timespec='seconds')
-            creator = annotation.get('creator')
-            resource_id = annotation.get('resource')
-            item_id = annotation.get('item')
-
+            creator = annotation.pop('creator', None)
+            resource_id = annotation.pop('resource', None)
+            item_id = annotation.pop('item', None)
             if resource_id and item_id and creator:
-##            if self.__db is not None and annotation.get('rdf:type') == 'prov:Entity':
-                self.__db.execute('begin')
+                creator.pop('canUpdate', None)
                 try:
-                    self.__db.executemany('''insert into annotations
-                                                (map, feature, created, creator, property, value)
-                                                values (?, ?, ?, ?, ?, ?)''',
-                        [(resource_id, item_id, created, json.dumps(creator), property, json.dumps(value))
-                            for (property, value) in [(property, annotation.get(property))
-                                                        for property in PROVENANCE_PROPERTIES]
-                                                  if value is not None
-                        ])
-                    self.__db.commit()
+                    cursor = self.__db.cursor()
+                    cursor.execute('''insert into annotations
+                        (resource, item, created, creator, annotation) values (?, ?, ?, ?, ?)''',
+                        (resource_id, item_id, created, json.dumps(creator), json.dumps(annotation)))
+                    cursor.execute('commit')
+                    result['annotationId'] = cursor.lastrowid
                 except sqlite3.OperationalError as err:
-                    self.__db.rollback()
-                    error = str(err)
+                    result['error'] = str(err)
         else:
-            error = 'No annotation database...'
-        return {'error': error}
+            result['error'] = 'No annotation database...'
+        return result
 
 #===============================================================================
 
