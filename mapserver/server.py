@@ -532,7 +532,8 @@ def viewer_app(filename='index.html'):
 #===============================================================================
 
 # Add annotator routes
-from .annotator import annotated_features, annotate_feature
+from .annotator import authenticate, unauthenticate
+from .annotator import annotated_items, annotations, annotation, add_annotation
 
 #===============================================================================
 #===============================================================================
