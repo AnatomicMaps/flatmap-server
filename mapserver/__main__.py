@@ -18,25 +18,37 @@
 #
 #===============================================================================
 
-import sys
+import uvicorn
 
-from gunicorn.app.wsgiapp import WSGIApplication
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.wsgi import WSGIMiddleware
+
+#===============================================================================
+
+from .server import server, viewer
 
 #===============================================================================
 
 def run_app(app):
-    sys.argv.append(app)
-    WSGIApplication("%(prog)s [OPTIONS] [APP_MODULE]").run()
+    fastapi = FastAPI()
+    fastapi.add_middleware(CORSMiddleware,
+        allow_origins=['*'],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"])
+    fastapi.mount('/', WSGIMiddleware(app))
+    uvicorn.run(fastapi)
 
-def main():
-    run_app('mapserver.server:server()')
+def mapserver():
+    run_app(server())
 
-def viewer():
-    run_app('mapserver.server:viewer()')
+def mapviewer():
+    run_app(viewer())
 
 #===============================================================================
 
 if __name__ == '__main__':
-    main()
+    mapserver()
 
 #===============================================================================

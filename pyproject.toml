@@ -7,11 +7,12 @@ authors = ["David Brooks <d.brooks@auckland.ac.nz>"]
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
 flask = "^2.2.2"
-gunicorn = "^20.1.0"
 landez = "^2.5.0"
 flask-cors = "^3.0.10"
 flatmapknowledge = {url="https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.6.0/flatmapknowledge-1.6.0-py3-none-any.whl"}
 Pillow = "^10.0.1"
+fastapi = "^0.104.1"
+uvicorn = "^0.24.0.post1"
 
 [tool.poetry.dev-dependencies]
 sphinx = "4.0.3"
@@ -19,8 +20,8 @@ sphinx-rtd-theme = "*"
 sphinxcontrib-httpdomain = "*"
 
 [tool.poetry.scripts]
-mapserver = 'mapserver.__main__:main'
-mapviewer = 'mapserver.__main__:viewer'
+mapserver = 'mapserver.__main__:mapserver'
+mapviewer = 'mapserver.__main__:mapviewer'
 
 [build-system]
 # See https://github.com/chrahunt/rtd-poetry/issues/3
