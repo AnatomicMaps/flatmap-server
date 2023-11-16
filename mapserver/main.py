@@ -30,25 +30,25 @@ from .server import server, viewer
 
 #===============================================================================
 
-def run_app(app):
-    fastapi = FastAPI()
-    fastapi.add_middleware(CORSMiddleware,
+def fastapi(flask_app):
+    app = FastAPI()
+    app.add_middleware(CORSMiddleware,
         allow_origins=['*'],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"])
-    fastapi.mount('/', WSGIMiddleware(app))
-    uvicorn.run(fastapi, access_log=False)
+    app.mount('/', WSGIMiddleware(flask_app))
+    return app
 
 def mapserver():
-    run_app(server())
+    return fastapi(server())
 
 def mapviewer():
-    run_app(viewer())
+    return fastapi(viewer())
 
 #===============================================================================
 
 if __name__ == '__main__':
-    mapserver()
+    uvicorn.run(mapserver())
 
 #===============================================================================
