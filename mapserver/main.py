@@ -24,11 +24,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.wsgi import WSGIMiddleware
 
+import uvicorn.server
 #===============================================================================
 
 from .server import server, viewer
+from .settings import settings
 
 #===============================================================================
+
+def configure_logging():
+    settings['LOGGER'] = uvicorn.server.logger
 
 def fastapi(flask_app):
     app = FastAPI()
@@ -41,9 +46,11 @@ def fastapi(flask_app):
     return app
 
 def mapserver():
+    configure_logging()
     return fastapi(server())
 
 def mapviewer():
+    configure_logging()
     return fastapi(viewer())
 
 #===============================================================================

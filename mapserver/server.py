@@ -152,21 +152,15 @@ def wsgi_app(viewer=False):
     app.register_blueprint(maker_blueprint)
     app.register_blueprint(viewer_blueprint)
 
-    if __name__ != '__main__':
-        gunicorn_logger = logging.getLogger('gunicorn.error')
-        app.logger.handlers = gunicorn_logger.handlers
-        app.logger.setLevel(gunicorn_logger.level)
-
-    settings['LOGGER'] = app.logger
-    app.logger.info(f'Started flatmap server version {__version__}')
+    settings['LOGGER'].info(f'Started flatmap server version {__version__}')
     if not settings['BEARER_TOKENS']:
         # Only warn once...
-        app.logger.warning('No bearer tokens defined')
+        settings['LOGGER'].warning('No bearer tokens defined')
 
     # Open our knowledge base
     knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=True)
     if knowledge_store.error is not None:
-        app.logger.error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
+        settings['LOGGER'].error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
 
     return app
 
@@ -192,7 +186,7 @@ def send_json(filename):
 
 def error_abort(msg):
 #====================
-    app.logger.error(msg)
+    settings['LOGGER'].error(msg)
     flask.abort(501, msg)
 
 #===============================================================================
@@ -252,7 +246,7 @@ def maps():
                     metadata: dict[str, str] = read_metadata(reader, 'metadata')
                     if (('id' not in metadata or flatmap_dir.name != metadata['id'])
                      and ('uuid' not in metadata or flatmap_dir.name != metadata['uuid'].split(':')[-1])):
-                        app.logger.error(f'Flatmap id mismatch: {flatmap_dir}')
+                        settings['LOGGER'].error(f'Flatmap id mismatch: {flatmap_dir}')
                         continue
                     id = metadata['id']
                     flatmap = {
@@ -447,7 +441,7 @@ def knowledge_query():
         result = knowledge_store.query(params.get('sql'), params.get('params', []))
         knowledge_store.close()
         if 'error' in result:
-            app.logger.warning('SQL: {}'.format(result['error']))
+            settings['LOGGER'].warning('SQL: {}'.format(result['error']))
         return flask.jsonify(result)
 
 #===============================================================================
