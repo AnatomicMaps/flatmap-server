@@ -58,6 +58,14 @@ export interface Annotation extends AnnotationRequest
 {
     id: URL
 }
+
+TEST_USER = {
+    'name': 'Test User',
+    'email': 'test@example.org',
+    'orcid': '0000-0002-1825-0097',
+    'canUpdate': True
+}
+
 '''
 #===============================================================================
 
