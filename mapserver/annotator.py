@@ -27,7 +27,11 @@ import sqlite3
 from typing import Optional
 import uuid
 
+#===============================================================================
+
 import flask            # type: ignore
+
+#===============================================================================
 
 from .server import annotator_blueprint, settings
 from .pennsieve import get_user
