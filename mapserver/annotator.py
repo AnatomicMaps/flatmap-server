@@ -225,7 +225,7 @@ def authenticate():
 
 #===============================================================================
 
-@annotator_blueprint.route('unauthenticate/', methods=['GET'])
+@annotator_blueprint.route('unauthenticate', methods=['GET'])
 def unauthenticate():
     response = flask.make_response('{"success": "Unauthenticated"}')
     response.mimetype = 'application/json'
@@ -233,9 +233,10 @@ def unauthenticate():
 
 #===============================================================================
 
-@annotator_blueprint.route('items/<string:resource_id>', methods=['GET'])
+@annotator_blueprint.route('items/', methods=['GET'])
 @__authenticated
-def annotated_items(resource_id: str):
+def annotated_items():
+    resource_id = flask.request.args.get('resource', '')
     annotation_store = AnnotationStore()
     items = annotation_store.annotated_items(resource_id)
     annotation_store.close()
@@ -243,9 +244,11 @@ def annotated_items(resource_id: str):
 
 #===============================================================================
 
-@annotator_blueprint.route('annotations/<string:resource_id>/<string:item_id>', methods=['GET'])
+@annotator_blueprint.route('annotations/', methods=['GET'])
 @__authenticated
-def annotations(resource_id: str, item_id: str):
+def annotations():
+    resource_id = flask.request.args.get('resource', '')
+    item_id = flask.request.args.get('item', '')
     annotation_store = AnnotationStore()
     items = annotation_store.annotations(resource_id, item_id)
     annotation_store.close()
@@ -253,9 +256,10 @@ def annotations(resource_id: str, item_id: str):
 
 #===============================================================================
 
-@annotator_blueprint.route('annotation/<string:annotation_id>', methods=['GET'])
+@annotator_blueprint.route('annotation/', methods=['GET'])
 @__authenticated
-def annotation(annotation_id: str):
+def annotation():
+    annotation_id = flask.request.args.get('annotation', '')
     annotation_store = AnnotationStore()
     annotation = annotation_store.annotation(annotation_id)
     annotation_store.close()
