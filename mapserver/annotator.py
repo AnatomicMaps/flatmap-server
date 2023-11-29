@@ -217,6 +217,11 @@ def __authenticated(f):
 
 #===============================================================================
 
+def __get_parameter(name: str):
+    return json.loads(flask.request.args.get(name, '""'))
+
+#===============================================================================
+
 @annotator_blueprint.route('authenticate', methods=['GET'])
 def authenticate():
     parameters = flask.request.args
@@ -248,7 +253,7 @@ def unauthenticate():
 @annotator_blueprint.route('items/', methods=['GET'])
 @__authenticated
 def annotated_items():
-    resource_id = flask.request.args.get('resource', '')
+    resource_id = __get_parameter('resource')
     annotation_store = AnnotationStore()
     items = annotation_store.annotated_items(resource_id)
     annotation_store.close()
@@ -259,8 +264,8 @@ def annotated_items():
 @annotator_blueprint.route('annotations/', methods=['GET'])
 @__authenticated
 def annotations():
-    resource_id = flask.request.args.get('resource', '')
-    item_id = flask.request.args.get('item', '')
+    resource_id = __get_parameter('resource')
+    item_id = __get_parameter('item')
     annotation_store = AnnotationStore()
     items = annotation_store.annotations(resource_id, item_id)
     annotation_store.close()
@@ -271,7 +276,7 @@ def annotations():
 @annotator_blueprint.route('annotation/', methods=['GET'])
 @__authenticated
 def annotation():
-    annotation_id = flask.request.args.get('annotation', '')
+    annotation_id = __get_parameter('annotation')
     annotation_store = AnnotationStore()
     annotation = annotation_store.annotation(annotation_id)
     annotation_store.close()
