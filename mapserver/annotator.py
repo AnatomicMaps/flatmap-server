@@ -60,6 +60,7 @@ export interface UserAnnotation
     item: string
     evidence: URL[]
     comment: string
+    feature?: MapFeature
 }
 
 interface AnnotationRequest extends UserAnnotation
