@@ -39,6 +39,19 @@ from .pennsieve import get_user
 #===============================================================================
 '''
 /**
+ * A flatmap feature.
+ */
+export interface MapFeature
+{
+    id: string
+    geometry: {
+        type: string
+        coordinates: any[]
+    }
+    properties: Record<any, any>
+}
+
+/**
  * Annotation about an item in a resource.
  */
 export interface UserAnnotation
@@ -77,6 +90,8 @@ ANNOTATION_STORE_SCHEMA = """
     begin;
     create table annotations (resource text, item text, created text, creator text, annotation text);
     create index annotations_index on annotations(resource, item, created, creator);
+    create table features (resource text, item text, deleted text, annotation text, feature text);
+    create index features_index on features(resource, item, deleted);
     commit;
 """
 
@@ -116,6 +131,17 @@ class AnnotationStore:
                                                     (resource_id, )).fetchall()]
         return items
 
+    def features(self, resource_id: str) -> list[dict]:
+    #==================================================
+        features = []
+        if self.__db is not None:
+            for row in self.__db.execute('''select feature from features
+                                            where deleted is null and resource=?
+                                            order by item''',
+                                            (resource_id, )).fetchall():
+                features.append(json.loads(row[0]))
+        return features
+
     def annotations(self, resource_id: str, item_id: str) -> list[dict]:
     #===================================================================
         result = []
@@ -138,15 +164,16 @@ class AnnotationStore:
     #===========================================
         annotation = {}
         if self.__db is not None:
-            row = self.__db.execute('''select resource, item, created, creator, annotation
-                                        from annotations where rowid=?''',
-                                        (annotation_id, )).fetchone()
+            row = self.__db.execute('''select a.resource, a.item, a.created, a.creator, a.annotation, f.feature
+                                        from annotations as a left join features as f on a.rowid = f.annotation
+                                        where a.rowid=? and f.deleted is null''', (annotation_id, )).fetchone()
             if row is not None:
                 annotation = {
                     'resource': row[0],
                     'item': row[1],
                     'created': row[2],
-                    'creator': json.loads(row[3])
+                    'creator': json.loads(row[3]),
+                    'feature': json.loads(row[5]) if row[5] else None,
                 }
                 annotation.update(json.loads(row[4]))
         return annotation
@@ -170,6 +197,17 @@ class AnnotationStore:
                         (resource_id, item_id, created, json.dumps(creator), json.dumps(annotation)))
                     cursor.execute('commit')
                     result['annotationId'] = cursor.lastrowid
+                    feature = annotation.pop('feature', None)
+                    if feature:
+                        # Flag as deleted any non-deleted entries for the feature
+                        cursor.execute('''update features set deleted=?
+                            where deleted is null and resource=? and item=?''',
+                            (result['annotationId'], resource_id, item_id))
+                        if isinstance(feature, dict):
+                            # Add a new row when we have a new feature
+                            cursor.execute('''insert into features
+                                (resource, item, annotation, deleted, feature) values (?, ?, ?, null, ?)''',
+                                (resource_id, item_id, result['annotationId'], json.dumps(feature)))
                 except sqlite3.OperationalError as err:
                     result['error'] = str(err)
         else:
@@ -258,6 +296,17 @@ def annotated_items():
     items = annotation_store.annotated_items(resource_id)
     annotation_store.close()
     return flask.jsonify(items)
+
+#===============================================================================
+
+@annotator_blueprint.route('features/', methods=['GET'])
+@__authenticated
+def features():
+    resource_id = __get_parameter('resource')
+    annotation_store = AnnotationStore()
+    features = annotation_store.features(resource_id)
+    annotation_store.close()
+    return flask.jsonify(features)
 
 #===============================================================================
 
