@@ -192,12 +192,12 @@ class AnnotationStore:
             if resource_id and item_id and creator:
                 creator.pop('canUpdate', None)
                 try:
+                    feature = annotation.pop('feature', None)
                     cursor = self.__db.cursor()
                     cursor.execute('''insert into annotations
                         (resource, item, created, creator, annotation) values (?, ?, ?, ?, ?)''',
                         (resource_id, item_id, created, json.dumps(creator), json.dumps(annotation)))
                     result['annotationId'] = cursor.lastrowid
-                    feature = annotation.pop('feature', None)
                     if feature:
                         # Flag as deleted any non-deleted entries for the feature
                         cursor.execute('''update features set deleted=?
