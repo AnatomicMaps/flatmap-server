@@ -196,7 +196,6 @@ class AnnotationStore:
                     cursor.execute('''insert into annotations
                         (resource, item, created, creator, annotation) values (?, ?, ?, ?, ?)''',
                         (resource_id, item_id, created, json.dumps(creator), json.dumps(annotation)))
-                    cursor.execute('commit')
                     result['annotationId'] = cursor.lastrowid
                     feature = annotation.pop('feature', None)
                     if feature:
@@ -209,6 +208,7 @@ class AnnotationStore:
                             cursor.execute('''insert into features
                                 (resource, item, annotation, deleted, feature) values (?, ?, ?, null, ?)''',
                                 (resource_id, item_id, result['annotationId'], json.dumps(feature)))
+                    cursor.execute('commit')
                 except sqlite3.OperationalError as err:
                     result['error'] = str(err)
         else:
