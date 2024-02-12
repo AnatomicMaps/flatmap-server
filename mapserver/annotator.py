@@ -198,16 +198,15 @@ class AnnotationStore:
                         (resource, item, created, creator, annotation) values (?, ?, ?, ?, ?)''',
                         (resource_id, item_id, created, json.dumps(creator), json.dumps(annotation)))
                     result['annotationId'] = cursor.lastrowid
-                    if feature:
-                        # Flag as deleted any non-deleted entries for the feature
-                        cursor.execute('''update features set deleted=?
-                            where deleted is null and resource=? and item=?''',
-                            (result['annotationId'], resource_id, item_id))
-                        if isinstance(feature, dict):
-                            # Add a new row when we have a new feature
-                            cursor.execute('''insert into features
-                                (resource, item, annotation, deleted, feature) values (?, ?, ?, null, ?)''',
-                                (resource_id, item_id, result['annotationId'], json.dumps(feature)))
+                    # Flag as deleted any non-deleted entries for the feature
+                    cursor.execute('''update features set deleted=?
+                        where deleted is null and resource=? and item=?''',
+                        (result['annotationId'], resource_id, item_id))
+                    if feature and isinstance(feature, dict):
+                        # Add a new row when we have a new feature
+                        cursor.execute('''insert into features
+                            (resource, item, annotation, deleted, feature) values (?, ?, ?, null, ?)''',
+                            (resource_id, item_id, result['annotationId'], json.dumps(feature)))
                     cursor.execute('commit')
                 except sqlite3.OperationalError as err:
                     result['error'] = str(err)
