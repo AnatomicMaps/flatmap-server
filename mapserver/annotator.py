@@ -143,6 +143,24 @@ class AnnotationStore:
                 features.append(json.loads(row[0]))
         return features
 
+    def user_features(self, resource_id: str, participation: dict) -> list[dict]:
+    #============================================================================
+        features = []
+        if self.__db is not None:
+            user = participation.pop('user', None)
+            # Querying participated features if True, else not participated features
+            status = '' if participation.pop('status', True) else '!'
+            if user:
+                user.pop('canUpdate', None)
+                for row in self.__db.execute('''select distinct f.feature from annotations as a 
+                                                left join features as f on a.item = f.item
+                                                where a.resource=? and a.creator?=? and f.deleted is null 
+                                                order by item''',
+                                            (resource_id, status, json.dumps(user), )
+                                            ).fetchall():
+                    features.append(json.loads(row[0]))
+        return features
+
     def annotations(self, resource_id: str, item_id: str) -> list[dict]:
     #===================================================================
         result = []
@@ -305,6 +323,18 @@ def features():
     resource_id = __get_parameter('resource')
     annotation_store = AnnotationStore()
     features = annotation_store.features(resource_id)
+    annotation_store.close()
+    return flask.jsonify(features)
+
+#===============================================================================
+
+@annotator_blueprint.route('features/participation', methods=['GET'])
+@__authenticated
+def user_features():
+    resource_id = __get_parameter('resource')
+    participation = __get_parameter('participation')
+    annotation_store = AnnotationStore()
+    features = annotation_store.user_features(resource_id, participation)
     annotation_store.close()
     return flask.jsonify(features)
 
