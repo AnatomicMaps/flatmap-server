@@ -32,13 +32,18 @@ from .settings import settings
 
 #===============================================================================
 
-PENSIEVE_API = 'https://api.pennsieve.io'
+# Default Pennsieve API endpoint
+
+PENSIEVE_API_PRODUCTION = 'https://api.pennsieve.io'
 
 #===============================================================================
 
 ## Environment...
+# export LOGIN_API_URL="https://api.pennsieve.io"
 # export SPARC_ORGANISATION_ID=N:organization:618e8dd9-f8d2-4dc4-9abb-c6aaab2e78a0
 # export SPARC_ANNOTATION_TEAM_ID=N:team:031b434c-41ab-4ecf-92a9-050fc1b3211a
+
+PENSIEVE_API_ENDPOINT = os.environ.get('PENSIEVE_API_ENDPOINT', PENSIEVE_API_PRODUCTION)
 
 SPARC_ORGANISATION_ID = os.environ.get('SPARC_ORGANISATION_ID')
 SPARC_ANNOTATION_TEAM_ID = os.environ.get('SPARC_ANNOTATION_TEAM_ID')
@@ -64,7 +69,7 @@ annotation_team = None
 def get_annotation_team(key: str) -> Optional[list[str]]:
     if SPARC_ORGANISATION_ID is None or SPARC_ANNOTATION_TEAM_ID is None:
         settings['LOGGER'].warning('Pennsieve IDs of SPARC and MAP Annotation Team are not defined')
-    team_query = query(f'{PENSIEVE_API}/organizations/{SPARC_ORGANISATION_ID}/teams/{SPARC_ANNOTATION_TEAM_ID}/members?api_key={key}')
+    team_query = query(f'{PENSIEVE_API_ENDPOINT}/organizations/{SPARC_ORGANISATION_ID}/teams/{SPARC_ANNOTATION_TEAM_ID}/members?api_key={key}')
     if 'error' not in team_query:
         return [id for member in team_query if (id := member.get('id')) is not None]
 
