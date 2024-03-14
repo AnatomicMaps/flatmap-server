@@ -77,6 +77,16 @@ export interface Annotation extends AnnotationRequest
     id: URL
 }
 
+/**
+ * Information about a logged in user.
+ */
+export interface UserData {
+    name: string
+    email: string
+    orcid: string
+    canUpdate: boolean
+}
+
 TEST_USER = {
     'name': 'Test User',
     'email': 'test@example.org',
@@ -89,8 +99,8 @@ TEST_USER = {
 
 ANNOTATION_STORE_SCHEMA = """
     begin;
-    create table annotations (resource text, item text, created text, creator text, annotation text);
-    create index annotations_index on annotations(resource, item, created, creator);
+    create table annotations (resource text, item text, created text, orcid text, creator text, annotation text);
+    create index annotations_index on annotations(resource, item, created, orcid);
     create table features (resource text, item text, deleted text, annotation text, feature text);
     create index features_index on features(resource, item, deleted);
     commit;
@@ -189,14 +199,15 @@ class AnnotationStore:
             creator = annotation.pop('creator', None)
             resource_id = annotation.pop('resource', None)
             item_id = annotation.pop('item', None)
-            if resource_id and item_id and creator:
+            if (resource_id and item_id
+            and creator and (orcid := creator.get('orcid'))):
                 creator.pop('canUpdate', None)
                 try:
                     feature = annotation.pop('feature', None)
                     cursor = self.__db.cursor()
                     cursor.execute('''insert into annotations
-                        (resource, item, created, creator, annotation) values (?, ?, ?, ?, ?)''',
-                        (resource_id, item_id, created, json.dumps(creator), json.dumps(annotation)))
+                        (resource, item, created, orcid, creator, annotation) values (?, ?, ?, ?, ?, ?)''',
+                        (resource_id, item_id, created, orcid, json.dumps(creator), json.dumps(annotation)))
                     result['annotationId'] = cursor.lastrowid
                     # Flag as deleted any non-deleted entries for the feature
                     cursor.execute('''update features set deleted=?
