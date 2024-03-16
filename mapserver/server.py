@@ -21,13 +21,11 @@
 import gzip
 import io
 import json
-import logging
 import os
 import os.path
 import pathlib
 import sqlite3
 import sys
-from typing import Optional
 
 #===============================================================================
 
