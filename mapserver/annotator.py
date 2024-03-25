@@ -24,7 +24,7 @@ from pathlib import Path
 import json
 import os
 import sqlite3
-from typing import Optional
+from typing import Any, Optional
 import uuid
 
 #===============================================================================
@@ -279,8 +279,10 @@ def __authenticated(f):
 
 #===============================================================================
 
-def __get_parameter(name: str):
-    return json.loads(flask.request.args.get(name, '""'))
+def __get_parameter(name: str, default: Any=None):
+    value = flask.request.args.get(name)
+    result = json.loads(value) if value is not None else default
+    return result
 
 #===============================================================================
 
