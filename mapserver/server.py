@@ -246,12 +246,17 @@ def maps():
                      and ('uuid' not in metadata or flatmap_dir.name != metadata['uuid'].split(':')[-1])):
                         settings['LOGGER'].error(f'Flatmap id mismatch: {flatmap_dir}')
                         continue
-                    id = metadata['id']
                     flatmap = {
-                        'id': id,
+                        'id': metadata['id'],
                         'source': metadata['source'],
                         'version': version
                     }
+                    if 'uuid' in metadata:
+                        flatmap['uuid'] = metadata['uuid']
+                        id = metadata['uuid']
+                    else:
+                        id = metadata['id']
+                    flatmap['uri'] = f'{flask.request.root_url}{flatmap_blueprint.name}/{id}/'
                     if 'created' in metadata:
                         flatmap['created'] = metadata['created']
                     if 'taxon' in metadata:
@@ -262,12 +267,8 @@ def maps():
                         flatmap['describes'] = flatmap['taxon']
                     if 'biological-sex' in metadata:
                         flatmap['biologicalSex'] = metadata['biological-sex']
-                    if 'uuid' in metadata:
-                        flatmap['uuid'] = metadata['uuid']
-                        id = metadata['uuid']
                     if 'name' in metadata:
                         flatmap['name'] = metadata['name']
-                    flatmap['uri'] = f'{request.url_root}flatmap/{id}/'
                 else:
                     source_row = None
                     try:
