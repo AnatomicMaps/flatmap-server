@@ -155,24 +155,25 @@ class AnnotationStore:
 
     def annotations(self, resource_id: str, item_id: str) -> list[dict]:
     #===================================================================
-        result = []
+        annotations = []
         if self.__db is not None:
-            for row in self.__db.execute('''select created, creator, annotation
+            for row in self.__db.execute('''select rowid, created, creator, annotation, resource, item
                                         from annotations where resource=? and item=?
                                         order by created desc, creator''',
                                     (resource_id, item_id)).fetchall():
                 annotation = {
-                    'resource': resource_id,
-                    'item': item_id,
-                    'created': row[0],
-                    'creator': json.loads(row[1])
+                    'annotationId': int(row[0]),
+                    'resource': row[4],
+                    'item': row[5],
+                    'created': row[1],
+                    'creator': json.loads(row[2])
                 }
-                annotation.update(json.loads(row[2]))
-                result.append(annotation)
-        return result
+                annotation.update(json.loads(row[3]))
+                annotations.append(annotation)
+        return annotations
 
-    def annotation(self, annotation_id) -> dict:
-    #===========================================
+    def annotation(self, annotation_id: int) -> dict:
+    #================================================
         annotation = {}
         if self.__db is not None:
             row = self.__db.execute('''select a.resource, a.item, a.created, a.creator, a.annotation, f.feature
@@ -180,6 +181,7 @@ class AnnotationStore:
                                         where a.rowid=? and f.deleted is null''', (annotation_id, )).fetchone()
             if row is not None:
                 annotation = {
+                    'annotationId': int(annotation_id),
                     'resource': row[0],
                     'item': row[1],
                     'created': row[2],
@@ -208,7 +210,8 @@ class AnnotationStore:
                     cursor.execute('''insert into annotations
                         (resource, item, created, orcid, creator, annotation) values (?, ?, ?, ?, ?, ?)''',
                         (resource_id, item_id, created, orcid, json.dumps(creator), json.dumps(annotation)))
-                    result['annotationId'] = cursor.lastrowid
+                    if cursor.lastrowid is not None:
+                        result['annotationId'] = int(cursor.lastrowid)
                     # Flag as deleted any non-deleted entries for the feature
                     cursor.execute('''update features set deleted=?
                         where deleted is null and resource=? and item=?''',
