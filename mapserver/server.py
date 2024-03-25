@@ -48,6 +48,7 @@ from . import __version__
 # Global settings
 
 from .settings import settings
+
 settings['ROOT_PATH'] = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 
 def normalise_path(path):
@@ -75,22 +76,23 @@ os.environ['OPENCV_IO_ENABLE_JASPER'] = '1'
 
 #===============================================================================
 
-# Don't import unnecessary packages when building documentation as otherwise
-# a ``readthedocs`` build aborts with ``excessive memory consumption``
+# Don't import unnecessary packages nor instantiate a Manager when building
+# documentation as otherwise a ``readthedocs`` build either hangs or aborts
+# with ``excessive memory consumption``
+
+map_maker = None
 
 if 'sphinx' not in sys.modules:
     from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
     from PIL import Image
 
-    # We also don't instantiate a Manager as doing so will prevent Sphinx from
-    # exiting (and hang a ``readthedocs`` build)
+    # Having a Manager prevents Sphinx from exiting and hangs a ``readthedocs``
+    # build
 
     if HAVE_MAPMAKER:
         sys.path.insert(0, settings['MAPMAKER_ROOT'])
         from .maker import Manager
         map_maker = Manager()
-else:
-    map_maker = None
 
 #===============================================================================
 
