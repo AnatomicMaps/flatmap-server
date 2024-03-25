@@ -208,9 +208,9 @@ def normalise_identifier(id):
 def read_metadata(tile_reader, name):
     try:
         row = tile_reader._query("SELECT value FROM metadata WHERE name='{}'".format(name)).fetchone()
-        return {} if row is None else json.loads(row[0])
     except (InvalidFormatError, sqlite3.OperationalError):
-        flask.abort(404, 'Cannot read tile database')
+        raise IOError('Cannot read tile database')
+    return {} if row is None else json.loads(row[0])
 
 def get_metadata(map_id, name):
     mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.mbtiles')
@@ -345,19 +345,28 @@ def markers(map_id):
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/layers')
 def map_layers(map_id):
-    return flask.jsonify(get_metadata(map_id, 'layers'))
+    try:
+        return flask.jsonify(get_metadata(map_id, 'layers'))
+    except IOError as err:
+        flask.abort(404, str(err))
 
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/metadata')
 def map_metadata(map_id):
-    return flask.jsonify(get_metadata(map_id, 'metadata'))
+    try:
+        return flask.jsonify(get_metadata(map_id, 'metadata'))
+    except IOError as err:
+        flask.abort(404, str(err))
 
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/pathways')
 def map_pathways(map_id):
-    return flask.jsonify(get_metadata(map_id, 'pathways'))
+    try:
+        return flask.jsonify(get_metadata(map_id, 'pathways'))
+    except IOError as err:
+        flask.abort(404, str(err))
 
 #===============================================================================
 
@@ -405,7 +414,10 @@ def image_tiles(map_id, layer, z, y, x):
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/annotations')
 def map_annotation(map_id):
-    return flask.jsonify(get_metadata(map_id, 'annotations'))
+    try:
+        return flask.jsonify(get_metadata(map_id, 'annotations'))
+    except IOError as err:
+        flask.abort(404, str(err))
 
 #===============================================================================
 #===============================================================================
