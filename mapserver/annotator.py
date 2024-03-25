@@ -153,14 +153,24 @@ class AnnotationStore:
                 features.append(json.loads(row[0]))
         return features
 
-    def annotations(self, resource_id: str, item_id: str) -> list[dict]:
-    #===================================================================
+    def annotations(self, resource_id: Optional[str]=None, item_id: Optional[str]=None) -> list[dict]:
+    #=================================================================================================
         annotations = []
         if self.__db is not None:
-            for row in self.__db.execute('''select rowid, created, creator, annotation, resource, item
-                                        from annotations where resource=? and item=?
+            where_values = []
+            if resource_id is None:
+                where_statement =  ''
+            else:
+                where_clauses = ['resource=?']
+                where_values.append(resource_id)
+                if item_id is not None:
+                    where_clauses.append('item=?')
+                    where_values.append(item_id)
+                where_statement = 'where ' + ' and '.join(where_clauses)
+            for row in self.__db.execute(f'''select rowid, created, creator, annotation, resource, item
+                                        from annotations {where_statement}
                                         order by created desc, creator''',
-                                    (resource_id, item_id)).fetchall():
+                                    tuple(where_values)).fetchall():
                 annotation = {
                     'annotationId': int(row[0]),
                     'resource': row[4],
