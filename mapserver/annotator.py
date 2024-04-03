@@ -145,6 +145,23 @@ class AnnotationStore:
             'items': items
         }
 
+    def user_items(self, resource_id: str, user_id: Optional[str], participated: bool) -> dict:
+    #==========================================================================================
+        items = []
+        if self.__db is not None and user_id is not None:
+            # Querying participated annotations if participated True, else non-participated annotations
+            items = [row[0]
+                        for row in self.__db.execute(f'''select distinct item from annotations
+                                                         where resource=? and orcid {"=" if participated else "!="} ?
+                                                         order by item''', (resource_id, user_id))
+                                            .fetchall()]
+        return {
+            'resource': resource_id,
+            'items': items,
+            'userId': user_id,
+            'participated': participated,
+        }
+
     def features(self, resource_id: str) -> dict:
     #============================================
         features = []
@@ -324,8 +341,13 @@ def unauthenticate():
 @__authenticated
 def annotated_items():
     resource_id = __get_parameter('resource')
+    user_id = __get_parameter('user')
     annotation_store = AnnotationStore()
-    items = annotation_store.annotated_items(resource_id)
+    if user_id is not None:
+        participated = __get_parameter('participated', True)
+        items = annotation_store.user_items(resource_id, user_id, participated)
+    else:
+        items = annotation_store.annotated_items(resource_id)
     annotation_store.close()
     return flask.jsonify(items)
 
