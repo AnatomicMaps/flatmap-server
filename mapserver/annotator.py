@@ -176,6 +176,21 @@ class AnnotationStore:
             'features': features
         }
 
+    def item_features(self, resource_id: str, item_ids: list[str]) -> dict:
+    #======================================================================
+        features = []
+        if self.__db is not None and len(item_ids):
+            features = [json.loads(row[0])
+                for row in self.__db.execute(f'''select feature from features
+                                                 where deleted is null and resource=?
+                                                       and item in ({", ".join("?"*len(item_ids))})
+                                                 order by item''', (resource_id, *item_ids))
+                                    .fetchall()]
+        return {
+            'resource': resource_id,
+            'features': features
+        }
+
     def annotations(self, resource_id: Optional[str]=None, item_id: Optional[str]=None) -> list[dict]:
     #=================================================================================================
         annotations = []
@@ -357,8 +372,14 @@ def annotated_items():
 @__authenticated
 def features():
     resource_id = __get_parameter('resource')
+    items = __get_parameter('items')
     annotation_store = AnnotationStore()
-    features = annotation_store.features(resource_id)
+    if items is not None:
+        if isinstance(items, str):
+            items = [items]
+        features = annotation_store.item_features(resource_id, items)
+    else:
+        features = annotation_store.features(resource_id)
     annotation_store.close()
     return flask.jsonify(features)
 
