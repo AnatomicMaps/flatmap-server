@@ -422,3 +422,13 @@ def add_annotation():
 
 #===============================================================================
 #===============================================================================
+
+@annotator_blueprint.route('download/', methods=['GET'])
+def download():
+    annotation_store = AnnotationStore()
+    annotations = annotation_store.annotations()
+    annotation_store.close()
+    return flask.jsonify(annotations)
+
+#===============================================================================
+#===============================================================================
