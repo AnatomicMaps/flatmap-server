@@ -131,27 +131,33 @@ class AnnotationStore:
             self.__db.close()
             self.__db = None
 
-    def annotated_items(self, resource_id: str) -> list[str]:
-    #========================================================
+    def annotated_items(self, resource_id: str) -> dict:
+    #===================================================
         items = []
         if self.__db is not None:
             items = [row[0]
                         for row in self.__db.execute('''select distinct item
                                                         from annotations where resource=?
-                                                         order by item''',
-                                                    (resource_id, )).fetchall()]
-        return items
+                                                         order by item''', (resource_id, ))
+                                            .fetchall()]
+        return {
+            'resource': resource_id,
+            'items': items
+        }
 
-    def features(self, resource_id: str) -> list[dict]:
-    #==================================================
+    def features(self, resource_id: str) -> dict:
+    #============================================
         features = []
         if self.__db is not None:
-            for row in self.__db.execute('''select feature from features
-                                            where deleted is null and resource=?
-                                            order by item''',
-                                            (resource_id, )).fetchall():
-                features.append(json.loads(row[0]))
-        return features
+            features = [json.loads(row[0])
+                           for row in self.__db.execute('''select feature from features
+                                                           where deleted is null and resource=?
+                                                           order by item''', (resource_id, ))
+                                                .fetchall()]
+        return {
+            'resource': resource_id,
+            'features': features
+        }
 
     def annotations(self, resource_id: Optional[str]=None, item_id: Optional[str]=None) -> list[dict]:
     #=================================================================================================
