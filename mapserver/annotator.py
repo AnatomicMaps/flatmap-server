@@ -99,10 +99,10 @@ TEST_USER = {
 
 ANNOTATION_STORE_SCHEMA = """
     begin;
-    create table annotations (resource text, item text, created text, orcid text, creator text, annotation text);
-    create index annotations_index on annotations(resource, item, created, orcid);
-    create table features (resource text, item text, deleted text, annotation text, feature text);
-    create index features_index on features(resource, item, deleted);
+    create table annotations (resource text, itemid text, item text, created text, orcid text, creator text, annotation text);
+    create index annotations_index on annotations(resource, itemid, created, orcid);
+    create table features (resource text, itemid text, deleted text, annotation text, feature text);
+    create index features_index on features(resource, itemid, deleted);
     commit;
 """
 
@@ -131,33 +131,33 @@ class AnnotationStore:
             self.__db.close()
             self.__db = None
 
-    def annotated_items(self, resource_id: str) -> dict:
-    #===================================================
-        items = []
+    def annotated_item_ids(self, resource_id: str) -> dict:
+    #======================================================
+        item_ids = []
         if self.__db is not None:
-            items = [row[0]
-                        for row in self.__db.execute('''select distinct item
+            item_ids = [row[0]
+                        for row in self.__db.execute('''select distinct itemid
                                                         from annotations where resource=?
-                                                         order by item''', (resource_id, ))
+                                                         order by itemid''', (resource_id, ))
                                             .fetchall()]
         return {
             'resource': resource_id,
-            'items': items
+            'itemIds': item_ids
         }
 
-    def user_items(self, resource_id: str, user_id: Optional[str], participated: bool) -> dict:
-    #==========================================================================================
-        items = []
+    def user_item_ids(self, resource_id: str, user_id: Optional[str], participated: bool) -> dict:
+    #=============================================================================================
+        item_ids = []
         if self.__db is not None and user_id is not None:
             # Querying participated annotations if participated True, else non-participated annotations
-            items = [row[0]
-                        for row in self.__db.execute(f'''select distinct item from annotations
+            item_ids = [row[0]
+                        for row in self.__db.execute(f'''select distinct itemid from annotations
                                                          where resource=? and orcid {"=" if participated else "!="} ?
-                                                         order by item''', (resource_id, user_id))
+                                                         order by itemid''', (resource_id, user_id))
                                             .fetchall()]
         return {
             'resource': resource_id,
-            'items': items,
+            'itemIds': item_ids,
             'userId': user_id,
             'participated': participated,
         }
@@ -169,7 +169,7 @@ class AnnotationStore:
             features = [json.loads(row[0])
                            for row in self.__db.execute('''select feature from features
                                                            where deleted is null and resource=?
-                                                           order by item''', (resource_id, ))
+                                                           order by itemid''', (resource_id, ))
                                                 .fetchall()]
         return {
             'resource': resource_id,
@@ -183,8 +183,8 @@ class AnnotationStore:
             features = [json.loads(row[0])
                 for row in self.__db.execute(f'''select feature from features
                                                  where deleted is null and resource=?
-                                                       and item in ({", ".join("?"*len(item_ids))})
-                                                 order by item''', (resource_id, *item_ids))
+                                                       and itemid in ({", ".join("?"*len(item_ids))})
+                                                 order by itemid''', (resource_id, *item_ids))
                                     .fetchall()]
         return {
             'resource': resource_id,
@@ -202,17 +202,18 @@ class AnnotationStore:
                 where_clauses = ['resource=?']
                 where_values.append(resource_id)
                 if item_id is not None:
-                    where_clauses.append('item=?')
+                    where_clauses.append('itemid=?')
                     where_values.append(item_id)
                 where_statement = 'where ' + ' and '.join(where_clauses)
-            for row in self.__db.execute(f'''select rowid, created, creator, annotation, resource, item
+            for row in self.__db.execute(f'''select rowid, created, creator, annotation, resource, itemid, item
                                         from annotations {where_statement}
                                         order by created desc, creator''',
                                     tuple(where_values)).fetchall():
                 annotation = {
                     'annotationId': int(row[0]),
                     'resource': row[4],
-                    'item': row[5],
+                    'itemId': row[5],
+                    'item': json.loads(row[6]),
                     'created': row[1],
                     'creator': json.loads(row[2])
                 }
@@ -224,19 +225,20 @@ class AnnotationStore:
     #================================================
         annotation = {}
         if self.__db is not None:
-            row = self.__db.execute('''select a.resource, a.item, a.created, a.creator, a.annotation, f.feature
+            row = self.__db.execute('''select a.resource, a.itemid, a.item, a.created, a.creator, a.annotation, f.feature
                                         from annotations as a left join features as f on a.rowid = f.annotation
                                         where a.rowid=? and f.deleted is null''', (annotation_id, )).fetchone()
             if row is not None:
                 annotation = {
                     'annotationId': int(annotation_id),
                     'resource': row[0],
-                    'item': row[1],
-                    'created': row[2],
-                    'creator': json.loads(row[3]),
-                    'feature': json.loads(row[5]) if row[5] else None,
+                    'itemId': row[1],
+                    'item': json.loads(row[2]),
+                    'created': row[3],
+                    'creator': json.loads(row[4]),
+                    'feature': json.loads(row[6]) if row[6] else None,
                 }
-                annotation.update(json.loads(row[4]))
+                annotation.update(json.loads(row[5]))
         return annotation
 
     def add_annotation(self, annotation: dict) -> dict:
@@ -248,7 +250,12 @@ class AnnotationStore:
                 created = datetime.now(tz=timezone.utc).isoformat(timespec='seconds')
             creator = annotation.pop('creator', None)
             resource_id = annotation.pop('resource', None)
-            item_id = annotation.pop('item', None)
+            item = annotation.pop('item', None)
+            if not isinstance(item, dict):
+                item = {
+                    'id': item
+                }
+            item_id = item['id']
             if (resource_id and item_id
             and creator and (orcid := creator.get('orcid'))):
                 creator.pop('canUpdate', None)
@@ -256,18 +263,18 @@ class AnnotationStore:
                     feature = annotation.pop('feature', None)
                     cursor = self.__db.cursor()
                     cursor.execute('''insert into annotations
-                        (resource, item, created, orcid, creator, annotation) values (?, ?, ?, ?, ?, ?)''',
-                        (resource_id, item_id, created, orcid, json.dumps(creator), json.dumps(annotation)))
+                        (resource, itemid, item, created, orcid, creator, annotation) values (?, ?, ?, ?, ?, ?)''',
+                        (resource_id, item_id, json.dumps(item), created, orcid, json.dumps(creator), json.dumps(annotation)))
                     if cursor.lastrowid is not None:
                         result['annotationId'] = int(cursor.lastrowid)
                     # Flag as deleted any non-deleted entries for the feature
                     cursor.execute('''update features set deleted=?
-                        where deleted is null and resource=? and item=?''',
+                        where deleted is null and resource=? and itemid=?''',
                         (result['annotationId'], resource_id, item_id))
                     if feature and isinstance(feature, dict):
                         # Add a new row when we have a new feature
                         cursor.execute('''insert into features
-                            (resource, item, annotation, deleted, feature) values (?, ?, ?, null, ?)''',
+                            (resource, itemid, annotation, deleted, feature) values (?, ?, ?, null, ?)''',
                             (resource_id, item_id, result['annotationId'], json.dumps(feature)))
                     cursor.execute('commit')
                 except sqlite3.OperationalError as err:
@@ -360,11 +367,11 @@ def annotated_items():
     annotation_store = AnnotationStore()
     if user_id is not None:
         participated = __get_parameter('participated', True)
-        items = annotation_store.user_items(resource_id, user_id, participated)
+        item_ids = annotation_store.user_item_ids(resource_id, user_id, participated)
     else:
-        items = annotation_store.annotated_items(resource_id)
+        item_ids = annotation_store.annotated_item_ids(resource_id)
     annotation_store.close()
-    return flask.jsonify(items)
+    return flask.jsonify(item_ids)
 
 #===============================================================================
 
@@ -372,12 +379,12 @@ def annotated_items():
 @__authenticated
 def features():
     resource_id = __get_parameter('resource')
-    items = __get_parameter('items')
+    item_ids = __get_parameter('items')
     annotation_store = AnnotationStore()
-    if items is not None:
-        if isinstance(items, str):
-            items = [items]
-        features = annotation_store.item_features(resource_id, items)
+    if item_ids is not None:
+        if isinstance(item_ids, str):
+            item_ids = [item_ids]
+        features = annotation_store.item_features(resource_id, item_ids)
     else:
         features = annotation_store.features(resource_id)
     annotation_store.close()
@@ -391,9 +398,9 @@ def annotations():
     resource_id = __get_parameter('resource')
     item_id = __get_parameter('item')
     annotation_store = AnnotationStore()
-    items = annotation_store.annotations(resource_id, item_id)
+    annotations = annotation_store.annotations(resource_id, item_id)
     annotation_store.close()
-    return flask.jsonify(items)
+    return flask.jsonify(annotations)
 
 #===============================================================================
 
