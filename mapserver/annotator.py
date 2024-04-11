@@ -212,7 +212,6 @@ class AnnotationStore:
                 annotation = {
                     'annotationId': int(row[0]),
                     'resource': row[4],
-                    'itemId': row[5],
                     'item': json.loads(row[6]),
                     'created': row[1],
                     'creator': json.loads(row[2])
@@ -232,7 +231,6 @@ class AnnotationStore:
                 annotation = {
                     'annotationId': int(annotation_id),
                     'resource': row[0],
-                    'itemId': row[1],
                     'item': json.loads(row[2]),
                     'created': row[3],
                     'creator': json.loads(row[4]),
