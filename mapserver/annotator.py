@@ -261,7 +261,7 @@ class AnnotationStore:
                     feature = annotation.pop('feature', None)
                     cursor = self.__db.cursor()
                     cursor.execute('''insert into annotations
-                        (resource, itemid, item, created, orcid, creator, annotation) values (?, ?, ?, ?, ?, ?)''',
+                        (resource, itemid, item, created, orcid, creator, annotation) values (?, ?, ?, ?, ?, ?, ?)''',
                         (resource_id, item_id, json.dumps(item), created, orcid, json.dumps(creator), json.dumps(annotation)))
                     if cursor.lastrowid is not None:
                         result['annotationId'] = int(cursor.lastrowid)
