@@ -38,6 +38,9 @@ begin;
 alter table annotations add column itemid text;
 drop index annotations_index;
 create index annotations_index on annotations(resource, itemid, created, orcid);
+drop index features_index;
+alter table features rename column item to itemid;
+create index features_index on features(resource, itemid, deleted);
 commit;
 '''
 
