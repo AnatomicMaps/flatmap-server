@@ -46,12 +46,10 @@ commit;
 
 def upgrade_schema(db):
 #=====================
-    row = db.execute('select sql from sqlite_schema where name=?', ('annotations', )).fetchone()
-    if 'itemid' not in row[0]:
-        try:
-            db.executescript(SCHEMA_UPDATE)
-        except sqlite3.OperationalError as error:
-            exit(str(error))
+    try:
+        db.executescript(SCHEMA_UPDATE)
+    except sqlite3.OperationalError as error:
+        exit(str(error))
 
 #===============================================================================
 
