@@ -13,6 +13,7 @@ flatmapknowledge = {url="https://github.com/AnatomicMaps/flatmap-knowledge/relea
 Pillow = "^10.0.1"
 fastapi = "^0.104.1"
 uvicorn = "^0.24.0.post1"
+mapmaker = { path = "./mapmaker", develop = true }
 
 [tool.poetry.dev-dependencies]
 sphinx = "4.0.3"

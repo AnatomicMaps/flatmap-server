@@ -465,7 +465,12 @@ def make_map():
     """
     Generate a flatmap.
 
-    :<json string source: the map's manifest
+    :<json string source: either a local path to the map's manifest or the
+                          URL of a Git repository containing the manifest
+    :<json string manifest: the relative path of the map's manifest when the
+                            source is a Git repository. Required in this case
+    :<json string commit: the branch/tag/commit to use when the source is a
+                          Git repository. Optional
 
     :>json int process: the id of the map generation process
     :>json string map: the unique identifier for the map
@@ -475,15 +480,19 @@ def make_map():
     params = flask.request.get_json()
     if params is None or 'source' not in params:
         error_abort('No source specified in data')
-    map_source = params.get('source')
-    maker_process = map_maker.make(map_source)
-    s = {
+    if map_maker is None:
+        return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
+    maker_process = map_maker.make(params)
+    result = {
         'process': maker_process.process_id,
-        'map': maker_process.map_id,
-        'source': map_source,
+        'source': params.get('source'),
         'status': 'started'
     }
-    return flask.jsonify(s)
+    if 'manifest' in params:
+        result['manifest'] = params['manifest']
+    if 'commit' in params:
+        result['commit'] = params['commit']
+    return flask.jsonify(result)
 
 @maker_blueprint.route('/log/<int:process_id>')
 def make_log(process_id):
@@ -493,6 +502,8 @@ def make_log(process_id):
     :param process_id: The id of a maker process
     :type process_id: int
     """
+    if map_maker is None:
+        return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
     filename = map_maker.logfile(process_id)
     if os.path.exists(filename):
         return flask.send_file(filename)
@@ -510,6 +521,8 @@ def make_status(process_id):
     :>json int maker: the id of the map generation process
     :>json string status: the status of the map generation process
     """
+    if map_maker is None:
+        return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
     return flask.jsonify({
         'process': process_id,
         'status': map_maker.status(process_id)

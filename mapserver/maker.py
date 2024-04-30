@@ -31,20 +31,16 @@ import urllib.error
 
 from .settings import settings
 
-from mapmaker.maker import MapMaker
+from mapmaker import MapMaker
 from mapmaker.utils import log
 
 #===============================================================================
 
-# Base directory for logs (relative to ``MAPMAKER_ROOT``)
-
-LOG_DIRECTORY = os.path.join(settings['MAPMAKER_ROOT'], 'log')
 
 #===============================================================================
 
 class MakerProcess(object):
-    def __init__(self, map_id, process):
-        self.__map_id = map_id
+    def __init__(self, process):
         self.__process = process
         self.__process_id = process.pid
         self.__sentinel = process.sentinel
@@ -52,10 +48,6 @@ class MakerProcess(object):
     @property
     def exitcode(self):
         return self.__process.exitcode if self.__process is not None else -1
-
-    @property
-    def map_id(self):
-        return self.__map_id
 
     @property
     def process_id(self):
@@ -84,7 +76,10 @@ class Manager(threading.Thread):
         self.__pids_by_sentinel = {}
         self.__processes_by_id = {}
         # Make sure we have a directory for log files
-        settings['MAPMAKER_LOGS'] = os.path.join(settings['ROOT_PATH'], LOG_DIRECTORY)
+        # Base directory for logs (relative to ``MAPMAKER_ROOT``)
+        settings['MAPMAKER_LOGS'] = os.path.join(settings['ROOT_PATH'],
+                                                 os.path.join(settings['MAPMAKER_ROOT'],
+                                                 'log'))
         if not os.path.exists(settings['MAPMAKER_LOGS']):
             os.makedirs(settings['MAPMAKER_LOGS'])
         self.__logger = logging.getLogger('gunicorn.error')
@@ -100,21 +95,21 @@ class Manager(threading.Thread):
         return os.path.join(settings['MAPMAKER_LOGS'],
                             '{}.log'.format(process_id))
 
-    def make(self, map_source):
-    #==========================
-        map_id = hashlib.sha256(map_source.encode('utf8')).hexdigest()
-        params = {
-            'source': map_source,
-            'id': map_id,
+    def make(self, params):
+    #======================
+
+        params = {key: value for (key, value) in params.items()
+                                if key in ['source', 'manifest', 'commit']}
+        params.update({
             'output': self.__map_dir,
             'backgroundTiles': True,
             'clean': True,
             'quiet': True,
             'logPath': settings['MAPMAKER_LOGS']  # Logfile name is `PROCESS_ID.log`
-        }
-        process = multiprocessing.Process(target=Manager._make_map, args=(params, ))
+        })
+        process = multiprocessing.Process(target=Manager.make_map, args=(params, ))
         process.start()
-        maker_process = MakerProcess(map_id, process)
+        maker_process = MakerProcess(process)
         self.__processes_by_id[process.pid] = maker_process
         self.__pids_by_sentinel[process.sentinel] = process.pid
         return maker_process
@@ -156,7 +151,7 @@ class Manager(threading.Thread):
         pass
 
     @staticmethod
-    def _make_map(params):
+    def make_map(params):
     #=====================
         try:
             mapmaker = MapMaker(params)
@@ -177,5 +172,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     generator = Manager()
-    process_id = generator.generate({'map': args.map})
+    process_id = generator.make_map({'map': args.map})
 

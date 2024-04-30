@@ -60,19 +60,22 @@ and open `<http://localhost:8000/viewer>`_ in a browser.
 Map generation
 ==============
 
-The flatmap server can also generate maps. This requires a separate installation of ``mapmaker``; if this is to a location other than ``./mapmaker`` under the top-level server directory then the ``MAPMAKER_ROOT`` environment variable must be set to point to where mapmaker is installed.
+The flatmap server can also generate maps. This requires a separate installation of ``mapmaker``; if this is to a location
+other than ``./mapmaker`` under the top-level server directory then the ``MAPMAKER_ROOT`` environment variable must be set
+to point to where mapmaker is installed.
 
-*   First install mapmaker's pre-requisites as `here <https://github.com/AnatomicMaps/flatmap-maker#requirements>`_.
-*   Then::
-
-    $ git clone AnatomicMaps/flatmap-make mapmaker
-    $ cd mapmaker
+    $ git clone https://github.com/AnatomicMaps/flatmap-maker.git mapmaker
     $ poetry install
-    $ cd ..
 
-To generate a map, ``POST`` a request to the ``/make/map`` end-point specifying the URL of a map's manifest file. The server will respond with the id of the maker process. The ``/make/status/PROCESS_ID`` end-point allows the process's status to be queried and ``/make/log/PROCESS_ID`` will return a log of a running process.
+To generate a map, ``POST`` a request to the ``/make/map`` end-point specifying the path of a local manifest file
+or the URL of a Git repository containing a manifest and the relative path of the manifest within the repository,
+optionally with a specific commit identifier. The server will respond with the id of the maker process. The
+``/make/status/PROCESS_ID`` end-point allows the process's status to be queried and ``/make/log/PROCESS_ID`` will
+return a log of a running process.
 
-`SciCrunch <https://scicrunch.org/>`_ is used to lookup attributes (e.g. labels) of anatomical entities when making maps. In order to use these services a valid SciCrunch API key must be provided as the ``SCICRUNCH_API_KEY`` environment variable. (Keys are obtained by registering as a SciCrunch user).
+`SciCrunch <https://scicrunch.org/>`_ is used to lookup attributes (e.g. labels) of anatomical entities when making
+maps. In order to use these services a valid SciCrunch API key must be provided as the ``SCICRUNCH_API_KEY`` environment
+variable. (Keys are obtained by registering as a SciCrunch user).
 
 
 Authentication
@@ -94,8 +97,9 @@ A local map source
 
 Request generation::
 
-    $ curl -H "Content-Type: application/json" -X POST
-           -d '{"source":"/Users/dave/build/Flatmaps/new-maker/tests/gradients/manifest.json"}'
+    $ curl -H "Content-Type: application/json" -X POST \
+           -d '{"source":"/Users/dave/build/Flatmaps/new-maker/tests/gradients/manifest.json"}' \
+           -H "Authorization: Bearer 123" \
            http://localhost:8000/make/map
 
 Response::
@@ -142,75 +146,50 @@ A remote map source
 
 This generates a flatmap showing part of the vagus nerve, from sources held in a publicly accessible PMR workspace::
 
-    $ curl -H "Content-Type: application/json"
-           -X POST
-           -d '{"source":"https://models.physiomeproject.org/workspace/693/rawfile/aa83dc1b19c03101d6a5306c77d144823fd59ea5/vagus_test.manifest.json"}'
+    $ curl -H "Content-Type: application/json" -X POST \
+           -d '{"source":"https://github.com/AnatomicMaps/test-flatmap", "manifest": "manifest.json"}' \
+           -H "Authorization: Bearer 123" \
            http://localhost:8000/make/map
 
 Response::
 
-    {"map":"83f6c97d571b67fb4c273e20287b53b4f0a1f70780d3d6a2a282e66cef5f9473","process":57906,"source":"https://models.physiomeproject.org/workspace/693/rawfile/aa83dc1b19c03101d6a5306c77d144823fd59ea5/vagus_test.manifest.json","status":"started"}
+    {"manifest":"manifest.json","process":94908,"source":"https://github.com/AnatomicMaps/test-flatmap","status":"started"}
 
 Query build status::
 
-    $  curl http://localhost:8000/make/status/57906
+    $  curl http://localhost:8000/make/status/94908
 
 Response shows ``running``::
 
-    {"process":57906,"status":"running"}
+    {"process":94908,"status":"running"}
 
 Get log showing progress::
 
-    $ curl http://localhost:8000/make/log/57906
+    $ curl http://localhost:8000/make/log/94908
 
 Response::
 
-    2021-06-11 13:46:17,386 INFO: Mapmaker 1.2.0b3
-    2021-06-11 13:46:17,903 INFO: Making map: 83f6c97d571b67fb4c273e20287b53b4f0a1f70780d3d6a2a282e66cef5f9473
-    2021-06-11 13:46:20,148 WARNING: Unknown anatomical entity: SAO:1770195789
-    2021-06-11 13:46:20,724 INFO: Adding details...
-    2021-06-11 13:46:20,728 INFO: Routing paths...
-    2021-06-11 13:46:20,728 INFO: Outputting GeoJson features...
-    2021-06-11 13:46:20,728 INFO: Layer: vagus_test
-    2021-06-11 13:46:20,800 INFO: Layer: vagus_test_routes
-    2021-06-11 13:46:20,800 INFO: Running tippecanoe...
-    2021-06-11 13:46:20,996 INFO: Generating background tiles (may take a while...)
-    2021-06-11 13:46:20,998 INFO: Tiling vagus_test_image...
-    2021-06-11 13:46:21,019 INFO: Tiling zoom level 10 for vagus_test_image
+    2024-05-01 09:00:02,426 INFO: Mapmaker 1.8.0
+    2024-05-01 09:00:03,697 INFO: Making map: test-flatmap       .
+       .
+       .
+
 
 Check status ::
 
-    $  curl http://localhost:8000/make/status/57906
+    $  curl http://localhost:8000/make/status/94908
 
 Response shows ``terminated``::
 
-    {"process":57906,"status":"terminated"}
+    {"process":94908,"status":"terminated"}
 
 Get full log::
 
-    $ curl http://localhost:8000/make/log/57906
+    $ curl http://localhost:8000/make/log/94908
 
 Response::
 
-    2021-06-11 13:46:17,386 INFO: Mapmaker 1.2.0b3
-    2021-06-11 13:46:17,903 INFO: Making map: 83f6c97d571b67fb4c273e20287b53b4f0a1f70780d3d6a2a282e66cef5f9473
-    2021-06-11 13:46:20,148 WARNING: Unknown anatomical entity: SAO:1770195789
-    2021-06-11 13:46:20,724 INFO: Adding details...
-    2021-06-11 13:46:20,728 INFO: Routing paths...
-    2021-06-11 13:46:20,728 INFO: Outputting GeoJson features...
-    2021-06-11 13:46:20,728 INFO: Layer: vagus_test
-    2021-06-11 13:46:20,800 INFO: Layer: vagus_test_routes
-    2021-06-11 13:46:20,800 INFO: Running tippecanoe...
-    2021-06-11 13:46:20,996 INFO: Generating background tiles (may take a while...)
-    2021-06-11 13:46:20,998 INFO: Tiling vagus_test_image...
-    2021-06-11 13:46:21,019 INFO: Tiling zoom level 10 for vagus_test_image
-    2021-06-11 13:46:23,802 INFO: Tiling zoom level 9 for vagus_test_image
-    2021-06-11 13:46:23,969 INFO: Tiling zoom level 8 for vagus_test_image
-    2021-06-11 13:46:24,034 INFO: Tiling zoom level 7 for vagus_test_image
-    2021-06-11 13:46:24,062 INFO: Tiling zoom level 6 for vagus_test_image
-    2021-06-11 13:46:24,079 INFO: Tiling zoom level 5 for vagus_test_image
-    2021-06-11 13:46:24,097 INFO: Tiling zoom level 4 for vagus_test_image
-    2021-06-11 13:46:24,116 INFO: Tiling zoom level 3 for vagus_test_image
-    2021-06-11 13:46:24,136 INFO: Tiling zoom level 2 for vagus_test_image
-    2021-06-11 13:46:24,188 INFO: Creating index and style files...
-    2021-06-11 13:46:24,195 INFO: Generated map: 83f6c97d571b67fb4c273e20287b53b4f0a1f70780d3d6a2a282e66cef5f9473
+       .
+       .
+       .
+    INFO: Generated map: id: test-flatmap, uuid: ba591736-6dc5-5403-8821-bd21523ef6bd, models: NCBITaxon:1, output: ...
