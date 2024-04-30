@@ -64,8 +64,10 @@ The flatmap server can also generate maps. This requires a separate installation
 other than ``./mapmaker`` under the top-level server directory then the ``MAPMAKER_ROOT`` environment variable must be set
 to point to where mapmaker is installed.
 
+::
+
     $ git clone https://github.com/AnatomicMaps/flatmap-maker.git mapmaker
-    $ poetry install
+    $ poetry update
 
 To generate a map, ``POST`` a request to the ``/make/map`` end-point specifying the path of a local manifest file
 or the URL of a Git repository containing a manifest and the relative path of the manifest within the repository,
