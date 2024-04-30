@@ -25,7 +25,6 @@ import multiprocessing.connection
 import os
 import sys
 import threading
-import urllib.error
 
 #===============================================================================
 
