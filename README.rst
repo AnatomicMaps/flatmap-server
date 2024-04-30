@@ -40,7 +40,7 @@ Optional map viewer
 
 As an option, the server provides a simple flatmap viewer application. Prerequisites are ``node`` and ``npm``. To install the viewer give the following commands from the top-level server directory::
 
-    $ git clone https://github.com/AnatomicMaps/flatmap-server-viewer.git
+    $ git clone https://github.com/AnatomicMaps/flatmap-server-viewer.git viewer
     $ cd viewer
     $ npm install
     $ npm run build
