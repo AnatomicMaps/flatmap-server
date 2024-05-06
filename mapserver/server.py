@@ -69,6 +69,13 @@ HAVE_MAPMAKER = pathlib.Path(os.path.join(settings['MAPMAKER_ROOT'],
                                           'mapmaker/__init__.py')).exists()
 
 #===============================================================================
+"""
+If a file with this name exists in the map's output directory then the map
+is in the process of being made
+"""
+MAKER_SENTINEL = '.map_making'
+
+#===============================================================================
 
 # Needed to read JPEG 2000 files with OpenCV2 under Linux
 
@@ -237,7 +244,9 @@ def maps():
         for flatmap_dir in root_path.iterdir():
             index = os.path.join(settings['FLATMAP_ROOT'], flatmap_dir, 'index.json')
             mbtiles = os.path.join(settings['FLATMAP_ROOT'], flatmap_dir, 'index.mbtiles')
-            if os.path.isdir(flatmap_dir) and os.path.exists(index) and os.path.exists(mbtiles):
+            map_making = os.path.join(settings['FLATMAP_ROOT'], flatmap_dir, MAKER_SENTINEL)
+            if (os.path.isdir(flatmap_dir) and not os.path.exists(map_making)
+            and os.path.exists(index) and os.path.exists(mbtiles)):
                 with open(index) as fp:
                     index = json.loads(fp.read())
                 version = index.get('version', 1.0)
