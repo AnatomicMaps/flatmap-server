@@ -54,8 +54,9 @@ def mapviewer():
 
 #===============================================================================
 
-if __name__ == '__main__':
-    import uvicorn
-    uvicorn.run(mapserver())
+def flask_run():
+    import logging
+    settings['LOGGER'] = logging.getLogger()
+    return server()
 
 #===============================================================================
