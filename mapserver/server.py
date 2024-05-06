@@ -491,51 +491,57 @@ def make_map():
         error_abort('No source specified in data')
     if map_maker is None:
         return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
-    maker_process = map_maker.make(params)
-    result = {
-        'process': maker_process.process_id,
-        'source': params.get('source'),
-        'status': 'started'
-    }
+    result = map_maker.make(params)
+    result['source'] = params.get('source')
     if 'manifest' in params:
         result['manifest'] = params['manifest']
     if 'commit' in params:
         result['commit'] = params['commit']
     return flask.jsonify(result)
 
-@maker_blueprint.route('/log/<int:process_id>')
-def make_log(process_id):
-    """
-    Return the log file of a map generation process.
-
-    :param process_id: The id of a maker process
-    :type process_id: int
-    """
-    if map_maker is None:
-        return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
-    filename = map_maker.logfile(process_id)
-    if os.path.exists(filename):
-        return flask.send_file(filename)
-    else:
-        flask.abort(404, 'Missing log file')
-
-@maker_blueprint.route('/status/<int:process_id>')
-def make_status(process_id):
-    """
-    Get the status of a map generation process.
-
-    :param process_id: The id of a maker process
-    :type process_id: int
-
-    :>json int maker: the id of the map generation process
-    :>json string status: the status of the map generation process
-    """
+@maker_blueprint.route('/process-log/<int:pid>')
+def process_log(pid: int):
     if map_maker is None:
         return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
     return flask.jsonify({
-        'process': process_id,
-        'status': map_maker.status(process_id)
+        'pid': pid,
+        'log': map_maker.full_log(pid)
     })
+
+@maker_blueprint.route('/log/<string:id>')
+@maker_blueprint.route('/log/<string:id>/<int:start_line>')
+def maker_log(id: str, start_line=1):
+    """
+    Return the status of a map generation process along with log records
+
+    :param id: The id of a maker process
+    :type id: str
+    :param start_line: The line number in the log file of the first log record to return.
+                       1-origin, defaults to ``1``
+    :type start_line: int
+    """
+    if map_maker is None:
+        return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
+    log_data = map_maker.get_log(id, start_line)
+    status = map_maker.status(id)
+    status['log'] = log_data
+    return flask.jsonify(status)
+
+@maker_blueprint.route('/status/<string:id>')
+def maker_status(id: str):
+    """
+    Get the status of a map generation process.
+
+    :param id: The id of a maker process
+    :type id: str
+
+    :>json str id: the ``id`` of the map generation process
+    :>json str status: the ``status`` of the generation process
+    :>json int pid: the system ``process id`` of the generation process
+    """
+    if map_maker is None:
+        return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
+    return flask.jsonify(map_maker.status(id))
 
 #===============================================================================
 #===============================================================================
