@@ -102,6 +102,7 @@ class Manager(threading.Thread):
             os.makedirs(settings['MAPMAKER_LOGS'])
         self.__logger = logging.getLogger('gunicorn.error')
         self.__map_dir = settings['FLATMAP_ROOT']
+        self.__terminate_event = threading.Event()
         self.start()
 
     def list(self):
@@ -149,7 +150,7 @@ class Manager(threading.Thread):
     def run(self):
     #=============
         self.__logger.info('Manager running...')
-        while True:
+        while self.__terminate_event.wait(0):
             sentinels = list(self.__ids_by_sentinel.keys())
             terminated = multiprocessing.connection.wait(sentinels, 0.1)
             for sentinel in terminated:
@@ -168,6 +169,10 @@ class Manager(threading.Thread):
                     self.__start_process(process)
                 except queue.Empty:
                     pass
+
+    def terminate(self):
+    #===================
+        self.__terminate_event.set()
 
     def status(self, id) -> dict:
     #============================
