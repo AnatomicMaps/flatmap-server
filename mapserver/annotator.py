@@ -29,7 +29,7 @@ import uuid
 
 #===============================================================================
 
-import flask            # type: ignore
+import quart            # type: ignore
 
 #===============================================================================
 
@@ -304,54 +304,54 @@ def __del_session(session_key: str) -> bool:
 def __authenticated(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if flask.request.method == 'GET':
-            parameters = flask.request.args
-        elif flask.request.method == 'POST':
-            parameters = flask.request.get_json()
+        if quart.request.method == 'GET':
+            parameters = quart.request.args
+        elif quart.request.method == 'POST':
+            parameters = quart.request.get_json()
         else:
             parameters = {}
         if ((key := parameters.get('key')) is not None
           and (session_key := parameters.get('session')) is not None
           and session_key == __session_key(key)
           and (data := __session_data(session_key)) is not None):
-            flask.g.update = data.get('canUpdate', False)
+            quart.g.update = data.get('canUpdate', False)
             return f(*args, **kwargs)
-        response = flask.make_response('{"error": "forbidden"}', 403)
+        response = quart.make_response('{"error": "forbidden"}', 403)
         return response
     return decorated_function
 
 #===============================================================================
 
 def __get_parameter(name: str, default: Any=None):
-    value = flask.request.args.get(name)
+    value = quart.request.args.get(name)
     result = json.loads(value) if value is not None else default
     return result
 
 #===============================================================================
 
 @annotator_blueprint.route('authenticate', methods=['GET'])
-def authenticate():
-    parameters = flask.request.args
+async def authenticate():
+    parameters = quart.request.args
     if (key := parameters.get('key')) is not None:
         user_data = get_user(key)
     else:
         user_data = {'error': 'forbidden'}
     if 'error' not in user_data:
         session_key = __new_session(key, user_data)
-        response = flask.make_response(json.dumps({
+        response = quart.make_response(json.dumps({
             'session': session_key,
             'data': user_data
         }))
     else:
-        response = flask.make_response(json.dumps(user_data), 403)
+        response = await quart.make_response(json.dumps(user_data), 403)
     response.mimetype = 'application/json'
     return response
 
 #===============================================================================
 
 @annotator_blueprint.route('unauthenticate', methods=['GET'])
-def unauthenticate():
-    response = flask.make_response('{"success": "Unauthenticated"}')
+async def unauthenticate():
+    response = await quart.make_response('{"success": "Unauthenticated"}')
     response.mimetype = 'application/json'
     return response
 
@@ -359,7 +359,7 @@ def unauthenticate():
 
 @annotator_blueprint.route('items/', methods=['GET'])
 @__authenticated
-def annotated_items():
+async def annotated_items():
     resource_id = __get_parameter('resource')
     user_id = __get_parameter('user')
     annotation_store = AnnotationStore()
@@ -369,13 +369,13 @@ def annotated_items():
     else:
         item_ids = annotation_store.annotated_item_ids(resource_id)
     annotation_store.close()
-    return flask.jsonify(item_ids)
+    return quart.jsonify(item_ids)
 
 #===============================================================================
 
 @annotator_blueprint.route('features/', methods=['GET'])
 @__authenticated
-def features():
+async def features():
     resource_id = __get_parameter('resource')
     item_ids = __get_parameter('items')
     annotation_store = AnnotationStore()
@@ -386,54 +386,54 @@ def features():
     else:
         features = annotation_store.features(resource_id)
     annotation_store.close()
-    return flask.jsonify(features)
+    return quart.jsonify(features)
 
 #===============================================================================
 
 @annotator_blueprint.route('annotations/', methods=['GET'])
 @__authenticated
-def annotations():
+async def annotations():
     resource_id = __get_parameter('resource')
     item_id = __get_parameter('item')
     annotation_store = AnnotationStore()
     annotations = annotation_store.annotations(resource_id, item_id)
     annotation_store.close()
-    return flask.jsonify(annotations)
+    return quart.jsonify(annotations)
 
 #===============================================================================
 
 @annotator_blueprint.route('annotation/', methods=['GET'])
 @__authenticated
-def annotation():
+async def annotation():
     annotation_id = __get_parameter('annotation')
     annotation_store = AnnotationStore()
     annotation = annotation_store.annotation(annotation_id)
     annotation_store.close()
-    return flask.jsonify(annotation)
+    return quart.jsonify(annotation)
 
 #===============================================================================
 
 @annotator_blueprint.route('annotation/', methods=['POST'])
 @__authenticated
-def add_annotation():
+async def add_annotation():
     annotation_store = AnnotationStore()
-    if flask.request.method == 'POST' and flask.g.update:
-        annotation = flask.request.get_json().get('data', {})
+    if quart.request.method == 'POST' and quart.g.update:
+        annotation = quart.request.get_json().get('data', {})
         result = annotation_store.add_annotation(annotation)
     else:
         result = '{"error": "forbidden"}', 403, {'mimetype': 'application/json'}
     annotation_store.close()
-    return flask.jsonify(result)
+    return quart.jsonify(result)
 
 #===============================================================================
 #===============================================================================
 
 @annotator_blueprint.route('download/', methods=['GET'])
-def download():
+async def download():
     annotation_store = AnnotationStore()
     annotations = annotation_store.annotations()
     annotation_store.close()
-    return flask.jsonify(annotations)
+    return quart.jsonify(annotations)
 
 #===============================================================================
 #===============================================================================

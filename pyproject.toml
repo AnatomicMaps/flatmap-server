@@ -6,14 +6,13 @@ authors = ["David Brooks <d.brooks@auckland.ac.nz>"]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<4.0"
-flask = "^2.2.2"
 landez = "^2.5.0"
-flask-cors = "^3.0.10"
 flatmapknowledge = {url="https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.7.0/flatmapknowledge-1.7.0-py3-none-any.whl"}
 Pillow = "^10.0.1"
-fastapi = "^0.104.1"
-uvicorn = "^0.24.0.post1"
 mapmaker = { path = "./mapmaker", develop = true }
+quart = "^0.19.5"
+quart-cors = "^0.7.0"
+requests = "^2.31.0"
 
 [tool.poetry.dev-dependencies]
 sphinx = "4.0.3"

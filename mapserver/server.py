@@ -21,6 +21,7 @@
 import gzip
 import io
 import json
+import logging
 import os
 import os.path
 import pathlib
@@ -29,14 +30,9 @@ import sys
 
 #===============================================================================
 
-import flask
-from flask import Blueprint, Flask, Response, request
-from flask_cors import CORS
-
-try:
-    from werkzeug.wsgi import FileWrapper
-except ImportError:
-    FileWrapper = None
+import quart
+from quart import Blueprint, Quart, request
+from quart_cors import cors
 
 #===============================================================================
 
@@ -49,6 +45,7 @@ from . import __version__
 
 from .settings import settings
 
+settings['LOGGER'] = logging.getLogger()
 settings['ROOT_PATH'] = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 
 def normalise_path(path):
@@ -130,7 +127,7 @@ def maker_auth_check():
         if auth.startswith('Bearer '):
             if auth.split()[1] in settings['BEARER_TOKENS']:  #### not in ?????
                 return None
-    return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
+    return quart.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
 
 #===============================================================================
 
@@ -141,60 +138,19 @@ viewer_blueprint = Blueprint('viewer', __name__,
 #===============================================================================
 #===============================================================================
 
-app = None
-
-#===============================================================================
-
-def wsgi_app(viewer=False):
-    global app
-    settings['MAP_VIEWER'] = viewer
-    app = Flask('mapserver')
-    app.config['CORS_HEADERS'] = 'Content-Type'
-    CORS(annotator_blueprint)
-    app.register_blueprint(annotator_blueprint)
-    CORS(flatmap_blueprint)
-    app.register_blueprint(flatmap_blueprint)
-    CORS(knowledge_blueprint)
-    app.register_blueprint(knowledge_blueprint)
-    app.register_blueprint(maker_blueprint)
-    app.register_blueprint(viewer_blueprint)
-
-    settings['LOGGER'].info(f'Started flatmap server version {__version__}')
-    if not settings['BEARER_TOKENS']:
-        # Only warn once...
-        settings['LOGGER'].warning('No bearer tokens defined')
-
-    # Open our knowledge base
-    knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=True)
-    if knowledge_store.error is not None:
-        settings['LOGGER'].error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
-
-    return app
-
-#===============================================================================
-#===============================================================================
-
-def send_bytes(bytes_io, mimetype):
-    if FileWrapper is not None:
-        return Response(FileWrapper(bytes_io), mimetype=mimetype, direct_passthrough=True)
-    else:
-        return flask.send_file(bytes_io, mimetype=mimetype)
-
-#===============================================================================
-
-def send_json(filename):
-#=======================
+async def send_json(filename):
+#=============================
     try:
-        return flask.send_file(filename)
+        return await quart.send_file(filename, mimetype='application/json')
     except FileNotFoundError:
-        return flask.jsonify({})
+        return quart.jsonify({})
 
 #===============================================================================
 
 def error_abort(msg):
 #====================
     settings['LOGGER'].error(msg)
-    flask.abort(501, msg)
+    quart.abort(501, msg)
 
 #===============================================================================
 
@@ -229,7 +185,7 @@ def get_metadata(map_id, name):
 #===============================================================================
 
 @flatmap_blueprint.route('/')
-def maps():
+async def maps():
     """
     Get a list of available flatmaps.
 
@@ -267,7 +223,7 @@ def maps():
                         id = metadata['uuid']
                     else:
                         id = metadata['id']
-                    flatmap['uri'] = f'{flask.request.root_url}{flatmap_blueprint.name}/{id}/'
+                    flatmap['uri'] = f'{quart.request.root_url}{flatmap_blueprint.name}/{id}/'
                     if 'created' in metadata:
                         flatmap['created'] = metadata['created']
                     if 'taxon' in metadata:
@@ -285,7 +241,7 @@ def maps():
                     try:
                         source_row = reader._query("SELECT value FROM metadata WHERE name='source'").fetchone()
                     except (InvalidFormatError, sqlite3.OperationalError):
-                        flask.abort(404, 'Cannot read tile database: {}'.format(mbtiles))
+                        quart.abort(404, 'Cannot read tile database: {}'.format(mbtiles))
                     if source_row is None:
                         continue
                     flatmap = {
@@ -299,12 +255,12 @@ def maps():
                     if describes is not None and describes[0]:
                         flatmap['describes'] = normalise_identifier(describes[0])
                 flatmap_list.append(flatmap)
-    return flask.jsonify(flatmap_list)
+    return quart.jsonify(flatmap_list)
 
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/')
-def map(map_id):
+async def map(map_id):
     """
     Return a representation of a flatmap.
 
@@ -317,134 +273,134 @@ def map(map_id):
     doesn't specify a JSON response then the SVG is returned, otherwise the
     flatmap's ``index.json`` is returned.
     """
-    if 'json' not in flask.request.accept_mimetypes.best:
+    if 'json' not in quart.request.accept_mimetypes.best:
         filename = os.path.join(settings['FLATMAP_ROOT'], map_id, '{}.svg'.format(map_id))
         if os.path.exists(filename):
-            return flask.send_file(filename, mimetype='image/svg+xml')
+            return quart.send_file(filename, mimetype='image/svg+xml')
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.json')
-    return send_json(filename)
+    return await send_json(filename)
 
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/tilejson')
-def tilejson(map_id):
+async def tilejson(map_id):
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'tilejson.json')
-    return send_json(filename)
+    return await send_json(filename)
 
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/style')
-def style(map_id):
+async def style(map_id):
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'style.json')
-    return send_json(filename)
+    return await send_json(filename)
 
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/styled')
-def styled(map_id):
+async def styled(map_id):
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'styled.json')
-    return send_json(filename)
+    return await send_json(filename)
 
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/markers')
-def markers(map_id):
+async def markers(map_id):
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'markers.json')
-    return send_json(filename)
+    return await send_json(filename)
 
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/layers')
-def map_layers(map_id):
+async def map_layers(map_id):
     try:
-        return flask.jsonify(get_metadata(map_id, 'layers'))
+        return quart.jsonify(get_metadata(map_id, 'layers'))
     except IOError as err:
-        flask.abort(404, str(err))
+        quart.abort(404, str(err))
 
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/metadata')
-def map_metadata(map_id):
+async def map_metadata(map_id):
     try:
-        return flask.jsonify(get_metadata(map_id, 'metadata'))
+        return quart.jsonify(get_metadata(map_id, 'metadata'))
     except IOError as err:
-        flask.abort(404, str(err))
+        quart.abort(404, str(err))
 
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/pathways')
-def map_pathways(map_id):
+async def map_pathways(map_id):
     try:
-        return flask.jsonify(get_metadata(map_id, 'pathways'))
+        return quart.jsonify(get_metadata(map_id, 'pathways'))
     except IOError as err:
-        flask.abort(404, str(err))
+        quart.abort(404, str(err))
 
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/images/<string:image>')
-def map_background(map_id, image):
+async def map_background(map_id, image):
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'images', image)
     if os.path.exists(filename):
-        return flask.send_file(filename)
+        return await quart.send_file(filename)
     else:
-        flask.abort(404, 'Missing image: {}'.format(filename))
+        quart.abort(404, 'Missing image: {}'.format(filename))
 
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/mvtiles/<int:z>/<int:x>/<int:y>')
-def vector_tiles(map_id, z, y, x):
+async def vector_tiles(map_id, z, y, x):
     try:
         mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.mbtiles')
         tile_reader = MBTilesReader(mbtiles)
         tile_bytes = tile_reader.tile(z, x, y)
         if read_metadata(tile_reader, 'compressed'):
             tile_bytes = gzip.decompress(tile_bytes)
-        return send_bytes(io.BytesIO(tile_bytes), 'application/octet-stream')
+        return await quart.send_file(io.BytesIO(tile_bytes), mimetype='application/octet-stream')
     except ExtractionError:
         pass
     except (InvalidFormatError, sqlite3.OperationalError):
-        flask.abort(404, 'Cannot read tile database')
-    return flask.make_response('', 204)
+        quart.abort(404, 'Cannot read tile database')
+    return await quart.make_response('', 204)
 
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/tiles/<string:layer>/<int:z>/<int:x>/<int:y>')
-def image_tiles(map_id, layer, z, y, x):
+async def image_tiles(map_id, layer, z, y, x):
     try:
         mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, '{}.mbtiles'.format(layer))
         reader = MBTilesReader(mbtiles)
         image_bytes = io.BytesIO(reader.tile(z, x, y))
-        return send_bytes(image_bytes, 'image/png')
+        return await quart.send_file(image_bytes, mimetype='image/png')
     except ExtractionError:
         pass
     except (InvalidFormatError, sqlite3.OperationalError):
-        flask.abort(404, 'Cannot read tile database')
-    return send_bytes(blank_tile(), 'image/png')
+        quart.abort(404, 'Cannot read tile database')
+    return await quart.send_file(blank_tile(), mimetype='image/png')
 
 #===============================================================================
 
 @flatmap_blueprint.route('flatmap/<string:map_id>/annotations')
-def map_annotation(map_id):
+async def map_annotation(map_id):
     try:
-        return flask.jsonify(get_metadata(map_id, 'annotations'))
+        return quart.jsonify(get_metadata(map_id, 'annotations'))
     except IOError as err:
-        flask.abort(404, str(err))
+        quart.abort(404, str(err))
 
 #===============================================================================
 #===============================================================================
 
 @knowledge_blueprint.route('label/<string:entity>')
-def knowledge_label(entity: str):
+async def knowledge_label(entity: str):
     """
     Find an entity's label from the flatmap server's knowledge base.
     """
     knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=False, read_only=False)
     label = knowledge_store.label(entity)
     knowledge_store.close()
-    return flask.jsonify({'entity': entity, 'label': label})
+    return quart.jsonify({'entity': entity, 'label': label})
 
 @knowledge_blueprint.route('query/', methods=['POST'])
-def knowledge_query():
+async def knowledge_query():
     """
     Query the flatmap server's knowledge base.
 
@@ -455,22 +411,22 @@ def knowledge_query():
     :>json array(array(string)) values: result data rows
     :>json string error: any error message
     """
-    params = flask.request.get_json()
+    params = await quart.request.get_json()
     if params is None or 'sql' not in params:
-        return flask.jsonify({'error': 'No SQL specified in request'})
+        return quart.jsonify({'error': 'No SQL specified in request'})
     else:
         knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=False, read_only=True)
         result = knowledge_store.query(params.get('sql'), params.get('params', []))
         knowledge_store.close()
         if 'error' in result:
             settings['LOGGER'].warning('SQL: {}'.format(result['error']))
-        return flask.jsonify(result)
+        return quart.jsonify(result)
 
 #===============================================================================
 #===============================================================================
 
 @maker_blueprint.route('/map', methods=['POST'])
-def make_map():
+async def make_map():
     """
     Generate a flatmap.
 
@@ -486,31 +442,31 @@ def make_map():
     :>json string source: the map's manifest
     :>json string status: the status of the map generation process
     """
-    params = flask.request.get_json()
+    params = await quart.request.get_json()
     if params is None or 'source' not in params:
         error_abort('No source specified in data')
     if map_maker is None:
-        return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
+        return await quart.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
     result = map_maker.make(params)
     result['source'] = params.get('source')
     if 'manifest' in params:
         result['manifest'] = params['manifest']
     if 'commit' in params:
         result['commit'] = params['commit']
-    return flask.jsonify(result)
+    return quart.jsonify(result)
 
 @maker_blueprint.route('/process-log/<int:pid>')
-def process_log(pid: int):
+async def process_log(pid: int):
     if map_maker is None:
-        return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
-    return flask.jsonify({
+        return await quart.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
+    return quart.jsonify({
         'pid': pid,
         'log': map_maker.full_log(pid)
     })
 
 @maker_blueprint.route('/log/<string:id>')
 @maker_blueprint.route('/log/<string:id>/<int:start_line>')
-def maker_log(id: str, start_line=1):
+async def maker_log(id: str, start_line=1):
     """
     Return the status of a map generation process along with log records
 
@@ -521,14 +477,14 @@ def maker_log(id: str, start_line=1):
     :type start_line: int
     """
     if map_maker is None:
-        return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
+        return await quart.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
     log_data = map_maker.get_log(id, start_line)
     status = map_maker.status(id)
     status['log'] = log_data
-    return flask.jsonify(status)
+    return quart.jsonify(status)
 
 @maker_blueprint.route('/status/<string:id>')
-def maker_status(id: str):
+async def maker_status(id: str):
     """
     Get the status of a map generation process.
 
@@ -540,15 +496,15 @@ def maker_status(id: str):
     :>json int pid: the system ``process id`` of the generation process
     """
     if map_maker is None:
-        return flask.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
-    return flask.jsonify(map_maker.status(id))
+        return await quart.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
+    return quart.jsonify(map_maker.status(id))
 
 #===============================================================================
 #===============================================================================
 
 @viewer_blueprint.route('/')
 @viewer_blueprint.route('/<path:filename>')
-def viewer_app(filename='index.html'):
+async def viewer_app(filename='index.html'):
     """
     The flatmap viewer application.
 
@@ -559,9 +515,9 @@ def viewer_app(filename='index.html'):
     """
     filename = os.path.join(viewer_blueprint.root_path, filename)
     if settings['MAP_VIEWER'] and os.path.exists(filename):
-        return flask.send_file(filename)
+        return await quart.send_file(filename)
     else:
-        flask.abort(404)
+        quart.abort(404)
 
 #===============================================================================
 #===============================================================================
@@ -573,11 +529,50 @@ from .annotator import annotated_items, annotations, annotation, add_annotation
 #===============================================================================
 #===============================================================================
 
-def server():
-    return wsgi_app(False)
+app = Quart('mapserver')
 
-def viewer():
-    return wsgi_app(True)
+cors_settings = {'allow_origin': '*'}
+app = cors(app, **cors_settings)
+
+annotator_blueprint = cors(annotator_blueprint, **cors_settings)
+app.register_blueprint(annotator_blueprint)
+
+flatmap_blueprint = cors(flatmap_blueprint, **cors_settings)
+app.register_blueprint(flatmap_blueprint)
+
+knowledge_blueprint = cors(knowledge_blueprint, **cors_settings)
+app.register_blueprint(knowledge_blueprint)
+
+app.register_blueprint(maker_blueprint)
+app.register_blueprint(viewer_blueprint)
+
+#===============================================================================
+#===============================================================================
+
+def initialise(viewer=False):
+    settings['MAP_VIEWER'] = viewer
+    settings['LOGGER'].info(f'Started flatmap server version {__version__}')
+    if not settings['BEARER_TOKENS']:
+        # Only warn once...
+        settings['LOGGER'].warning('No bearer tokens defined')
+    # Open our knowledge base
+    knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=True)
+    if knowledge_store.error is not None:
+        settings['LOGGER'].error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
+
+#===============================================================================
+
+def setup_server() -> Quart:
+    initialise(False)
+    return app
+
+server = setup_server()
+
+def setup_viewer() -> Quart:
+    initialise(True)
+    return app
+
+viewer = setup_viewer()
 
 #===============================================================================
 #===============================================================================
