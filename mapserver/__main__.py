@@ -21,6 +21,7 @@
 import asyncio
 import os
 import signal
+import sys
 from typing import Any
 
 #===============================================================================
@@ -63,6 +64,8 @@ def main(viewer=False):
 #===============================================================================
 
 if __name__ == '__main__':
-    main()
+#=========================
+    enable_viewer = len(sys.argv) > 1 and sys.argv[1] == 'viewer'
+    main(viewer=enable_viewer)
 
 #===============================================================================
