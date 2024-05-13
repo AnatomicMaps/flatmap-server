@@ -18,7 +18,7 @@
 #
 #===============================================================================
 
-import logging
+import asyncio
 import multiprocessing
 import multiprocessing.connection
 import os
@@ -32,7 +32,7 @@ import uuid
 from .settings import settings
 
 from mapmaker import MapMaker
-from mapmaker.utils import log
+import mapmaker.utils as utils
 
 #===============================================================================
 
@@ -76,7 +76,7 @@ class MakerProcess(multiprocessing.Process):
 
     def start(self):
     #===============
-        log.info('Starting process:', self.name)
+        utils.log.info('Starting process:', self.name)
         self.__status = 'running'
         super().start()
         self.__process_id = self.pid
@@ -100,16 +100,11 @@ class Manager(threading.Thread):
                                                  'log'))
         if not os.path.exists(settings['MAPMAKER_LOGS']):
             os.makedirs(settings['MAPMAKER_LOGS'])
-        self.__logger = logging.getLogger('gunicorn.error')
         self.__map_dir = settings['FLATMAP_ROOT']
-        self.__terminate_event = threading.Event()
+        self.__terminate_event = asyncio.Event()
         self.start()
 
-    def list(self):
-    #==============
-        pass
-
-    def full_log(self, pid):
+    async def full_log(self, pid):
     #=======================
         filename = log_file(pid)
         if os.path.exists(filename):
@@ -117,8 +112,8 @@ class Manager(threading.Thread):
                 return fp.read()
         return f'Missing log file... {filename}'
 
-    def get_log(self, id, start_line=1):
-    #===================================
+    async def get_log(self, id, start_line=1):
+    #=========================================
         if id in self.__processes_by_id:
             process = self.__processes_by_id[id]
             if (filename := process.log_file) is not None and os.path.exists(filename):
@@ -126,8 +121,8 @@ class Manager(threading.Thread):
                     return '\n'.join(fp.read().split('\n')[start_line-1:])
         return ''
 
-    def make(self, params) -> dict:
-    #==============================
+    async def make(self, params) -> dict:
+    #====================================
         params = {key: value for (key, value) in params.items()
                                 if key in ['source', 'manifest', 'commit']}
         params.update({
@@ -135,22 +130,20 @@ class Manager(threading.Thread):
             'backgroundTiles': True,
             'clean': True,  ## remove and don't make if map exists (log.error() and exit(1))
             'quiet': True,  ## what does this do? Isn't it now the default??
-            ##  logFile based on process number, but only number initialised to last log file...
             'logPath': settings['MAPMAKER_LOGS']  # Logfile name is `PROCESS_ID.log`
         })
         process = MakerProcess(params)
-        log.info('Created process:', process.name)
+        utils.log.info('Created process:', process.name)
         self.__processes_by_id[process.id] = process
         if len(self.__ids_by_sentinel):
             self.__queued_processes.put(process)
         else:
             self.__start_process(process)
-        return self.status(process.id)
+        return await self.status(process.id)
 
     def run(self):
     #=============
-        self.__logger.info('Manager running...')
-        while self.__terminate_event.wait(0):
+        while not self.__terminate_event.is_set():
             sentinels = list(self.__ids_by_sentinel.keys())
             terminated = multiprocessing.connection.wait(sentinels, 0.1)
             for sentinel in terminated:
@@ -174,8 +167,8 @@ class Manager(threading.Thread):
     #===================
         self.__terminate_event.set()
 
-    def status(self, id) -> dict:
-    #============================
+    async def status(self, id) -> dict:
+    #==================================
         result = {
             'process': id
         }
@@ -202,7 +195,7 @@ class Manager(threading.Thread):
             mapmaker = MapMaker(params)
             mapmaker.make()
         except Exception as err:
-            log.error(str(err))
+            utils.log.error(str(err))
             sys.exit(1)
 
 #===============================================================================

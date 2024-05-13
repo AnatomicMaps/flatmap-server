@@ -89,14 +89,6 @@ if 'sphinx' not in sys.modules:
     from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
     from PIL import Image
 
-    # Having a Manager prevents Sphinx from exiting and hangs a ``readthedocs``
-    # build
-
-    if HAVE_MAPMAKER:
-        sys.path.insert(0, settings['MAPMAKER_ROOT'])
-        from .maker import Manager
-        map_maker = Manager()
-
 #===============================================================================
 
 flatmap_blueprint = Blueprint('flatmap', __name__,
@@ -446,7 +438,7 @@ async def make_map():
         error_abort('No source specified in data')
     if map_maker is None:
         return await quart.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
-    result = map_maker.make(params)
+    result = await map_maker.make(params)
     result['source'] = params.get('source')
     if 'manifest' in params:
         result['manifest'] = params['manifest']
@@ -458,9 +450,10 @@ async def make_map():
 async def process_log(pid: int):
     if map_maker is None:
         return await quart.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
+    log = await map_maker.full_log(pid)
     return quart.jsonify({
         'pid': pid,
-        'log': map_maker.full_log(pid)
+        'log': log
     })
 
 @maker_blueprint.route('/log/<string:id>')
@@ -477,8 +470,8 @@ async def maker_log(id: str, start_line=1):
     """
     if map_maker is None:
         return await quart.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
-    log_data = map_maker.get_log(id, start_line)
-    status = map_maker.status(id)
+    log_data = await map_maker.get_log(id, start_line)
+    status = await map_maker.status(id)
     status['log'] = log_data
     return quart.jsonify(status)
 
@@ -496,7 +489,8 @@ async def maker_status(id: str):
     """
     if map_maker is None:
         return await quart.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
-    return quart.jsonify(map_maker.status(id))
+    status = await map_maker.status(id)
+    return quart.jsonify(status)
 
 #===============================================================================
 #===============================================================================
@@ -558,6 +552,15 @@ def initialise(viewer=False):
     knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=True)
     if knowledge_store.error is not None:
         app.logger.error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
+
+    if HAVE_MAPMAKER and 'sphinx' not in sys.modules:
+        # Having a Manager prevents Sphinx from exiting and hangs a ``readthedocs``
+        # build
+        from .maker import Manager
+
+        global map_maker
+        sys.path.insert(0, settings['MAPMAKER_ROOT'])
+        map_maker = Manager()
 
 #===============================================================================
 #===============================================================================

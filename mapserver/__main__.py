@@ -34,7 +34,7 @@ import uvloop
 #===============================================================================
 
 from .server import app, initialise, map_maker
-from .settings import settings
+from .settings import config, settings
 
 SERVER_INTERFACE = os.environ.get('SERVER_INTERFACE', '127.0.0.1')
 SERVER_PORT      = os.environ.get('SERVER_PORT', '8000')
@@ -78,7 +78,6 @@ def __signal_handler(*_: Any) -> None:
 
 async def main(viewer=False):
 #============================
-    config = Config()
     config.bind = [f'{SERVER_INTERFACE}:{SERVER_PORT}']
     config.accesslog = './logs/access_log'
     config.errorlog = './logs/error_log'
