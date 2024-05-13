@@ -19,6 +19,7 @@
 #===============================================================================
 
 import asyncio
+import os
 import signal
 from typing import Any
 
@@ -30,6 +31,9 @@ from hypercorn.config import Config
 #===============================================================================
 
 from .server import app, initialise, map_maker
+
+SERVER_INTERFACE = os.environ.get('SERVER_INTERFACE', '127.0.0.1')
+SERVER_PORT      = os.environ.get('SERVER_PORT', '8000')
 
 #===============================================================================
 
@@ -45,6 +49,7 @@ def main(viewer=False):
 #======================
     initialise(viewer)
     config = Config()
+    config.bind = [f'{SERVER_INTERFACE}:{SERVER_PORT}']
 
     loop = asyncio.get_event_loop()
     loop.add_signal_handler(signal.SIGTERM, __signal_handler)
