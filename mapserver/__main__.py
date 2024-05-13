@@ -34,9 +34,37 @@ import uvloop
 #===============================================================================
 
 from .server import app, initialise, map_maker
+from .settings import settings
 
 SERVER_INTERFACE = os.environ.get('SERVER_INTERFACE', '127.0.0.1')
 SERVER_PORT      = os.environ.get('SERVER_PORT', '8000')
+
+#===============================================================================
+
+class SyncLogger:
+    def __init__(self, logger):
+        self.__logger = logger
+
+    def critical(self, msg, *args, **kwds):
+        asyncio.run(self.__logger.critical(msg, *args, **kwds))
+
+    def debug(self, msg, *args, **kwds):
+        asyncio.run(self.__logger.debug(msg, *args, **kwds))
+
+    def error(self, msg, *args, **kwds):
+        asyncio.run(self.__logger.error(msg, *args, **kwds))
+
+    def exception(self, msg, *args, **kwds):
+        asyncio.run(self.__logger.exception(msg, *args, **kwds))
+
+    def info(self, msg, *args, **kwds):
+        asyncio.run(self.__logger.info(msg, *args, **kwds))
+
+    def log(self, msg, *args, **kwds):
+        asyncio.run(self.__logger.log(msg, *args, **kwds))
+
+    def warning(self, msg, *args, **kwds):
+        asyncio.run(self.__logger.warning(msg, *args, **kwds))
 
 #===============================================================================
 
@@ -48,13 +76,15 @@ def __signal_handler(*_: Any) -> None:
     if map_maker is not None:
         map_maker.terminate()
 
-def main(viewer=False):
-#======================
-    initialise(viewer)
+async def main(viewer=False):
+#============================
     config = Config()
     config.bind = [f'{SERVER_INTERFACE}:{SERVER_PORT}']
     config.accesslog = './logs/access_log'
     config.errorlog = './logs/error_log'
+    settings['LOGGER'] = app.logger = SyncLogger(config.log)
+
+    initialise(viewer)
 
     uvloop.install()
     loop = asyncio.get_event_loop()
@@ -68,6 +98,6 @@ def main(viewer=False):
 if __name__ == '__main__':
 #=========================
     enable_viewer = len(sys.argv) > 1 and sys.argv[1] == 'viewer'
-    main(viewer=enable_viewer)
+    asyncio.run(main(viewer=enable_viewer))
 
 #===============================================================================

@@ -37,15 +37,13 @@ from quart_cors import cors
 #===============================================================================
 
 from .knowledgestore import KnowledgeStore
+from .settings import settings
 from . import __version__
 
 #===============================================================================
 
 # Global settings
 
-from .settings import settings
-
-settings['LOGGER'] = logging.getLogger()
 settings['ROOT_PATH'] = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 
 def normalise_path(path):
@@ -61,6 +59,7 @@ settings['BEARER_TOKENS'] = os.environ.get('BEARER_TOKENS', '').split()
 
 MAPMAKER_ROOT = os.environ.get('MAPMAKER_ROOT', './mapmaker')
 settings['MAPMAKER_ROOT'] = normalise_path(MAPMAKER_ROOT)
+
 # Do we have a copy of ``mapmaker`` available?
 HAVE_MAPMAKER = pathlib.Path(os.path.join(settings['MAPMAKER_ROOT'],
                                           'mapmaker/__init__.py')).exists()
@@ -149,7 +148,7 @@ async def send_json(filename):
 
 def error_abort(msg):
 #====================
-    settings['LOGGER'].error(msg)
+    app.logger.error(msg)
     quart.abort(501, msg)
 
 #===============================================================================
@@ -211,7 +210,7 @@ async def maps():
                     metadata: dict[str, str] = read_metadata(reader, 'metadata')
                     if (('id' not in metadata or flatmap_dir.name != metadata['id'])
                      and ('uuid' not in metadata or flatmap_dir.name != metadata['uuid'].split(':')[-1])):
-                        settings['LOGGER'].error(f'Flatmap id mismatch: {flatmap_dir}')
+                        app.logger.error(f'Flatmap id mismatch: {flatmap_dir}')
                         continue
                     flatmap = {
                         'id': metadata['id'],
@@ -419,7 +418,7 @@ async def knowledge_query():
         result = knowledge_store.query(params.get('sql'), params.get('params', []))
         knowledge_store.close()
         if 'error' in result:
-            settings['LOGGER'].warning('SQL: {}'.format(result['error']))
+            app.logger.warning('SQL: {}'.format(result['error']))
         return quart.jsonify(result)
 
 #===============================================================================
@@ -551,28 +550,14 @@ app.register_blueprint(viewer_blueprint)
 
 def initialise(viewer=False):
     settings['MAP_VIEWER'] = viewer
-    settings['LOGGER'].info(f'Started flatmap server version {__version__}')
+    app.logger.info(f'Started flatmap server version {__version__}')
     if not settings['BEARER_TOKENS']:
         # Only warn once...
-        settings['LOGGER'].warning('No bearer tokens defined')
+        app.logger.warning('No bearer tokens defined')
     # Open our knowledge base
     knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=True)
     if knowledge_store.error is not None:
-        settings['LOGGER'].error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
-
-#===============================================================================
-
-def setup_server() -> Quart:
-    initialise(False)
-    return app
-
-server = setup_server()
-
-def setup_viewer() -> Quart:
-    initialise(True)
-    return app
-
-viewer = setup_viewer()
+        app.logger.error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
 
 #===============================================================================
 #===============================================================================
