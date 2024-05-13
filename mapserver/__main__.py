@@ -55,7 +55,6 @@ def main(viewer=False):
     config.bind = [f'{SERVER_INTERFACE}:{SERVER_PORT}']
     config.accesslog = './logs/access_log'
     config.errorlog = './logs/error_log'
-    config.graceful_timeout = 1
 
     uvloop.install()
     loop = asyncio.get_event_loop()
