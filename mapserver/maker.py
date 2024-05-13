@@ -51,6 +51,10 @@ class MakerProcess(multiprocessing.Process):
         self.__status = 'queued'
 
     @property
+    def active(self):
+        return self.__active
+
+    @property
     def log_file(self):
         return self.__log_file
 
@@ -72,12 +76,14 @@ class MakerProcess(multiprocessing.Process):
     def close(self):
     #===============
         self.__status = 'terminated' if self.exitcode == 0 else 'aborted'
+        self.__active = False
         super().close()
 
     def start(self):
     #===============
         utils.log.info('Starting process:', self.name)
         self.__status = 'running'
+        self.__active = True
         super().start()
         self.__process_id = self.pid
         self.__log_file = log_file(self.pid)
@@ -102,6 +108,7 @@ class Manager(threading.Thread):
             os.makedirs(settings['MAPMAKER_LOGS'])
         self.__map_dir = settings['FLATMAP_ROOT']
         self.__terminate_event = asyncio.Event()
+        self.__process_lock = threading.Lock()
         self.start()
 
     async def full_log(self, pid):
@@ -134,7 +141,8 @@ class Manager(threading.Thread):
         })
         process = MakerProcess(params)
         utils.log.info('Created process:', process.name)
-        self.__processes_by_id[process.id] = process
+        with self.__process_lock:
+            self.__processes_by_id[process.id] = process
         if len(self.__ids_by_sentinel):
             self.__queued_processes.put(process)
         else:
@@ -150,10 +158,11 @@ class Manager(threading.Thread):
                 if isinstance(sentinel, int):
                     id = self.__ids_by_sentinel[sentinel]
                     try:
-                        process = self.__processes_by_id[id]
-                        if not process.is_alive():
-                            process.close()
-                            del self.__ids_by_sentinel[sentinel]
+                        with self.__process_lock:
+                            process = self.__processes_by_id[id]
+                            if not process.active:
+                                process.close()
+                                del self.__ids_by_sentinel[sentinel]
                     except KeyError:
                         pass
             if len(self.__ids_by_sentinel) == 0:
@@ -178,7 +187,8 @@ class Manager(threading.Thread):
             if (pid := process.process_id) is not None:
                 result['pid'] = pid
             if process.status in ['aborted', 'terminated']:
-                del self.__processes_by_id[id]
+                with self.__process_lock:
+                    del self.__processes_by_id[id]
         else:
             result['status'] = 'unknown'
         return result
