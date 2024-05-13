@@ -6,22 +6,22 @@ An anatomical flatmap server to provide `MapLibre <https://maplibre.org/>`_ comp
 Documentation
 -------------
 
-* https://flatmap-server.readthedocs.io/en/latest/
+*   https://flatmap-server.readthedocs.io/en/latest/
 
 
 Prerequisites
 -------------
 
-* Python 3.10
-* `poetry <https://python-poetry.org/docs/#installation>`_
-* Under Ubuntu, ``sudo apt-get install libgl-mesa-glx``
+*   Python 3.10
+*   `poetry <https://python-poetry.org/docs/#installation>`_
+*   Under Ubuntu, ``sudo apt-get install libgl-mesa-glx``
 
 
 Installation
 ------------
 
-1) Download the `latest release <https://github.com/AnatomicMaps/flatmap-server/releases/latest>`_ and extract it to a suitable directory.
-2) Change to this directory and run ``poetry install``.
+1)  Download the `latest release <https://github.com/AnatomicMaps/flatmap-server/releases/latest>`_ and extract it to a suitable directory.
+2)  Change to this directory and run ``poetry install``.
 
 
 Running
@@ -29,10 +29,11 @@ Running
 
 ::
 
-    $ poetry run hypercorn mapserver.server:server
+    $ poetry run python -m mapserver
 
-* By default, maps are stored in ``./flatmaps``. This can be overridden by setting the ``FLATMAP_ROOT`` environment variable to a directory path.
-* The server listens at ``http://localhost:8000``. Change this by adding options for `Hypercorn <https://hypercorn.readthedocs.io/en/latest/how_to_guides/configuring.html#configuration-options>`_ applications to the ``mapserver`` command, e.g. ``poetry run hypercorn mapserver.server:server --port 4300``.
+*   By default, maps are stored in ``./flatmaps``. This can be overridden by setting the ``FLATMAP_ROOT`` environment variable to a directory path.
+*   By default, the server listens at ``http://127.0.0.1:8000``. This can be changed by setting the ``SERVER_INTERFACE`` and ``SERVER_PORT`` envirinment variables before starting the server.
+*   Access and error logs are stored in ``./logs``.
 
 
 Optional map viewer
@@ -52,7 +53,7 @@ Running
 
 To run the server with the integrated viewer::
 
-    $ poetry run hypercorn mapserver.server:viewer
+    $ poetry run python -m mapserver viewer
 
 and open `<http://localhost:8000/viewer>`_ in a browser.
 
