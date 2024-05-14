@@ -77,6 +77,7 @@ class MakerProcess(multiprocessing.Process):
     #===============
         self.__status = 'terminated' if self.exitcode == 0 else 'aborted'
         self.__active = False
+        super().join()
         super().close()
 
     def start(self):
