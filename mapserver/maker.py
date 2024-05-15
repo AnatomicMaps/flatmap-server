@@ -25,6 +25,7 @@ import os
 import queue
 import sys
 import threading
+from time import sleep
 import uuid
 
 #===============================================================================
@@ -90,8 +91,8 @@ class Manager(threading.Thread):
     def __init__(self):
         super().__init__(name='maker-thread')
         self.__map_dir = None
-        self.__ids_by_sentinel: dict[int, str] = {}
         self.__processes_by_id: dict[str, MakerProcess] = {}
+        self.__running_processes: list[str] = []
         self.__queued_processes:queue.Queue[MakerProcess] = queue.Queue()
 
         # Make sure we have a directory for log files
@@ -138,7 +139,7 @@ class Manager(threading.Thread):
         utils.log.info('Created process:', process.name)
         with self.__process_lock:
             self.__processes_by_id[process.id] = process
-        if len(self.__ids_by_sentinel):
+        if len(self.__running_processes):
             self.__queued_processes.put(process)
         else:
             self.__start_process(process)
@@ -147,25 +148,22 @@ class Manager(threading.Thread):
     def run(self):
     #=============
         while not self.__terminate_event.is_set():
-            sentinels = list(self.__ids_by_sentinel.keys())
-            terminated = multiprocessing.connection.wait(sentinels, 0.1)
-            for sentinel in terminated:
-                if isinstance(sentinel, int):
-                    id = self.__ids_by_sentinel[sentinel]
-                    try:
-                        with self.__process_lock:
-                            process = self.__processes_by_id[id]
-                            if not process.active:
-                                process.close()
-                                del self.__ids_by_sentinel[sentinel]
-                    except KeyError:
-                        pass
-            if len(self.__ids_by_sentinel) == 0:
+            still_running = []
+            for id in self.__running_processes:
+                with self.__process_lock:
+                    process = self.__processes_by_id[id]
+                    if process.is_alive():
+                        still_running.append(id)
+                    else:
+                        process.close()
+                self.__running_processes = still_running
+            if len(self.__running_processes) == 0:
                 try:
                     process = self.__queued_processes.get(False)
                     self.__start_process(process)
                 except queue.Empty:
                     pass
+            sleep(0.01)
 
     def terminate(self):
     #===================
@@ -191,7 +189,8 @@ class Manager(threading.Thread):
     def __start_process(self, process: MakerProcess):
     #================================================
         process.start()
-        self.__ids_by_sentinel[process.sentinel] = process.id
+        with self.__process_lock:
+            self.__running_processes.append(process.id)
 
     @staticmethod
     def make_map(params):
