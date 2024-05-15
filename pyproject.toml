@@ -5,7 +5,7 @@ description = ""
 authors = ["David Brooks <d.brooks@auckland.ac.nz>"]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<4.0"
+python = ">=3.12,<4.0"
 landez = "^2.5.0"
 flatmapknowledge = {url="https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.7.0/flatmapknowledge-1.7.0-py3-none-any.whl"}
 Pillow = "^10.0.1"
