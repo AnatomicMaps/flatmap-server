@@ -83,13 +83,13 @@ dev = ["freezegun (>=1.0,<2.0)", "pytest (>=6.0)", "pytest-cov"]
 
 [[package]]
 name = "bcp47"
-version = "0.0.4"
+version = "0.1.0"
 description = "Language tags made easy"
 optional = false
 python-versions = "*"
 files = [
-    {file = "bcp47-0.0.4-py3-none-any.whl", hash = "sha256:309d3bbaef8d6c9ac59d37ba2167cc6620b4e7467ec8f1e09641b659bb1c0c6d"},
-    {file = "bcp47-0.0.4.tar.gz", hash = "sha256:4878d2f3e697ef39ef3891a147280705e4377d5a8d7eb0702129b8d4a3718702"},
+    {file = "bcp47-0.1.0-py3-none-any.whl", hash = "sha256:a567b7fe881c900916a9db62ac8f792370c7ddf2664e601b74eeed35d8758aa5"},
+    {file = "bcp47-0.1.0.tar.gz", hash = "sha256:37cc7a03fd696149ebfe7de785c5bad473f911eddac8415cf479584049cf03d5"},
 ]
 
 [[package]]
@@ -391,20 +391,6 @@ files = [
 ]
 
 [[package]]
-name = "exceptiongroup"
-version = "1.2.1"
-description = "Backport of PEP 654 (exception groups)"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "exceptiongroup-1.2.1-py3-none-any.whl", hash = "sha256:5258b9ed329c5bbdd31a309f53cbfb0b155341807f6ff7606a1e801a891b29ad"},
-    {file = "exceptiongroup-1.2.1.tar.gz", hash = "sha256:a4785e48b045528f5bfe627b6ad554ff32def154f42372786903b7abcfe1aa16"},
-]
-
-[package.extras]
-test = ["pytest (>=6)"]
-
-[[package]]
 name = "file-magic"
 version = "0.4.1"
 description = "Python front end for libmagic(3)"
@@ -581,13 +567,13 @@ grpcio-gcp = ["grpcio-gcp (>=0.2.2,<1.0.dev0)"]
 
 [[package]]
 name = "google-api-python-client"
-version = "2.127.0"
+version = "2.129.0"
 description = "Google API Client Library for Python"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-api-python-client-2.127.0.tar.gz", hash = "sha256:bbb51b0fbccdf40e536c26341e372d7800f09afebb53103bbcc94e08f14b523b"},
-    {file = "google_api_python_client-2.127.0-py2.py3-none-any.whl", hash = "sha256:d01c70c7840ec37888aa02b1aea5d9baba4c1701e268d1a0251640afd56e5e90"},
+    {file = "google-api-python-client-2.129.0.tar.gz", hash = "sha256:984cc8cc8eb4923468b1926d2b8effc5b459a4dda3c845896eb87c153b28ef84"},
+    {file = "google_api_python_client-2.129.0-py2.py3-none-any.whl", hash = "sha256:d50f7e2dfdbb7fc2732f6a0cba1c54d7bb676390679526c6bb628c901e43ec86"},
 ]
 
 [package.dependencies]
@@ -751,8 +737,6 @@ files = [
 h11 = "*"
 h2 = ">=3.1.0"
 priority = "*"
-taskgroup = {version = "*", markers = "python_version < \"3.11\""}
-tomli = {version = "*", markers = "python_version < \"3.11\""}
 wsproto = ">=0.14.0"
 
 [package.extras]
@@ -1055,7 +1039,7 @@ name = "mapmaker"
 version = "1.9.3"
 description = ""
 optional = false
-python-versions = ">=3.10,<4.0"
+python-versions = ">=3.11,<4.0"
 files = []
 develop = true
 
@@ -1373,8 +1357,6 @@ files = [
 numpy = [
     {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
     {version = ">=1.23.5", markers = "python_version >= \"3.11\" and python_version < \"3.12\""},
-    {version = ">=1.21.4", markers = "python_version >= \"3.10\" and platform_system == \"Darwin\" and python_version < \"3.11\""},
-    {version = ">=1.21.2", markers = "platform_system != \"Darwin\" and python_version >= \"3.10\" and python_version < \"3.11\""},
 ]
 
 [[package]]
@@ -1459,10 +1441,7 @@ files = [
 ]
 
 [package.dependencies]
-numpy = [
-    {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
-    {version = ">=1.21.0", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
-]
+numpy = {version = ">=1.23.2", markers = "python_version >= \"3.11\""}
 python-dateutil = ">=2.8.1"
 pytz = ">=2020.1"
 
@@ -1812,49 +1791,44 @@ requests = ["requests"]
 
 [[package]]
 name = "pyomo"
-version = "6.7.1"
+version = "6.7.2"
 description = "Pyomo: Python Optimization Modeling Objects"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "Pyomo-6.7.1-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:11b99ebec3586b0b7fffcc9c2d451581bb2b72db07d61a357375ecb52e8e368c"},
-    {file = "Pyomo-6.7.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:c2a45e0db94da8e27cbf27d9739973520babf69d638f3d51916029fde2d091c5"},
-    {file = "Pyomo-6.7.1-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e8f301029e7bee33c7742241f852ac413ffdf54bdf3aa6cdd83bd4b915527db4"},
-    {file = "Pyomo-6.7.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:12b467b9ec7f489e8f4295de68cd31c4af0d81a717bb0b3d6ab2ebab2c5763ff"},
-    {file = "Pyomo-6.7.1-cp310-cp310-win_amd64.whl", hash = "sha256:de3a4eab752a1e11b4d736aeb61cc63550442a8d4de8e24e238a73285846a138"},
-    {file = "Pyomo-6.7.1-cp310-cp310-win_arm64.whl", hash = "sha256:119cc5337177457250d7d450688687ccb4230ac3ab70774390307bbe3cb19871"},
-    {file = "Pyomo-6.7.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:fcaebc11ca162f05d9644f22eb9b17d08d73384fa0edbfbf79e090a453551c21"},
-    {file = "Pyomo-6.7.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:da86125c0346be05dc8d2e365e7493e95ccd9fdf570facf8598018a6a162870e"},
-    {file = "Pyomo-6.7.1-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a3dd245b884f75e4984f10bead83f78109d7b83b996c16a03b1babdc759d9cc7"},
-    {file = "Pyomo-6.7.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b7314a56d5a3b14b3afd3a2f207df0256af3c0407d166bce80ab2fe0d8650311"},
-    {file = "Pyomo-6.7.1-cp311-cp311-win_amd64.whl", hash = "sha256:889e8937854ea6d124585ff7e2783cb3aae71d8888a6e00008d1606983dc3b58"},
-    {file = "Pyomo-6.7.1-cp311-cp311-win_arm64.whl", hash = "sha256:aacf08f535715a34a0fe6e7924ff9a0d48b9bbff406c91b16d7a20c898acc0ff"},
-    {file = "Pyomo-6.7.1-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:dc05843f52ccf21d9c480ae6674e20df4b202c8ec69f2489b898dcbcd81653ec"},
-    {file = "Pyomo-6.7.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:b2a983356c19b89f5e73704d57d50f58eca253a833d5bc6c01f1710f51fed565"},
-    {file = "Pyomo-6.7.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:41c18eab8c8e826791e375d138836d5b918e15679d7164ba5132ccafbafe76c6"},
-    {file = "Pyomo-6.7.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:94c917dbabdada7fe443d56c31ad500e574da7489288fa09857911ac2b924c2b"},
-    {file = "Pyomo-6.7.1-cp312-cp312-win_amd64.whl", hash = "sha256:a1e86f8f812b40dfb682912525f35fff0911a82c18311de5e3448951edea1a0a"},
-    {file = "Pyomo-6.7.1-cp312-cp312-win_arm64.whl", hash = "sha256:111f40517640149f440eded00091041fb5091c6d5497b687e4b7b3bb45e11726"},
-    {file = "Pyomo-6.7.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:673be2970c67badf292f9e6917fd00bd6a7c31f87137f5e1203f4143bd4c8fb2"},
-    {file = "Pyomo-6.7.1-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:d0d111f9efed1db1896db57df5744a466f29ec795b23ee189e86378566fe636e"},
-    {file = "Pyomo-6.7.1-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c9fb2fcc3881eae6ef360a512de54b34e29814178f984dbacca6ea4228501823"},
-    {file = "Pyomo-6.7.1-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7cb435714cdce7c15f7f32922ceed2589f66c52753514ace28e05d2b7e47a0b9"},
-    {file = "Pyomo-6.7.1-cp38-cp38-win_amd64.whl", hash = "sha256:143c50c62af4aca5f07b2cd61d47a5da0590d7c98667bb931962deaafe446177"},
-    {file = "Pyomo-6.7.1-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:e3bb68d901005ab67a3b0fc71a343162d59f3507bf3b5e6660fe1d3f4f397f88"},
-    {file = "Pyomo-6.7.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:3957d8021e039f8c700bf86e87a828a4d6201c54cd7946ef93b22b236857bc51"},
-    {file = "Pyomo-6.7.1-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:a264755bc8d29e9386bc73b324eea165a14b83ddb22388fb35d4b9610b550852"},
-    {file = "Pyomo-6.7.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:c96ed63294bb22da9397693123ca780522aee588d63b40aa4afb217ae9760b00"},
-    {file = "Pyomo-6.7.1-cp39-cp39-win_amd64.whl", hash = "sha256:c71344da3443b4850e37d4603b1397f20bb031df765435176085780369da1a0e"},
-    {file = "Pyomo-6.7.1-cp39-cp39-win_arm64.whl", hash = "sha256:d7eba18bcaac8c14df80adaf01b73156b06d73cc58666b33dee6d33ff567a564"},
-    {file = "Pyomo-6.7.1.tar.gz", hash = "sha256:735b66c45937f1caa43f073d8218a4918b6de658914a699397d38d5b8c219a40"},
+    {file = "Pyomo-6.7.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:62a94f01f7ba8a69140dd86d7cfe954c8c7991bdc02494bcb6faf90a59bf1fd1"},
+    {file = "Pyomo-6.7.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:8a8fe59997141be15f7f43b5814106b85e3c5baa3e31a183f7d54bc119bb714a"},
+    {file = "Pyomo-6.7.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:95ad23b5218e97bb5cc93d90af4aadeacd550fc21a536d737823ded109dc5490"},
+    {file = "Pyomo-6.7.2-cp310-cp310-win_amd64.whl", hash = "sha256:b529d4417a648193667cdecc8f5ba5265bdcc5c6f1b5e7194bc6eea331597be4"},
+    {file = "Pyomo-6.7.2-cp310-cp310-win_arm64.whl", hash = "sha256:fb761c4dfff89736ce45331cb2333c92bfffb4da40cffa0cbc5f3b65167bbbdb"},
+    {file = "Pyomo-6.7.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:b25ba5e9e4a12bdc75dfddbd3b26a6f2fd7434e10100e04f99fb61fbcf60197b"},
+    {file = "Pyomo-6.7.2-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f8390d8f31dc02d11ea754f2aaa00c98af78e1b044496c43678ce84292630d99"},
+    {file = "Pyomo-6.7.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:4a0b372eba376ad5d3f1647b4dff6f9628e3df8d73c686e325a322ae926569ea"},
+    {file = "Pyomo-6.7.2-cp311-cp311-win_amd64.whl", hash = "sha256:060619463ee24d4fa7fcfab862f225ad54b3fd4ceee62712beff39b2efb6f516"},
+    {file = "Pyomo-6.7.2-cp311-cp311-win_arm64.whl", hash = "sha256:3874010e99e91b5797fa7345bf7967cb1fbaf9e950c41f63a82a3f23bd39d025"},
+    {file = "Pyomo-6.7.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:4af3afea70b35b8608db7a9a4ac9dc8a8d118820bf6820b21d53ff4260dfaecc"},
+    {file = "Pyomo-6.7.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:0daa3d8f115e6f0bd3055aeadc77a3517adae6878cc00dc5eb0a26f32ed3a9b5"},
+    {file = "Pyomo-6.7.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:5e8f382ebfdb52f5d8fc5229a1aa788e05149938b4449d47cf5b248656bde9ac"},
+    {file = "Pyomo-6.7.2-cp312-cp312-win_amd64.whl", hash = "sha256:85081bfa25c8bb3ff97f1150839d2f0808e1af8fab4d1357b0a1fa14a159b80a"},
+    {file = "Pyomo-6.7.2-cp312-cp312-win_arm64.whl", hash = "sha256:1c2aa2d5bc9e78f043b3d4deb34688c98988e0000c1ef112bffb56cca7f7d2f9"},
+    {file = "Pyomo-6.7.2-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:cc50ad5cf46bf0c20396c263309abe651c567c703cdae484bf61926317a51c0b"},
+    {file = "Pyomo-6.7.2-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:c549700e1446b15bf7b3267d2472a1eb54db927a03ee6b451152ddeaa8b33843"},
+    {file = "Pyomo-6.7.2-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ef9b83b55db1a861a949fe87555c7f788d16430c5b21a550cf9e1dceb4b32a60"},
+    {file = "Pyomo-6.7.2-cp38-cp38-win_amd64.whl", hash = "sha256:58312daa67b98402b8990fb4436684a7f96bc9468a2056e5d99c1ae2629d4f47"},
+    {file = "Pyomo-6.7.2-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:7eb9cc1077600c207ddbc64acc86df7877aba5282a1f3e0a7f59110f49377e3e"},
+    {file = "Pyomo-6.7.2-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:3bb8f164b9a8be498963deee38d1e9104b8034342db6e4c8204dc6ab75fe5448"},
+    {file = "Pyomo-6.7.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cbdabe4da214981f8b0762ab5b770948d4e5b1f737ddf522a5bc389ffd5ec830"},
+    {file = "Pyomo-6.7.2-cp39-cp39-win_amd64.whl", hash = "sha256:d8e5495429a078a10b2f86f5de120b5b684fb447b5e73cd8b8c0792da41e43ba"},
+    {file = "Pyomo-6.7.2-cp39-cp39-win_arm64.whl", hash = "sha256:6df2acfadecdb3fd0e0caa1e3edd5c4067daf2740fffa6d491947191deca5686"},
+    {file = "Pyomo-6.7.2.tar.gz", hash = "sha256:53bef766854f7607ca1fcfe3f218594ab382f137a275cee3d925d2b2f96876bf"},
 ]
 
 [package.dependencies]
 ply = "*"
 
 [package.extras]
-docs = ["Sphinx (>4)", "enum-tools", "numpy", "scipy", "sphinx-copybutton", "sphinx-jinja2-compat (>=0.1.1)", "sphinx-rtd-theme (>0.5)", "sphinx-toolbox (>=2.16.0)", "sphinxcontrib-jsmath", "sphinxcontrib-napoleon"]
-optional = ["casadi", "dill", "ipython", "matplotlib (!=3.6.1)", "networkx", "networkx (<3.2)", "numdifftools", "numpy", "openpyxl", "pandas", "pint", "plotly", "python-louvain", "pywin32", "pyyaml", "qtconsole", "scipy", "seaborn", "sympy", "xlrd", "z3-solver"]
+docs = ["Sphinx (>4)", "enum-tools", "numpy (<2.0.0)", "scipy", "sphinx-copybutton", "sphinx-jinja2-compat (>=0.1.1)", "sphinx-rtd-theme (>0.5)", "sphinx-toolbox (>=2.16.0)", "sphinxcontrib-jsmath", "sphinxcontrib-napoleon"]
+optional = ["casadi", "dill", "ipython", "matplotlib (!=3.6.1)", "networkx", "networkx (<3.2)", "numdifftools", "numpy (<2.0.0)", "openpyxl", "pandas", "pint", "plotly", "python-louvain", "pywin32", "pyyaml", "qtconsole", "scipy", "seaborn", "sympy", "xlrd", "z3-solver"]
 tests = ["coverage", "parameterized", "pybind11", "pytest", "pytest-parallel"]
 
 [[package]]
@@ -2654,20 +2628,6 @@ fuzz = ["clifn", "python-afl"]
 test = ["clifn", "pytest"]
 
 [[package]]
-name = "taskgroup"
-version = "0.0.0a4"
-description = "backport of asyncio.TaskGroup, asyncio.Runner and asyncio.timeout"
-optional = false
-python-versions = "*"
-files = [
-    {file = "taskgroup-0.0.0a4-py2.py3-none-any.whl", hash = "sha256:5c1bd0e4c06114e7a4128583ab75c987597d5378a33948a3b74c662b90f61277"},
-    {file = "taskgroup-0.0.0a4.tar.gz", hash = "sha256:eb08902d221e27661950f2a0320ddf3f939f579279996f81fe30779bca3a159c"},
-]
-
-[package.dependencies]
-exceptiongroup = "*"
-
-[[package]]
 name = "terminaltables"
 version = "3.1.10"
 description = "Generate simple tables in terminals from a nested list of strings."
@@ -2695,17 +2655,6 @@ webencodings = ">=0.4"
 [package.extras]
 doc = ["sphinx", "sphinx_rtd_theme"]
 test = ["pytest", "ruff"]
-
-[[package]]
-name = "tomli"
-version = "2.0.1"
-description = "A lil' TOML parser"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
-    {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
-]
 
 [[package]]
 name = "tqdm"
@@ -3004,5 +2953,5 @@ files = [
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.10,<4.0"
-content-hash = "de2b003ccdcc694b715d2653291cb56850cfc47d957afd8044942737e369e207"
+python-versions = ">=3.11,<4.0"
+content-hash = "6cd345066a8c75875e358c7299286e1cc19d6c0a9d2dac42d56642ff913394f5"
