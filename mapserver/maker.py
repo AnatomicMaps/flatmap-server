@@ -51,10 +51,6 @@ class MakerProcess(multiprocessing.Process):
         self.__status = 'queued'
 
     @property
-    def active(self):
-        return self.__active
-
-    @property
     def log_file(self):
         return self.__log_file
 
@@ -76,7 +72,6 @@ class MakerProcess(multiprocessing.Process):
     def close(self):
     #===============
         self.__status = 'terminated' if self.exitcode == 0 else 'aborted'
-        self.__active = False
         super().join()
         super().close()
 
@@ -84,7 +79,6 @@ class MakerProcess(multiprocessing.Process):
     #===============
         utils.log.info('Starting process:', self.name)
         self.__status = 'running'
-        self.__active = True
         super().start()
         self.__process_id = self.pid
         self.__log_file = log_file(self.pid)
