@@ -28,6 +28,8 @@ import threading
 from time import sleep
 import uuid
 
+#===============================================================================
+
 import uvloop
 
 #===============================================================================
@@ -48,12 +50,21 @@ def _run_in_loop(func, args):
     loop = uvloop.new_event_loop()
     loop.run_until_complete(func(args))
 
+async def _make_map(params):
+#===========================
+    try:
+        mapmaker = MapMaker(params)
+        mapmaker.make()
+    except Exception as err:
+        utils.log.exception(err, exc_info=True)
+        sys.exit(1)
+
 #===============================================================================
 
 class MakerProcess(multiprocessing.Process):
     def __init__(self, params: dict):
         id = str(uuid.uuid4())
-        super().__init__(target=_run_in_loop, args=(Manager.make_map, params), name=f'Process-{id}')
+        super().__init__(target=_run_in_loop, args=(_make_map, params), name=f'Process-{id}')
         self.__id = id
         self.__process_id = None
         self.__log_file = None
@@ -200,15 +211,6 @@ class Manager(threading.Thread):
         with self.__process_lock:
             self.__running_processes.append(process.id)
 
-    @staticmethod
-    def make_map(params):
-    #=====================
-        try:
-            mapmaker = MapMaker(params)
-            mapmaker.make()
-        except Exception as err:
-            utils.log.exception(err, exc_info=True)
-            sys.exit(1)
 
 #===============================================================================
 
