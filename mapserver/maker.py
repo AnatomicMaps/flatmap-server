@@ -133,7 +133,7 @@ class Manager(threading.Thread):
     async def make(self, params) -> dict:
     #====================================
         params = {key: value for (key, value) in params.items()
-                                if key in ['source', 'manifest', 'commit']}
+                                if key in ['source', 'manifest', 'commit', 'force']}
         params.update({
             'output': self.__map_dir,
             'backgroundTiles': True,

@@ -427,6 +427,8 @@ async def make_map():
                             source is a Git repository. Required in this case
     :<json string commit: the branch/tag/commit to use when the source is a
                           Git repository. Optional
+    :<json boolean force: make the map regardless of whether it already exists.
+                          Optional
 
     :>json int process: the id of the map generation process
     :>json string map: the unique identifier for the map
