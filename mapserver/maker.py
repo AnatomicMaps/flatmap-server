@@ -205,7 +205,7 @@ class Manager(threading.Thread):
             mapmaker = MapMaker(params)
             mapmaker.make()
         except Exception as err:
-            utils.log.error(str(err))
+            utils.log.exception(err, exc_info=True)
             sys.exit(1)
 
 #===============================================================================
