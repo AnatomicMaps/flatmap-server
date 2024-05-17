@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "mapserver"
-version = "0.21.1"
+version = "0.21.2"
 description = ""
 authors = ["David Brooks <d.brooks@auckland.ac.nz>"]
 
@@ -28,3 +28,8 @@ mapviewer = 'mapserver.__main__:mapviewer'
 # See https://github.com/chrahunt/rtd-poetry/issues/3
 requires = ["poetry_core>=1.0.0", "rtd-poetry @ https://github.com/dbrnz/rtd-poetry/archive/refs/tags/v0.1.2.tar.gz"]
 build-backend = "rtd_poetry"
+
+[tool.pyright]
+pythonVersion = "3.12"
+venvPath = "."
+venv = ".venv"
