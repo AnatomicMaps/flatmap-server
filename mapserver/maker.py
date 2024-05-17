@@ -28,6 +28,8 @@ import threading
 from time import sleep
 import uuid
 
+import uvloop
+
 #===============================================================================
 
 from .settings import settings
