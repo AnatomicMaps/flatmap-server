@@ -42,10 +42,16 @@ def log_file(pid):
 
 #===============================================================================
 
+def _run_in_loop(func, args):
+    loop = uvloop.new_event_loop()
+    loop.run_until_complete(func(args))
+
+#===============================================================================
+
 class MakerProcess(multiprocessing.Process):
     def __init__(self, params: dict):
         id = str(uuid.uuid4())
-        super().__init__(target=Manager.make_map, args=(params, ), name=f'Process-{id}')
+        super().__init__(target=_run_in_loop, args=(Manager.make_map, params), name=f'Process-{id}')
         self.__id = id
         self.__process_id = None
         self.__log_file = None
