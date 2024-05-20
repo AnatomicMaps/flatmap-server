@@ -425,20 +425,20 @@ dotenv = ["python-dotenv"]
 
 [[package]]
 name = "flatmapknowledge"
-version = "1.7.0"
+version = "1.7.1"
 description = ""
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "flatmapknowledge-1.7.0-py3-none-any.whl", hash = "sha256:530e6ac971a7bd76c10c3fa2029a25707d53c4abecde54768346cba566a5af49"},
+    {file = "flatmapknowledge-1.7.1-py3-none-any.whl", hash = "sha256:13565963b281dc51296b752785eb255945c2c564b8b56e6f6abc196dd63d8446"},
 ]
 
 [package.dependencies]
-mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.17.0/mapknowledge-0.17.0-py3-none-any.whl"}
+mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.17.1/mapknowledge-0.17.1-py3-none-any.whl"}
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.7.0/flatmapknowledge-1.7.0-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.7.1/flatmapknowledge-1.7.1-py3-none-any.whl"
 
 [[package]]
 name = "frozendict"
@@ -1061,16 +1061,16 @@ source = ["Cython (>=3.0.10)"]
 
 [[package]]
 name = "mapknowledge"
-version = "0.17.0"
+version = "0.17.1"
 description = ""
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "mapknowledge-0.17.0-py3-none-any.whl", hash = "sha256:67ba8e4566f29fa64de90d07c94fede2d6d6edd5ccf125d520d6066973ac05e7"},
+    {file = "mapknowledge-0.17.1-py3-none-any.whl", hash = "sha256:68a156b41aa720e2262dad6ea5756e8fa70ad3496caa90c986b268d9f38e90f7"},
 ]
 
 [package.dependencies]
-networkx = ">=2.8.8,<3.0.0"
+networkx = ">=3.3.0,<4.0.0"
 neurondm = {url = "https://github.com/tgbugs/pyontutils/releases/download/neurondm-0.1.8/neurondm-0.1.8-py2.py3-none-any.whl"}
 rdflib = ">=6.2.0,<7.0.0"
 requests = ">=2.28.1,<3.0.0"
@@ -1078,11 +1078,11 @@ sparqlwrapper = ">=2.0.0,<3.0.0"
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.17.0/mapknowledge-0.17.0-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.17.1/mapknowledge-0.17.1-py3-none-any.whl"
 
 [[package]]
 name = "mapmaker"
-version = "1.10.0"
+version = "1.10.1"
 description = ""
 optional = false
 python-versions = ">=3.12,<4.0"
@@ -1093,17 +1093,17 @@ develop = true
 beziers = "^0.5.0"
 colormath = "^3.0.0"
 cssselect2 = "^0.6.0"
-flatmapknowledge = {url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.7.0/flatmapknowledge-1.7.0-py3-none-any.whl"}
+flatmapknowledge = {url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.7.1/flatmapknowledge-1.7.1-py3-none-any.whl"}
 gitpython = "^3.1.41"
 giturlparse = "^0.10.0"
 lxml = "^5.2.2"
 mbutil = "^0.3.0"
 mercantile = "^1.2.1"
 multiprocess = "^0.70.13"
-networkx = "^2.8.8"
+networkx = "^3.3.0"
 numpy = "^1.24"
 opencv-python-headless = "^4.6.0.66"
-openpyxl = "3.1.0"
+openpyxl = "^3.1.0"
 pandas = "^2.2.2"
 Pyomo = "^6.2"
 pyparsing = "^3.0.9"
@@ -1111,7 +1111,7 @@ pyproj = "^3.4.0"
 python-pptx = "^0.6.21"
 pyyaml = "^6.0"
 rdflib = "^6.2.0"
-requests = "^2.31.0"
+requests = "^2.32.0"
 saxonche = "^12.3.0"
 shapely = "^2.0.0"
 skia-python = "^124.0b7"
@@ -1265,21 +1265,21 @@ files = [
 
 [[package]]
 name = "networkx"
-version = "2.8.8"
+version = "3.3"
 description = "Python package for creating and manipulating graphs and networks"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.10"
 files = [
-    {file = "networkx-2.8.8-py3-none-any.whl", hash = "sha256:e435dfa75b1d7195c7b8378c3859f0445cd88c6b0375c181ed66823a9ceb7524"},
-    {file = "networkx-2.8.8.tar.gz", hash = "sha256:230d388117af870fce5647a3c52401fcf753e94720e6ea6b4197a5355648885e"},
+    {file = "networkx-3.3-py3-none-any.whl", hash = "sha256:28575580c6ebdaf4505b22c6256a2b9de86b316dc63ba9e93abde3d78dfdbcf2"},
+    {file = "networkx-3.3.tar.gz", hash = "sha256:0c127d8b2f4865f59ae9cb8aafcd60b5c70f3241ebd66f7defad7c4ab90126c9"},
 ]
 
 [package.extras]
-default = ["matplotlib (>=3.4)", "numpy (>=1.19)", "pandas (>=1.3)", "scipy (>=1.8)"]
-developer = ["mypy (>=0.982)", "pre-commit (>=2.20)"]
-doc = ["nb2plots (>=0.6)", "numpydoc (>=1.5)", "pillow (>=9.2)", "pydata-sphinx-theme (>=0.11)", "sphinx (>=5.2)", "sphinx-gallery (>=0.11)", "texext (>=0.6.6)"]
-extra = ["lxml (>=4.6)", "pydot (>=1.4.2)", "pygraphviz (>=1.9)", "sympy (>=1.10)"]
-test = ["codecov (>=2.1)", "pytest (>=7.2)", "pytest-cov (>=4.0)"]
+default = ["matplotlib (>=3.6)", "numpy (>=1.23)", "pandas (>=1.4)", "scipy (>=1.9,!=1.11.0,!=1.11.1)"]
+developer = ["changelist (==0.5)", "mypy (>=1.1)", "pre-commit (>=3.2)", "rtoml"]
+doc = ["myst-nb (>=1.0)", "numpydoc (>=1.7)", "pillow (>=9.4)", "pydata-sphinx-theme (>=0.14)", "sphinx (>=7)", "sphinx-gallery (>=0.14)", "texext (>=0.6.7)"]
+extra = ["lxml (>=4.6)", "pydot (>=2.0)", "pygraphviz (>=1.12)", "sympy (>=1.10)"]
+test = ["pytest (>=7.2)", "pytest-cov (>=4.0)"]
 
 [[package]]
 name = "neurondm"
@@ -1404,13 +1404,13 @@ numpy = {version = ">=1.26.0", markers = "python_version >= \"3.12\""}
 
 [[package]]
 name = "openpyxl"
-version = "3.1.0"
+version = "3.1.2"
 description = "A Python library to read/write Excel 2010 xlsx/xlsm files"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "openpyxl-3.1.0-py2.py3-none-any.whl", hash = "sha256:24d7d361025d186ba91eff58135d50855cf035a84371b891e58fb6eb5125660f"},
-    {file = "openpyxl-3.1.0.tar.gz", hash = "sha256:eccedbe1cdd8b2494057e73959b496821141038dbb7eb9266ea59e3f34208231"},
+    {file = "openpyxl-3.1.2-py2.py3-none-any.whl", hash = "sha256:f91456ead12ab3c6c2e9491cf33ba6d08357d802192379bb482f1033ade496f5"},
+    {file = "openpyxl-3.1.2.tar.gz", hash = "sha256:a6f5977418eff3b2d5500d54d9db50c8277a368436f4e4f8ddb1be3422870184"},
 ]
 
 [package.dependencies]
@@ -2092,13 +2092,13 @@ files = [
 
 [[package]]
 name = "quart"
-version = "0.19.5"
+version = "0.19.6"
 description = "A Python ASGI web microframework with the same API as Flask"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "quart-0.19.5-py3-none-any.whl", hash = "sha256:581d959bda40d3c45500c50007a6451a157fd381c70d3556811bdd334adb9657"},
-    {file = "quart-0.19.5.tar.gz", hash = "sha256:fbe3cff25cd18b5c0e8d82bbeeaa43d78f35e5221ca5c50bb0b7c20255c87ab8"},
+    {file = "quart-0.19.6-py3-none-any.whl", hash = "sha256:f9092310f4eb120903da692a5e4354f05d48c28ca7ec3054d3d94dd862412c58"},
+    {file = "quart-0.19.6.tar.gz", hash = "sha256:89ddda6da24300a5ea4f21e4582d5e89bc8ea678e724e0b747767143401e4558"},
 ]
 
 [package.dependencies]
@@ -2202,13 +2202,13 @@ renderpm = ["rl-renderPM (>=4.0.3,<4.1)"]
 
 [[package]]
 name = "requests"
-version = "2.31.0"
+version = "2.32.1"
 description = "Python HTTP for Humans."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "requests-2.31.0-py3-none-any.whl", hash = "sha256:58cd2187c01e70e6e26505bca751777aa9f2ee0b7f4300988b709f44e013003f"},
-    {file = "requests-2.31.0.tar.gz", hash = "sha256:942c5a758f98d790eaed1a29cb6eefc7ffb0d1cf7af05c3d2791656dbd6ad1e1"},
+    {file = "requests-2.32.1-py3-none-any.whl", hash = "sha256:21ac9465cdf8c1650fe1ecde8a71669a93d4e6f147550483a2967d08396a56a5"},
+    {file = "requests-2.32.1.tar.gz", hash = "sha256:eb97e87e64c79e64e5b8ac75cee9dd1f97f49e289b083ee6be96268930725685"},
 ]
 
 [package.dependencies]
@@ -3035,4 +3035,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<4.0"
-content-hash = "449986c8370dc8d4338af096bd6a41e2b08b4837774255e7c09c9199825b5466"
+content-hash = "8ce66af2344aa7bd90a9f6834aa04f4d9fd1211b81cac0769fcb6cf841166865"
