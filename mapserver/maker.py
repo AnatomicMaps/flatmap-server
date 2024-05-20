@@ -150,8 +150,7 @@ class Manager(threading.Thread):
         params.update({
             'output': self.__map_dir,
             'backgroundTiles': True,
-            'clean': True,  ## remove and don't make if map exists (log.error() and exit(1))
-            'quiet': True,  ## what does this do? Isn't it now the default??
+            'silent': True,
             'logPath': settings['MAPMAKER_LOGS']  # Logfile name is `PROCESS_ID.log`
         })
         process = MakerProcess(params)
