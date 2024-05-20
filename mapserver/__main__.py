@@ -79,6 +79,8 @@ def __signal_handler(*_: Any) -> None:
 async def main(viewer=False):
 #============================
     config.bind = [f'{SERVER_INTERFACE}:{SERVER_PORT}']
+    config.worker_class = 'uvloop'
+
     config.accesslog = './logs/access_log'
     config.errorlog = './logs/error_log'
     settings['LOGGER'] = app.logger = SyncLogger(config.log)
