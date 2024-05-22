@@ -115,10 +115,6 @@ class Manager(threading.Thread):
         self.__queued_processes:queue.Queue[MakerProcess] = queue.Queue()
 
         # Make sure we have a directory for log files
-        # Base directory for logs (relative to ``MAPMAKER_ROOT``)
-        settings['MAPMAKER_LOGS'] = os.path.join(settings['ROOT_PATH'],
-                                                 os.path.join(settings['MAPMAKER_ROOT'],
-                                                 'log'))
         if not os.path.exists(settings['MAPMAKER_LOGS']):
             os.makedirs(settings['MAPMAKER_LOGS'])
         self.__map_dir = settings['FLATMAP_ROOT']

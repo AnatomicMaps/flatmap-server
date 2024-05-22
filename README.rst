@@ -61,16 +61,8 @@ and open `<http://localhost:8000/viewer>`_ in a browser.
 Map generation
 ==============
 
-The flatmap server can also generate maps. This requires a separate installation of ``mapmaker``; if this is to a location
-other than ``./mapmaker`` under the top-level server directory then the ``MAPMAKER_ROOT`` environment variable must be set
-to point to where mapmaker is installed.
-
-::
-
-    $ git clone https://github.com/AnatomicMaps/flatmap-maker.git mapmaker
-    $ poetry update
-
-To generate a map, ``POST`` a request to the ``/make/map`` end-point specifying the path of a local manifest file
+The server includes the ability to generate flatmaps -- to generate a map, ``POST`` a request to the ``/make/map``
+end-point specifying the path of a local manifest file
 or the URL of a Git repository containing a manifest and the relative path of the manifest within the repository,
 optionally with a specific commit identifier. The server will respond with the id of the maker process. The
 ``/make/status/PROCESS_ID`` end-point allows the process's status to be queried and ``/make/log/PROCESS_ID`` will

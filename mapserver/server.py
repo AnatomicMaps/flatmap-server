@@ -57,12 +57,8 @@ settings['FLATMAP_ROOT'] = normalise_path(FLATMAP_ROOT)
 
 settings['BEARER_TOKENS'] = os.environ.get('BEARER_TOKENS', '').split()
 
-MAPMAKER_ROOT = os.environ.get('MAPMAKER_ROOT', './mapmaker')
-settings['MAPMAKER_ROOT'] = normalise_path(MAPMAKER_ROOT)
-
-# Do we have a copy of ``mapmaker`` available?
-HAVE_MAPMAKER = pathlib.Path(os.path.join(settings['MAPMAKER_ROOT'],
-                                          'mapmaker/__init__.py')).exists()
+MAPMAKER_LOGS = os.environ.get('MAPMAKER_ROOT', './logs')
+settings['MAPMAKER_LOGS'] = normalise_path(MAPMAKER_LOGS)
 
 #===============================================================================
 """
@@ -555,13 +551,12 @@ def initialise(viewer=False):
     if knowledge_store.error is not None:
         app.logger.error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
 
-    if HAVE_MAPMAKER and 'sphinx' not in sys.modules:
+    if 'sphinx' not in sys.modules:
         # Having a Manager prevents Sphinx from exiting and hangs a ``readthedocs``
         # build
         from .maker import Manager
 
         global map_maker
-        sys.path.insert(0, settings['MAPMAKER_ROOT'])
         map_maker = Manager()
 
 #===============================================================================

@@ -425,20 +425,20 @@ dotenv = ["python-dotenv"]
 
 [[package]]
 name = "flatmapknowledge"
-version = "1.7.1"
+version = "1.8.0"
 description = ""
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "flatmapknowledge-1.7.1-py3-none-any.whl", hash = "sha256:13565963b281dc51296b752785eb255945c2c564b8b56e6f6abc196dd63d8446"},
+    {file = "flatmapknowledge-1.8.0-py3-none-any.whl", hash = "sha256:a0bdf695b687d24be7a0c03f2b967a353176098844af85ac423868c18a15c6c7"},
 ]
 
 [package.dependencies]
-mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.17.1/mapknowledge-0.17.1-py3-none-any.whl"}
+mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.18.0/mapknowledge-0.18.0-py3-none-any.whl"}
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.7.1/flatmapknowledge-1.7.1-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.8.0/flatmapknowledge-1.8.0-py3-none-any.whl"
 
 [[package]]
 name = "frozendict"
@@ -533,13 +533,13 @@ test = ["coverage[toml]", "ddt (>=1.1.1,!=1.4.3)", "mock", "mypy", "pre-commit",
 
 [[package]]
 name = "giturlparse"
-version = "0.10.0"
+version = "0.12.0"
 description = "A Git URL parsing module (supports parsing and rewriting)"
 optional = false
-python-versions = ">=3.6"
+python-versions = ">=3.8"
 files = [
-    {file = "giturlparse-0.10.0-py2.py3-none-any.whl", hash = "sha256:04ba1a3a099c3093fa8d24a422913c6a9b2c2cd22bcffc939cf72e3e98f672d7"},
-    {file = "giturlparse-0.10.0.tar.gz", hash = "sha256:2595ab291d30717cda8474b874c9fd509f1b9802ad7f6968c36a45e4b13eb337"},
+    {file = "giturlparse-0.12.0-py2.py3-none-any.whl", hash = "sha256:412b74f2855f1da2fefa89fd8dde62df48476077a72fc19b62039554d27360eb"},
+    {file = "giturlparse-0.12.0.tar.gz", hash = "sha256:c0fff7c21acc435491b1779566e038757a205c1ffdcb47e4f81ea52ad8c3859a"},
 ]
 
 [[package]]
@@ -567,13 +567,13 @@ grpcio-gcp = ["grpcio-gcp (>=0.2.2,<1.0.dev0)"]
 
 [[package]]
 name = "google-api-python-client"
-version = "2.129.0"
+version = "2.130.0"
 description = "Google API Client Library for Python"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-api-python-client-2.129.0.tar.gz", hash = "sha256:984cc8cc8eb4923468b1926d2b8effc5b459a4dda3c845896eb87c153b28ef84"},
-    {file = "google_api_python_client-2.129.0-py2.py3-none-any.whl", hash = "sha256:d50f7e2dfdbb7fc2732f6a0cba1c54d7bb676390679526c6bb628c901e43ec86"},
+    {file = "google-api-python-client-2.130.0.tar.gz", hash = "sha256:2bba3122b82a649c677b8a694b8e2bbf2a5fbf3420265caf3343bb88e2e9f0ae"},
+    {file = "google_api_python_client-2.130.0-py2.py3-none-any.whl", hash = "sha256:7d45a28d738628715944a9c9d73e8696e7e03ac50b7de87f5e3035cefa94ed3a"},
 ]
 
 [package.dependencies]
@@ -1061,12 +1061,12 @@ source = ["Cython (>=3.0.10)"]
 
 [[package]]
 name = "mapknowledge"
-version = "0.17.1"
+version = "0.18.0"
 description = ""
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "mapknowledge-0.17.1-py3-none-any.whl", hash = "sha256:68a156b41aa720e2262dad6ea5756e8fa70ad3496caa90c986b268d9f38e90f7"},
+    {file = "mapknowledge-0.18.0-py3-none-any.whl", hash = "sha256:54b2f02bfe9a1f9cd54f78efb7eb668290cf76a6f9124d040305d4bedd64e002"},
 ]
 
 [package.dependencies]
@@ -1078,57 +1078,58 @@ sparqlwrapper = ">=2.0.0,<3.0.0"
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.17.1/mapknowledge-0.17.1-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.18.0/mapknowledge-0.18.0-py3-none-any.whl"
 
 [[package]]
 name = "mapmaker"
-version = "1.10.1"
+version = "1.10.2"
 description = ""
 optional = false
 python-versions = ">=3.12,<4.0"
-files = []
-develop = true
+files = [
+    {file = "mapmaker-1.10.2-py3-none-any.whl", hash = "sha256:88c0f119a962da0ab5a5dfd2b38bb163340a55d25b517c7fd9f075837d94a5d2"},
+]
 
 [package.dependencies]
-beziers = "^0.5.0"
-colormath = "^3.0.0"
-cssselect2 = "^0.6.0"
-flatmapknowledge = {url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.7.1/flatmapknowledge-1.7.1-py3-none-any.whl"}
-gitpython = "^3.1.41"
-giturlparse = "^0.10.0"
-lxml = "^5.2.2"
-mbutil = "^0.3.0"
-mercantile = "^1.2.1"
-multiprocess = "^0.70.13"
-networkx = "^3.3.0"
-numpy = "^1.24"
-opencv-python-headless = "^4.6.0.66"
-openpyxl = "^3.1.0"
-pandas = "^2.2.2"
-Pyomo = "^6.2"
-pyparsing = "^3.0.9"
-pyproj = "^3.4.0"
-python-pptx = "^0.6.21"
-pyyaml = "^6.0"
-rdflib = "^6.2.0"
-requests = "^2.32.0"
-saxonche = "^12.3.0"
-shapely = "^2.0.0"
-skia-python = "^124.0b7"
-svgelements = "^1.9.1"
-svglib = "^1.3.0"
-svgwrite = "^1.4.3"
-tinycss2 = "^1.1.1"
-tqdm = "^4.64.0"
-transforms3d = "^0.4.1"
-types-requests = "^2.28.11.2"
-webcolors = "^1.12"
-XlsxWriter = "^3.0.3"
-xmltodict = "^0.12.0"
+beziers = ">=0.5.0,<0.6.0"
+colormath = ">=3.0.0,<4.0.0"
+cssselect2 = ">=0.6.0,<0.7.0"
+flatmapknowledge = {url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.8.0/flatmapknowledge-1.8.0-py3-none-any.whl"}
+gitpython = ">=3.1.41,<4.0.0"
+giturlparse = ">=0.12.0,<0.13.0"
+lxml = ">=5.2.2,<6.0.0"
+mbutil = ">=0.3.0,<0.4.0"
+mercantile = ">=1.2.1,<2.0.0"
+multiprocess = ">=0.70.13,<0.71.0"
+networkx = ">=3.3.0,<4.0.0"
+numpy = ">=1.24,<2.0"
+opencv-python-headless = ">=4.6.0.66,<5.0.0.0"
+openpyxl = ">=3.1.0,<4.0.0"
+pandas = ">=2.2.2,<3.0.0"
+Pyomo = ">=6.2,<7.0"
+pyparsing = ">=3.0.9,<4.0.0"
+pyproj = ">=3.4.0,<4.0.0"
+python-pptx = ">=0.6.21,<0.7.0"
+pyyaml = ">=6.0,<7.0"
+rdflib = ">=6.2.0,<7.0.0"
+requests = ">=2.32.0,<3.0.0"
+saxonche = ">=12.3.0,<13.0.0"
+shapely = ">=2.0.0,<3.0.0"
+skia-python = ">=124.0b7,<125.0"
+svgelements = ">=1.9.1,<2.0.0"
+svglib = ">=1.3.0,<2.0.0"
+svgwrite = ">=1.4.3,<2.0.0"
+tinycss2 = ">=1.1.1,<2.0.0"
+tqdm = ">=4.64.0,<5.0.0"
+transforms3d = ">=0.4.1,<0.5.0"
+types-requests = ">=2.28.11.2,<3.0.0.0"
+webcolors = ">=1.12,<2.0"
+XlsxWriter = ">=3.0.3,<4.0.0"
+xmltodict = ">=0.12.0,<0.13.0"
 
 [package.source]
-type = "directory"
-url = "mapmaker"
+type = "url"
+url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.10.2/mapmaker-1.10.2-py3-none-any.whl"
 
 [[package]]
 name = "markupsafe"
@@ -2202,13 +2203,13 @@ renderpm = ["rl-renderPM (>=4.0.3,<4.1)"]
 
 [[package]]
 name = "requests"
-version = "2.32.1"
+version = "2.32.2"
 description = "Python HTTP for Humans."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "requests-2.32.1-py3-none-any.whl", hash = "sha256:21ac9465cdf8c1650fe1ecde8a71669a93d4e6f147550483a2967d08396a56a5"},
-    {file = "requests-2.32.1.tar.gz", hash = "sha256:eb97e87e64c79e64e5b8ac75cee9dd1f97f49e289b083ee6be96268930725685"},
+    {file = "requests-2.32.2-py3-none-any.whl", hash = "sha256:fc06670dd0ed212426dfeb94fc1b983d917c4f9847c863f313c9dfaaffb7c23c"},
+    {file = "requests-2.32.2.tar.gz", hash = "sha256:dd951ff5ecf3e3b3aa26b40703ba77495dab41da839ae72ef3c8e5d8e2433289"},
 ]
 
 [package.dependencies]
@@ -2300,19 +2301,18 @@ files = [
 
 [[package]]
 name = "setuptools"
-version = "69.5.1"
+version = "70.0.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "setuptools-69.5.1-py3-none-any.whl", hash = "sha256:c636ac361bc47580504644275c9ad802c50415c7522212252c033bd15f301f32"},
-    {file = "setuptools-69.5.1.tar.gz", hash = "sha256:6c1fccdac05a97e598fb0ae3bbed5904ccb317337a51139dcd51453611bbb987"},
+    {file = "setuptools-70.0.0-py3-none-any.whl", hash = "sha256:54faa7f2e8d2d11bcd2c07bed282eef1046b5c080d1c32add737d7b5817b1ad4"},
+    {file = "setuptools-70.0.0.tar.gz", hash = "sha256:f211a66637b8fa059bb28183da127d4e86396c991a942b028c6650d4319c3fd0"},
 ]
 
 [package.extras]
-docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (>=1,<2)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
-testing = ["build[virtualenv]", "filelock (>=3.4.0)", "importlib-metadata", "ini2toml[lite] (>=0.9)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "mypy (==1.9)", "packaging (>=23.2)", "pip (>=19.1)", "pytest (>=6,!=8.1.1)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-home (>=0.5)", "pytest-mypy", "pytest-perf", "pytest-ruff (>=0.2.1)", "pytest-timeout", "pytest-xdist (>=3)", "tomli", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
-testing-integration = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "packaging (>=23.2)", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
+docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "pyproject-hooks (!=1.1)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (>=1,<2)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
+testing = ["build[virtualenv] (>=1.0.3)", "filelock (>=3.4.0)", "importlib-metadata", "ini2toml[lite] (>=0.14)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "mypy (==1.9)", "packaging (>=23.2)", "pip (>=19.1)", "pyproject-hooks (!=1.1)", "pytest (>=6,!=8.1.1)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-home (>=0.5)", "pytest-mypy", "pytest-perf", "pytest-ruff (>=0.2.1)", "pytest-subprocess", "pytest-timeout", "pytest-xdist (>=3)", "tomli", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
 
 [[package]]
 name = "shapely"
@@ -2777,13 +2777,13 @@ ttlfmt = ["docopt", "joblib"]
 
 [[package]]
 name = "types-requests"
-version = "2.31.0.20240406"
+version = "2.32.0.20240521"
 description = "Typing stubs for requests"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "types-requests-2.31.0.20240406.tar.gz", hash = "sha256:4428df33c5503945c74b3f42e82b181e86ec7b724620419a2966e2de604ce1a1"},
-    {file = "types_requests-2.31.0.20240406-py3-none-any.whl", hash = "sha256:6216cdac377c6b9a040ac1c0404f7284bd13199c0e1bb235f4324627e8898cf5"},
+    {file = "types-requests-2.32.0.20240521.tar.gz", hash = "sha256:c5c4a0ae95aad51f1bf6dae9eed04a78f7f2575d4b171da37b622e08b93eb5d3"},
+    {file = "types_requests-2.32.0.20240521-py3-none-any.whl", hash = "sha256:ab728ba43ffb073db31f21202ecb97db8753ded4a9dc49cb480d8a5350c5c421"},
 ]
 
 [package.dependencies]
@@ -3035,4 +3035,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<4.0"
-content-hash = "8ce66af2344aa7bd90a9f6834aa04f4d9fd1211b81cac0769fcb6cf841166865"
+content-hash = "98499bb86b8b98bd48ff1de6904d9319b888ea0056bfc3296620b7b98dabac28"
