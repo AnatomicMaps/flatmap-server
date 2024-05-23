@@ -87,7 +87,8 @@ async def main(viewer=False):
 
     config.accesslog = './logs/access_log'
     config.errorlog = './logs/error_log'
-    settings['LOGGER'] = app.logger = SyncLogger(config.log)
+    settings['LOGGER'] = config.log
+    app.logger = SyncLogger(config.log)
 
     initialise(viewer)
 
