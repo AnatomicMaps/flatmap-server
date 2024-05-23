@@ -106,7 +106,7 @@ knowledge_blueprint = Blueprint('knowledge', __name__, url_prefix='/knowledge')
 maker_blueprint = Blueprint('maker', __name__, url_prefix='/make')
 
 @maker_blueprint.before_request
-def maker_auth_check():
+async def maker_auth_check():
     if map_maker is not None:
         if not settings['MAPMAKER_TOKENS']:
             return None  # no security defined; permit all access.
@@ -114,7 +114,7 @@ def maker_auth_check():
         if auth.startswith('Bearer '):
             if auth.split()[1] in settings['MAPMAKER_TOKENS']:
                 return None
-    return quart.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
+    return await quart.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
 
 #===============================================================================
 

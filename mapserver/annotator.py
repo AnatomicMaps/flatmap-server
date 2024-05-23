@@ -303,7 +303,7 @@ def __del_session(session_key: str) -> bool:
 
 def __authenticated(f):
     @wraps(f)
-    def decorated_function(*args, **kwargs):
+    async def decorated_function(*args, **kwargs):
         if quart.request.method == 'GET':
             parameters = quart.request.args
         elif quart.request.method == 'POST':
@@ -316,7 +316,7 @@ def __authenticated(f):
           and (data := __session_data(session_key)) is not None):
             quart.g.update = data.get('canUpdate', False)
             return f(*args, **kwargs)
-        response = quart.make_response('{"error": "forbidden"}', 403)
+        response = await quart.make_response('{"error": "forbidden"}', 403)
         return response
     return decorated_function
 
@@ -338,7 +338,7 @@ async def authenticate():
         user_data = {'error': 'forbidden'}
     if 'error' not in user_data:
         session_key = __new_session(key, user_data)
-        response = quart.make_response(json.dumps({
+        response = await quart.make_response(json.dumps({
             'session': session_key,
             'data': user_data
         }))
