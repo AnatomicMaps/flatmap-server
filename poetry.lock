@@ -425,20 +425,20 @@ dotenv = ["python-dotenv"]
 
 [[package]]
 name = "flatmapknowledge"
-version = "1.8.0"
+version = "1.8.1"
 description = ""
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "flatmapknowledge-1.8.0-py3-none-any.whl", hash = "sha256:a0bdf695b687d24be7a0c03f2b967a353176098844af85ac423868c18a15c6c7"},
+    {file = "flatmapknowledge-1.8.1-py3-none-any.whl", hash = "sha256:abe925f98804b8d1c64716b548f1cc65651e00fb91ed2ceefb1fe0cdbba8684e"},
 ]
 
 [package.dependencies]
-mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.18.0/mapknowledge-0.18.0-py3-none-any.whl"}
+mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.18.1/mapknowledge-0.18.1-py3-none-any.whl"}
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.8.0/flatmapknowledge-1.8.0-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.8.1/flatmapknowledge-1.8.1-py3-none-any.whl"
 
 [[package]]
 name = "frozendict"
@@ -1061,12 +1061,12 @@ source = ["Cython (>=3.0.10)"]
 
 [[package]]
 name = "mapknowledge"
-version = "0.18.0"
+version = "0.18.1"
 description = ""
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "mapknowledge-0.18.0-py3-none-any.whl", hash = "sha256:54b2f02bfe9a1f9cd54f78efb7eb668290cf76a6f9124d040305d4bedd64e002"},
+    {file = "mapknowledge-0.18.1-py3-none-any.whl", hash = "sha256:d854b9bab4492fadee221c9649c916032227878848dcdd7df85e8e8c393ae046"},
 ]
 
 [package.dependencies]
@@ -1078,23 +1078,23 @@ sparqlwrapper = ">=2.0.0,<3.0.0"
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.18.0/mapknowledge-0.18.0-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.18.1/mapknowledge-0.18.1-py3-none-any.whl"
 
 [[package]]
 name = "mapmaker"
-version = "1.10.2"
+version = "1.10.3"
 description = ""
 optional = false
 python-versions = ">=3.12,<4.0"
 files = [
-    {file = "mapmaker-1.10.2-py3-none-any.whl", hash = "sha256:88c0f119a962da0ab5a5dfd2b38bb163340a55d25b517c7fd9f075837d94a5d2"},
+    {file = "mapmaker-1.10.3-py3-none-any.whl", hash = "sha256:c1d334714867eeb1e3ac247dbddcd9d3b0f338d582b0324239d9ed4f7d6aa953"},
 ]
 
 [package.dependencies]
 beziers = ">=0.5.0,<0.6.0"
 colormath = ">=3.0.0,<4.0.0"
 cssselect2 = ">=0.6.0,<0.7.0"
-flatmapknowledge = {url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.8.0/flatmapknowledge-1.8.0-py3-none-any.whl"}
+flatmapknowledge = {url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.8.1/flatmapknowledge-1.8.1-py3-none-any.whl"}
 gitpython = ">=3.1.41,<4.0.0"
 giturlparse = ">=0.12.0,<0.13.0"
 lxml = ">=5.2.2,<6.0.0"
@@ -1129,7 +1129,7 @@ xmltodict = ">=0.12.0,<0.13.0"
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.10.2/mapmaker-1.10.2-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.10.3/mapmaker-1.10.3-py3-none-any.whl"
 
 [[package]]
 name = "markupsafe"
@@ -2777,13 +2777,13 @@ ttlfmt = ["docopt", "joblib"]
 
 [[package]]
 name = "types-requests"
-version = "2.32.0.20240521"
+version = "2.32.0.20240523"
 description = "Typing stubs for requests"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "types-requests-2.32.0.20240521.tar.gz", hash = "sha256:c5c4a0ae95aad51f1bf6dae9eed04a78f7f2575d4b171da37b622e08b93eb5d3"},
-    {file = "types_requests-2.32.0.20240521-py3-none-any.whl", hash = "sha256:ab728ba43ffb073db31f21202ecb97db8753ded4a9dc49cb480d8a5350c5c421"},
+    {file = "types-requests-2.32.0.20240523.tar.gz", hash = "sha256:26b8a6de32d9f561192b9942b41c0ab2d8010df5677ca8aa146289d11d505f57"},
+    {file = "types_requests-2.32.0.20240523-py3-none-any.whl", hash = "sha256:f19ed0e2daa74302069bbbbf9e82902854ffa780bc790742a810a9aaa52f65ec"},
 ]
 
 [package.dependencies]
@@ -3035,4 +3035,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<4.0"
-content-hash = "98499bb86b8b98bd48ff1de6904d9319b888ea0056bfc3296620b7b98dabac28"
+content-hash = "05abb3eebc553dad6873f4386c0e5ab0ee66d66e21c95bc4a8fcddad24505935"
