@@ -427,7 +427,8 @@ async def annotation(id: Optional[str]=None):
 async def add_annotation():
     annotation_store = AnnotationStore()
     if quart.request.method == 'POST' and quart.g.update:
-        annotation = quart.request.get_json().get('data', {})
+        body = await quart.request.get_json()
+        annotation = body.get('data', {})
         result = annotation_store.add_annotation(annotation)
     else:
         result = '{"error": "forbidden"}', 403, {'mimetype': 'application/json'}
