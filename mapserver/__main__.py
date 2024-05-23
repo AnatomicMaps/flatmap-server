@@ -103,6 +103,9 @@ async def main(viewer=False):
 if __name__ == '__main__':
 #=========================
     enable_viewer = len(sys.argv) > 1 and sys.argv[1] == 'viewer'
-    asyncio.run(main(viewer=enable_viewer))
+    try:
+        asyncio.run(main(viewer=enable_viewer))
+    except KeyboardInterrupt:
+        pass
 
 #===============================================================================
