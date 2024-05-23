@@ -63,11 +63,16 @@ async def _make_map(params):
 class MakerProcess(multiprocessing.Process):
     def __init__(self, params: dict):
         id = str(uuid.uuid4())
-        super().__init__(target=_run_in_loop, args=(_make_map, params), name=f'Process-{id}')
+        super().__init__(target=_run_in_loop, args=(_make_map, params), name=id)
         self.__id = id
         self.__process_id = None
         self.__log_file = None
         self.__status = 'queued'
+        self.__last_log_lines = []
+
+    @property
+    def completed(self):
+        return self.__status in ['terminated', 'aborted']
 
     @property
     def log_file(self):
@@ -76,6 +81,14 @@ class MakerProcess(multiprocessing.Process):
     @property
     def id(self):
         return self.__id
+
+    @property
+    def last_log_lines(self):
+        n = len(self.__last_log_lines) - 1
+        # Find last line with a dated timestamp -- code is good until 2099
+        while n > 0 and not self.__last_log_lines[n].startswith('20'):
+            n -= 1
+        return '\n'.join(self.__last_log_lines[n:]).strip().split('\n')
 
     @property
     def process_id(self):
@@ -93,6 +106,15 @@ class MakerProcess(multiprocessing.Process):
         self.__status = 'terminated' if self.exitcode == 0 else 'aborted'
         super().join()
         super().close()
+
+    def get_log(self, start_line=1) -> str:
+    #======================================
+        if (filename := self.log_file) is not None and os.path.exists(filename):
+            with open(filename) as fp:
+                log_lines = fp.read().split('\n')
+                self.__last_log_lines = log_lines[-50:]
+                return '\n'.join(log_lines[start_line-1:])
+        return ''
 
     def start(self):
     #===============
@@ -133,9 +155,10 @@ class Manager(threading.Thread):
     #=========================================
         if id in self.__processes_by_id:
             process = self.__processes_by_id[id]
-            if (filename := process.log_file) is not None and os.path.exists(filename):
-                with open(filename) as fp:
-                    return '\n'.join(fp.read().split('\n')[start_line-1:])
+            log_lines = process.get_log(start_line)
+            if process.completed and process.last_log_lines:
+                await settings['LOGGER'].info('\n'.join(process.last_log_lines))
+            return log_lines
         return ''
 
     async def make(self, params) -> dict:
