@@ -57,7 +57,7 @@ settings['FLATMAP_ROOT'] = normalise_path(FLATMAP_ROOT)
 
 settings['MAPMAKER_TOKENS'] = os.environ.get('MAPMAKER_TOKENS', '').split()
 
-MAPMAKER_LOGS = os.environ.get('MAPMAKER_ROOT', './logs')
+MAPMAKER_LOGS = os.environ.get('MAPMAKER_ROOT', './logs/mapmaker')
 settings['MAPMAKER_LOGS'] = normalise_path(MAPMAKER_LOGS)
 
 #===============================================================================

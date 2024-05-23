@@ -33,7 +33,7 @@ Running
 
 *   By default, maps are stored in ``./flatmaps``. This can be overridden by setting the ``FLATMAP_ROOT`` environment variable to a directory path.
 *   By default, the server listens at ``http://127.0.0.1:8000``. This can be changed by setting the ``SERVER_INTERFACE`` and ``SERVER_PORT`` envirinment variables before starting the server.
-*   Access and error logs are stored in ``./logs``.
+*   Access and error logs are stored in ``./logs``, with map-making logs in ``.logs/mapmaker``.
 
 
 Optional map viewer
