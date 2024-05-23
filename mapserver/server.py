@@ -55,7 +55,7 @@ def normalise_path(path):
 FLATMAP_ROOT = os.environ.get('FLATMAP_ROOT', './flatmaps')
 settings['FLATMAP_ROOT'] = normalise_path(FLATMAP_ROOT)
 
-settings['BEARER_TOKENS'] = os.environ.get('BEARER_TOKENS', '').split()
+settings['MAPMAKER_TOKENS'] = os.environ.get('MAPMAKER_TOKENS', '').split()
 
 MAPMAKER_LOGS = os.environ.get('MAPMAKER_ROOT', './logs')
 settings['MAPMAKER_LOGS'] = normalise_path(MAPMAKER_LOGS)
@@ -108,11 +108,11 @@ maker_blueprint = Blueprint('maker', __name__, url_prefix='/make')
 @maker_blueprint.before_request
 def maker_auth_check():
     if map_maker is not None:
-        if not settings['BEARER_TOKENS']:
+        if not settings['MAPMAKER_TOKENS']:
             return None  # no security defined; permit all access.
         auth = request.headers.get('Authorization', '')
         if auth.startswith('Bearer '):
-            if auth.split()[1] in settings['BEARER_TOKENS']:  #### not in ?????
+            if auth.split()[1] in settings['MAPMAKER_TOKENS']:
                 return None
     return quart.make_response('{"error": "unauthorized"}', 403, {'mimetype': 'application/json'})
 
@@ -543,7 +543,7 @@ app.register_blueprint(viewer_blueprint)
 def initialise(viewer=False):
     settings['MAP_VIEWER'] = viewer
     app.logger.info(f'Started flatmap server version {__version__}')
-    if not settings['BEARER_TOKENS']:
+    if not settings['MAPMAKER_TOKENS']:
         # Only warn once...
         app.logger.warning('No bearer tokens defined')
     # Open our knowledge base
