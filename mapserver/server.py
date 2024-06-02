@@ -36,7 +36,7 @@ from quart_cors import cors
 
 #===============================================================================
 
-from .knowledgestore import KnowledgeStore
+from .knowledge import KnowledgeStore
 from .settings import settings
 from . import __version__
 
