@@ -21,6 +21,7 @@
 import functools
 import itertools
 import json
+import os
 from typing import cast, Iterator
 
 #===============================================================================
@@ -30,9 +31,14 @@ import rdflib
 
 #===============================================================================
 
+from ..settings import settings
+
+from . import get_metadata
 from .rdf_utils import ILX_BASE, Node, Triple, Uri
 
 #===============================================================================
+
+CACHED_HIERARCHY = 'hierachy.json'
 
 NPO_ONTOLOGY = './ontologies/npo.ttl'
 UBERON_ONTOLOGY = './ontologies/uberon-basic.json'
@@ -168,7 +174,7 @@ class SparcHierarchy:
             have_ilx_parents = new_parents
             depth += 1
         if len(have_ilx_parents):
-            raise ValueError('Some Interlex parts are deeply nested')
+            raise ValueError('Some Interlex parts are too deeply nested')
 
     def __add_ilx_child(self, ilx: IlxTerm):
     #=======================================
@@ -184,21 +190,85 @@ class SparcHierarchy:
         if furthest_term is not None:
             self.__graph.add_edge(ilx.uri, furthest_term)
 
-    def children(self, term: Uri):
-    #=============================
-        return list(self.__graph.predecessors(term))
-
     def distance_to_root(self, source):
     #==================================
-        return nx.shortest_path_length(self.__graph, source, ANATOMICAL_ROOT)
+        return self.path_length(source, ANATOMICAL_ROOT)
+
+    def has(self, term: Uri) -> bool:
+    #=================================
+        return term in self.__graph
 
     def label(self, term: Uri) -> str:
     #=================================
         return self.__graph.nodes[term]['label']
 
-    def parents(self, term: Uri):
-    #============================
-        return list(self.__graph.successors(term))
+    def path_length(self, source, target):
+    #=====================================
+        try:
+            return nx.shortest_path_length(self.__graph, source, target)
+        except (nx.NetworkXNoPath, nx.NodeNotFound):
+            pass
+        return -1
 
 #===============================================================================
 
+class AnatomicalHierarchy:
+    def __init__(self):
+        self.__sparc_hierarchy = SparcHierarchy(UberonGraph(UBERON_ONTOLOGY))
+        self.__sparc_hierarchy.add_ilx_terms(IlxTerms(NPO_ONTOLOGY))
+
+    def get_hierachy(self, flatmap: str):
+        hierarchy_file = os.path.join(settings['FLATMAP_ROOT'], flatmap, CACHED_HIERARCHY)
+        try:
+            with open(hierarchy_file) as fp:
+                return json.load(fp)
+        except Exception:
+            pass
+
+        hierarchy_graph = nx.DiGraph()
+        hierarchy_graph.add_node(ANATOMICAL_ROOT.id,
+            label=self.__sparc_hierarchy.label(ANATOMICAL_ROOT),
+            distance=0)
+
+        # Nodes on the graph are SPARC terms, with attributes of the term's label and its distance to
+        # a common ``anatomical root``
+        map_terms = set(Uri(term) for term in
+                        [ann.get('models') for ann in get_metadata(flatmap, 'annotations').values()]
+                            if self.__sparc_hierarchy.has(term))
+        for term in map_terms:
+            distance = self.__sparc_hierarchy.distance_to_root(term)
+            if distance > 0:
+                hierarchy_graph.add_node(term.id,
+                    label=self.__sparc_hierarchy.label(term),
+                    distance=distance)
+
+        # Find the shortest path between each pair of SPARC terms used in the flatmap
+        # and, if a path exists, add an edge to the graph
+        for source, target in itertools.permutations(map_terms, 2):
+            path_length = self.__sparc_hierarchy.path_length(source, target)
+            if path_length > 0:
+                hierarchy_graph.add_edge(source.id, target.id, parent_distance=path_length)
+
+        # For each term used by the flatmap find the closest term(s) it is connected to and
+        # delete edges connecting to more distant terms
+        for term in hierarchy_graph.nodes():
+            parent_edges = list(map(lambda edge: {'edge': edge,
+                                                  'parent': edge[1],
+                                                  'distance': hierarchy_graph.edges[edge]['parent_distance']
+                                                 }, hierarchy_graph.out_edges(term)))
+            if len(parent_edges):
+                parent_edges.sort(key=lambda e: e['distance'])
+                distance = parent_edges[0]['distance']
+                n = 1
+                while n < len(parent_edges) and distance == parent_edges[n]['distance']:
+                    n += 1
+                while n < len(parent_edges):
+                    hierarchy_graph.remove_edge(*parent_edges[n]['edge'])
+                    n += 1
+
+        hierarchy = nx.node_link_data(hierarchy_graph)
+        with open(hierarchy_file, 'w') as fp:
+            json.dump(hierarchy, fp)
+        return hierarchy
+
+#===============================================================================

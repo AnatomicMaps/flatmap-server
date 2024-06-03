@@ -37,6 +37,7 @@ from quart_cors import cors
 #===============================================================================
 
 from .knowledge import KnowledgeStore, get_metadata, read_metadata
+from .knowledge.hierarchy import AnatomicalHierarchy
 from .settings import settings
 from . import __version__
 
@@ -49,6 +50,12 @@ settings['ROOT_PATH'] = os.path.split(os.path.dirname(os.path.abspath(__file__))
 def normalise_path(path):
 #========================
     return os.path.normpath(os.path.join(settings['ROOT_PATH'], path))
+
+#===============================================================================
+
+# Build and cache a hierarchy of anataomical terms used by a flatmap
+
+anatomical_hierarchy = AnatomicalHierarchy()
 
 #===============================================================================
 
@@ -362,6 +369,15 @@ async def image_tiles(map_id, layer, z, y, x):
 async def map_annotation(map_id):
     try:
         return quart.jsonify(get_metadata(map_id, 'annotations'))
+    except IOError as err:
+        quart.abort(404, str(err))
+
+#===============================================================================
+
+@flatmap_blueprint.route('flatmap/<string:map_id>/termgraph')
+async def map_termgraph(map_id):
+    try:
+        return quart.jsonify(anatomical_hierarchy.get_hierachy(map_id))
     except IOError as err:
         quart.abort(404, str(err))
 

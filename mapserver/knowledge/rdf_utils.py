@@ -37,6 +37,10 @@ class Uri:
         return self.__uri
 
     @property
+    def id(self) -> str:
+        return self.__uri
+
+    @property
     def is_ilx(self) -> bool:
         return self.__uri.startswith(ILX_PREFIX)
 
