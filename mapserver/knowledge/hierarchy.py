@@ -255,8 +255,10 @@ class AnatomicalHierarchy:
                     label=self.__sparc_hierarchy.label(term),
                     distance=distance)
 
-        # Find the shortest path between each pair of SPARC terms used in the flatmap
-        # and, if a path exists, add an edge to the graph
+        # Find the shortest path between each pair of SPARC terms used in the flatmap,
+        # including to the ANATOMICAL_ROOT node, and if a path exists, add an edge to
+        # the graph
+        map_terms.add(ANATOMICAL_ROOT)
         for source, target in itertools.permutations(map_terms, 2):
             path_length = self.__sparc_hierarchy.path_length(source, target)
             if path_length > 0:
