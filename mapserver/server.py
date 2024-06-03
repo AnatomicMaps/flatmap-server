@@ -36,7 +36,7 @@ from quart_cors import cors
 
 #===============================================================================
 
-from .knowledge import KnowledgeStore
+from .knowledge import KnowledgeStore, get_metadata, read_metadata
 from .settings import settings
 from . import __version__
 
@@ -159,19 +159,6 @@ def normalise_identifier(id):
 #============================
     return ':'.join([(s[:-1].lstrip('0') + s[-1])
                         for s in id.split(':')])
-
-#===============================================================================
-
-def read_metadata(tile_reader, name):
-    try:
-        row = tile_reader._query("SELECT value FROM metadata WHERE name='{}'".format(name)).fetchone()
-    except (InvalidFormatError, sqlite3.OperationalError):
-        raise IOError('Cannot read tile database')
-    return {} if row is None else json.loads(row[0])
-
-def get_metadata(map_id, name):
-    mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.mbtiles')
-    return read_metadata(MBTilesReader(mbtiles), name)
 
 #===============================================================================
 #===============================================================================
