@@ -53,12 +53,6 @@ def normalise_path(path):
 
 #===============================================================================
 
-# Build and cache a hierarchy of anataomical terms used by a flatmap
-
-anatomical_hierarchy = AnatomicalHierarchy()
-
-#===============================================================================
-
 FLATMAP_ROOT = os.environ.get('FLATMAP_ROOT', './flatmaps')
 settings['FLATMAP_ROOT'] = normalise_path(FLATMAP_ROOT)
 
@@ -84,6 +78,12 @@ MAKER_SENTINEL = '.map_making'
 # Needed to read JPEG 2000 files with OpenCV2 under Linux
 
 os.environ['OPENCV_IO_ENABLE_JASPER'] = '1'
+
+#===============================================================================
+
+# Build and cache a hierarchy of anataomical terms used by a flatmap
+
+anatomical_hierarchy = AnatomicalHierarchy()
 
 #===============================================================================
 
