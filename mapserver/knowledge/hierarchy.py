@@ -62,7 +62,7 @@ class IlxTerm:
     def __init__(self, result_row: rdflib.query.ResultRow):
         self.__uri = Uri(result_row.term)
         self.__label = result_row.get('label')
-        self.__parents = []
+        self.__parents: list[Uri] = []
         self.__have_ilx_parents = False
 
     def add_parent(self, parent: rdflib.URIRef):
@@ -141,12 +141,12 @@ class UberonGraph(nx.DiGraph):
             for node in data['graphs'][0]['nodes']:
                 node = Node(node)
                 if node.is_uberon:
-                    self.add_node(node, label=str(node))
+                    self.add_node(node.id, label=str(node))
             for edge in data['graphs'][0]['edges']:
                 edge = Triple(edge)
                 if edge.p == PART_OF or edge.p == IS_A:
                     if edge.s.is_uberon and edge.o.is_uberon:
-                        self.add_edge(edge.s, edge.o)
+                        self.add_edge(edge.s.id, edge.o.id)
 
 #===============================================================================
 
@@ -192,17 +192,17 @@ class SparcHierarchy:
 
     def __add_ilx_child(self, ilx: IlxTerm):
     #=======================================
-        self.__graph.add_node(ilx.uri, label=ilx.label if ilx.label else ilx.uri)
+        self.__graph.add_node(ilx.uri.id, label=ilx.label if ilx.label else ilx.uri)
         furthest_term = None
         max_parent_distance = 0
         for parent in ilx.parents:
-            if parent in self.__graph:
+            if parent.id in self.__graph:
                 distance = self.distance_to_root(parent)
                 if distance > max_parent_distance:
                     furthest_term = parent
                     max_parent_distance = distance
         if furthest_term is not None:
-            self.__graph.add_edge(ilx.uri, furthest_term)
+            self.__graph.add_edge(ilx.uri.id, furthest_term.id)
 
     def distance_to_root(self, source):
     #==================================
@@ -210,16 +210,16 @@ class SparcHierarchy:
 
     def has(self, term: Uri) -> bool:
     #=================================
-        return term in self.__graph
+        return term is not None and str(term) in self.__graph
 
     def label(self, term: Uri) -> str:
     #=================================
-        return self.__graph.nodes[term]['label']
+        return self.__graph.nodes[term.id]['label']
 
     def path_length(self, source, target):
     #=====================================
         try:
-            return nx.shortest_path_length(self.__graph, source, target)
+            return nx.shortest_path_length(self.__graph, source.id, target.id)
         except (nx.NetworkXNoPath, nx.NodeNotFound):
             pass
         return -1
