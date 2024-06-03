@@ -38,7 +38,8 @@ from .rdf_utils import ILX_BASE, Node, Triple, Uri
 
 #===============================================================================
 
-CACHED_HIERARCHY = 'hierachy.json'
+CACHED_MAP_HIERARCHY = 'hierarchy.json'
+CACHED_SPARC_HIERARCHY = 'sparc-hierarchy.json'
 
 NPO_ONTOLOGY = './ontologies/npo.ttl'
 UBERON_ONTOLOGY = './ontologies/uberon-basic.json'
@@ -150,11 +151,24 @@ class UberonGraph(nx.DiGraph):
 #===============================================================================
 
 class SparcHierarchy:
-    def __init__(self, uberon_graph: nx.DiGraph):
-        self.__graph = uberon_graph
+    def __init__(self, uberon_source: str, interlex_source: str):
+        hierarchy_file = os.path.join(settings['FLATMAP_ROOT'], CACHED_SPARC_HIERARCHY)
+        try:
+            with open(hierarchy_file) as fp:
+                graph_json = json.load(fp)
+                self.__graph = nx.node_link_graph(graph_json, directed=True)
+                return
+        except Exception:
+            pass
+        self.__graph = UberonGraph(uberon_source)
+        self.__add_ilx_terms(interlex_source)
+        graph_json = nx.node_link_data(self.__graph)
+        with open(hierarchy_file, 'w') as fp:
+            json.dump(graph_json, fp)
 
-    def add_ilx_terms(self, ilx_terms: IlxTerms):
-    #============================================
+    def __add_ilx_terms(self, interlex_source: str):
+    #===============================================
+        ilx_terms = IlxTerms(interlex_source)
         have_ilx_parents = []
         for ilx_term in ilx_terms.term_list():
             if ilx_term.have_ilx_parents:
@@ -214,11 +228,10 @@ class SparcHierarchy:
 
 class AnatomicalHierarchy:
     def __init__(self):
-        self.__sparc_hierarchy = SparcHierarchy(UberonGraph(UBERON_ONTOLOGY))
-        self.__sparc_hierarchy.add_ilx_terms(IlxTerms(NPO_ONTOLOGY))
+        self.__sparc_hierarchy = SparcHierarchy(UBERON_ONTOLOGY, NPO_ONTOLOGY)
 
     def get_hierachy(self, flatmap: str):
-        hierarchy_file = os.path.join(settings['FLATMAP_ROOT'], flatmap, CACHED_HIERARCHY)
+        hierarchy_file = os.path.join(settings['FLATMAP_ROOT'], flatmap, CACHED_MAP_HIERARCHY)
         try:
             with open(hierarchy_file) as fp:
                 return json.load(fp)

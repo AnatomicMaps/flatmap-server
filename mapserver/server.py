@@ -37,7 +37,7 @@ from quart_cors import cors
 #===============================================================================
 
 from .knowledge import KnowledgeStore, get_metadata, read_metadata
-from .knowledge.hierarchy import AnatomicalHierarchy
+from .knowledge.hierarchy import AnatomicalHierarchy, CACHED_SPARC_HIERARCHY
 from .settings import settings
 from . import __version__
 
@@ -416,6 +416,11 @@ async def knowledge_query():
         if 'error' in result:
             app.logger.warning('SQL: {}'.format(result['error']))
         return quart.jsonify(result)
+
+@knowledge_blueprint.route('sparcterms')
+async def sparcterms():
+    filename = os.path.join(settings['FLATMAP_ROOT'], CACHED_SPARC_HIERARCHY)
+    return await send_json(filename)
 
 #===============================================================================
 #===============================================================================
