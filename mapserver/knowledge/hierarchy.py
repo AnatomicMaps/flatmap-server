@@ -58,6 +58,60 @@ PART_OF = Uri('BFO:0000050')
 
 #===============================================================================
 
+class Arborescence:
+    def __init__(self, G: nx.DiGraph, root: str):
+        assert(root in G)
+        assert(G.out_degree(root) == 0)
+        self.__G = G
+        self.__root = root
+        self.__tree = nx.DiGraph()
+        self.__tree.add_nodes_from([(n[0], {'label': n[1]['label']})
+                                        for n in G.nodes(data=True)],
+                                   seen=False, connected=False)
+        self.__tree.nodes[root]['connected'] = True
+
+        # Connect all children to their parent if thay are in a tree under the parent
+        self.__add_in_nodes_to_tree(root)
+
+        # Working away from the root, add connected unconnected nodes by the longest route to the root
+        root_path_distance = dict(sorted(nx.shortest_path_length(self.__G.reverse(copy=False), self.__root).items(),
+                                         key=lambda item: item[1]))
+        for node in root_path_distance.keys():
+            if not self.__tree.nodes[node]['connected']:
+                max_distance = -1
+                max_node = None
+                for out_node in self.__G.successors(node):
+                    if root_path_distance[out_node] > max_distance:
+                        max_distance = root_path_distance[out_node]
+                        max_node = out_node
+                assert(max_node is not None)
+                self.__tree.add_edge(node, max_node)
+                self.__tree.nodes[node]['connected'] = True
+
+        # Remember a node's distance from the root
+        for (node, distance) in nx.shortest_path_length(self.__tree.reverse(copy=False), self.__root).items():
+            self.__tree.nodes[node]['distance'] = distance
+
+        # Remove attributes used to construct tree
+        for node in self.__tree:
+            del self.__tree.nodes[node]['connected']
+            del self.__tree.nodes[node]['seen']
+
+    @property
+    def tree(self):
+        return self.__tree
+
+    def __add_in_nodes_to_tree(self, node: str):
+        self.__tree.nodes[node]['seen'] = True
+        for in_node in self.__G.predecessors(node):
+            if not self.__tree.nodes[in_node]['seen']:
+                if self.__G.out_degree(in_node) == 1:
+                    self.__tree.add_edge(in_node, node)
+                    self.__tree.nodes[in_node]['connected'] = True
+                self.__add_in_nodes_to_tree(in_node)
+
+#===============================================================================
+
 class IlxTerm:
     def __init__(self, result_row: rdflib.query.ResultRow):
         self.__uri = Uri(result_row.term)
@@ -281,7 +335,8 @@ class AnatomicalHierarchy:
                     hierarchy_graph.remove_edge(*parent_edges[n]['edge'])
                     n += 1
 
-        hierarchy = nx.node_link_data(hierarchy_graph)
+        hierarchy_tree = Arborescence(hierarchy_graph, ANATOMICAL_ROOT.id).tree
+        hierarchy = nx.node_link_data(hierarchy_tree)
         with open(hierarchy_file, 'w') as fp:
             json.dump(hierarchy, fp)
         return hierarchy
