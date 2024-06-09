@@ -22,7 +22,7 @@ import functools
 import itertools
 import json
 import os
-from typing import cast, Iterator
+from typing import cast, Optional
 
 #===============================================================================
 
@@ -49,6 +49,8 @@ UBERON_ONTOLOGY = './ontologies/uberon-basic.json'
 MULTICELLULAR_ORGANISM = Uri('UBERON:0000468')
 ANATOMICAL_ROOT = MULTICELLULAR_ORGANISM
 
+BODY_PROPER = Uri('UBERON:0013702')
+
 #===============================================================================
 
 ILX_PART_OF = 'ILX:0112785'
@@ -59,19 +61,19 @@ PART_OF = Uri('BFO:0000050')
 #===============================================================================
 
 class Arborescence:
-    def __init__(self, G: nx.DiGraph, root: str):
+    def __init__(self, G: nx.DiGraph, root: Uri, contract_to: Optional[Uri]=None):
         assert(root in G)
         assert(G.out_degree(root) == 0)
         self.__G = G
-        self.__root = root
+        self.__root = root.id
         self.__tree = nx.DiGraph()
         self.__tree.add_nodes_from([(n[0], {'label': n[1]['label']})
                                         for n in G.nodes(data=True)],
                                    seen=False, connected=False)
-        self.__tree.nodes[root]['connected'] = True
+        self.__tree.nodes[self.__root]['connected'] = True
 
         # Connect all children to their parent if thay are in a tree under the parent
-        self.__add_in_nodes_to_tree(root)
+        self.__add_in_nodes_to_tree(self.__root)
 
         # Working away from the root, add connected unconnected nodes by the longest route to the root
         root_path_distance = dict(sorted(nx.shortest_path_length(self.__G.reverse(copy=False), self.__root).items(),
@@ -88,9 +90,19 @@ class Arborescence:
                 self.__tree.add_edge(node, max_node)
                 self.__tree.nodes[node]['connected'] = True
 
+        # Optionally contract (the top of) the tree
+        if (contract_to is not None):
+            nx.contracted_nodes(self.__tree, contract_to.id, self.__root,
+                                self_loops=False, copy=False)
+            self.__root = contract_to.id
+
         # Remember a node's distance from the root
+        max_depth = -1
         for (node, distance) in nx.shortest_path_length(self.__tree.reverse(copy=False), self.__root).items():
-            self.__tree.nodes[node]['distance'] = distance
+            self.__tree.nodes[node]['depth'] = distance
+            if distance > max_depth:
+                max_depth = distance
+        self.__tree.graph['depth'] = max_depth
 
         # Remove attributes used to construct tree
         for node in self.__tree:
@@ -335,7 +347,7 @@ class AnatomicalHierarchy:
                     hierarchy_graph.remove_edge(*parent_edges[n]['edge'])
                     n += 1
 
-        hierarchy_tree = Arborescence(hierarchy_graph, ANATOMICAL_ROOT.id).tree
+        hierarchy_tree = Arborescence(hierarchy_graph, ANATOMICAL_ROOT, BODY_PROPER).tree
         hierarchy = nx.node_link_data(hierarchy_tree)
         with open(hierarchy_file, 'w') as fp:
             json.dump(hierarchy, fp)
