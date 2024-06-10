@@ -38,6 +38,10 @@ from .rdf_utils import ILX_BASE, Node, Triple, Uri
 
 #===============================================================================
 
+TREE_VERSION = '1.1'
+
+#===============================================================================
+
 CACHED_MAP_HIERARCHY = 'hierarchy.json'
 CACHED_SPARC_HIERARCHY = 'sparc-hierarchy.json'
 
@@ -102,7 +106,7 @@ class Arborescence:
             self.__tree.nodes[node]['depth'] = distance
             if distance > max_depth:
                 max_depth = distance
-        self.__tree.graph['depth'] = max_depth
+        self.__tree.graph['depth'] = max_depth  # type: ignore
 
         # Remove attributes used to construct tree
         for node in self.__tree:
@@ -110,7 +114,7 @@ class Arborescence:
             del self.__tree.nodes[node]['seen']
 
     @property
-    def tree(self):
+    def tree(self) -> nx.DiGraph:
         return self.__tree
 
     def __add_in_nodes_to_tree(self, node: str):
@@ -300,7 +304,9 @@ class AnatomicalHierarchy:
         hierarchy_file = os.path.join(settings['FLATMAP_ROOT'], flatmap, CACHED_MAP_HIERARCHY)
         try:
             with open(hierarchy_file) as fp:
-                return json.load(fp)
+                hierarchy= json.load(fp)
+                if hierarchy.get('graph', {}).get('version', '') >= TREE_VERSION:
+                    return hierarchy
         except Exception:
             pass
 
@@ -348,6 +354,7 @@ class AnatomicalHierarchy:
                     n += 1
 
         hierarchy_tree = Arborescence(hierarchy_graph, ANATOMICAL_ROOT, BODY_PROPER).tree
+        hierarchy_tree.graph['version'] = TREE_VERSION  # type: ignore
         hierarchy = nx.node_link_data(hierarchy_tree)
         with open(hierarchy_file, 'w') as fp:
             json.dump(hierarchy, fp)
