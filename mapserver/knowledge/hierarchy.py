@@ -71,7 +71,7 @@ class Arborescence:
         self.__G = G
         self.__root = root.id
         self.__tree = nx.DiGraph()
-        self.__tree.add_nodes_from([(n[0], {'label': n[1]['label']})
+        self.__tree.add_nodes_from([(n[0], {'label': n[1].get('label', n[0])})
                                         for n in G.nodes(data=True)],
                                    seen=False, connected=False)
         self.__tree.nodes[self.__root]['connected'] = True
@@ -87,7 +87,7 @@ class Arborescence:
                 max_distance = -1
                 max_node = None
                 for out_node in self.__G.successors(node):
-                    if root_path_distance[out_node] > max_distance:
+                    if out_node in root_path_distance and root_path_distance[out_node] > max_distance:
                         max_distance = root_path_distance[out_node]
                         max_node = out_node
                 assert(max_node is not None)
@@ -314,6 +314,8 @@ class AnatomicalHierarchy:
         hierarchy_graph.add_node(ANATOMICAL_ROOT.id,
             label=self.__sparc_hierarchy.label(ANATOMICAL_ROOT),
             distance=0)
+        hierarchy_graph.add_node(BODY_PROPER.id,
+            label=self.__sparc_hierarchy.label(BODY_PROPER))
 
         # Nodes on the graph are SPARC terms, with attributes of the term's label and its distance to
         # a common ``anatomical root``
