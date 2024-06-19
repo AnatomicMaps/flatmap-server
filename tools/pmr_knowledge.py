@@ -21,11 +21,10 @@
 import argparse
 import json
 import os
-from urllib.parse import urljoin
 
 #===============================================================================
 
-from mapserver.knowledgestore import KnowledgeStore
+from flatmapknowledge import KnowledgeStore
 
 #===============================================================================
 
@@ -33,35 +32,72 @@ PMR_BASE_URL = 'https://models.physiomeproject.org/'
 
 #===============================================================================
 
+PMR_KNOWLEDE_SCHEMA = """
+    create table if not exists pmr_models (term text, score number, model text, workspace text, exposure text);
+    create index if not exists pmr_models_term_index on pmr_models(term, score);
+
+    create table if not exists pmr_metadata (entity text, metadata text);
+    create index if not exists pmr_metadata_term_index on pmr_metadata(entity);
+"""
+
+#===============================================================================
+
 def main():
 #=========
-    parser = argparse.ArgumentParser(description='Update map server knowledge with anatomical term to PMR mapping')
-    parser.add_argument('--clean', action='store_true', help='Remove all existing mapping from the knowledge database before updating')
-    parser.add_argument('term_file', metavar='TERM_TO_PMR', help='JSON file identifying anatomical terms with PMR models')
-    parser.add_argument('knowledge_dir', metavar='KNOWLEDGE_DIR', help="A map server's flatmap root directory")
+    parser = argparse.ArgumentParser(description='Update map server knowledge store with PMR knowledge')
+    parser.add_argument('--clean', action='store_true', help='Remove all existing index and metadata before updating')
+    parser.add_argument('--index', metavar='TERM_TO_PMR', help='JSON file associating anatomical terms with PMR models')
+    parser.add_argument('--exposures', metavar='PMR_EXPOSURES', help='JSON file with metadata about PMR exposures')
+    parser.add_argument('knowledge_dir', metavar='KNOWLEDGE_DIR', help="A map server's flatmap root directory containing a knowledge store")
     args = parser.parse_args()
 
-    if not os.path.isfile(args.term_file) or not os.path.exists(args.term_file):
-        exit(f'Missing JSON file: {args.term_file}')
+    # Check we have input files
+
+    if args.index is None and args.exposures is None:
+        exit(f'At least one of TERM_TO_PMR or PMR_EXPOSURES files must be specified')
+    if args.index is not None:
+        if not os.path.isfile(args.index) or not os.path.exists(args.index):
+            exit(f'Missing TERM_TO_PMR file: {args.index}')
+    if args.exposures is not None:
+        if not os.path.isfile(args.exposures) or not os.path.exists(args.exposures):
+            exit(f'Missing PMR_EXPOSURES file: {args.exposures}')
+
+    # Open our knowledge base
 
     if not os.path.isdir(args.knowledge_dir) or not os.path.exists(args.knowledge_dir):
         exit(f'Missing flatmap root directory: {args.knowledge_dir}')
 
-    # Open our knowledge base
-    knowledge_store = KnowledgeStore(args.knowledge_dir, create=False, read_only=False)
-    if knowledge_store.error is not None:
-        exit('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
+    knowledge_store = KnowledgeStore(args.knowledge_dir, create=False, read_only=False, use_npo=False, use_scicrunch=False)
+    db = knowledge_store.db
+    if db is None:
+        exit('Unable to get knowledge database connection')
 
-    with open(args.term_file) as fp:
-        term_map = json.loads(fp.read())
-    knowledge_store.db.execute('begin')
-    if (args.clean):
-        knowledge_store.db.execute('delete from pmr_models')
-    for (term, models) in term_map.items():
-        for model in models:
-            knowledge_store.db.execute('insert or replace into pmr_models (term, model, workspace, exposure, score) values (?, ?, ?, ?, ?)',
-                                                        (term, model['cellml'], model['workspace'], model.get('exposure'), model['score']))
-    knowledge_store.db.commit()
+    # Wrap the entire operation in a transaction
+
+    db.execute('begin')
+    db.executescript(PMR_KNOWLEDE_SCHEMA)
+
+    if args.index is not None:
+        if (args.clean):
+            db.execute('delete from pmr_models')
+        term_index = json.load(open(args.index))
+        for (term, models) in term_index.items():
+            for model in models:
+                db.execute('insert or replace into pmr_models (term, model, workspace, exposure, score) values (?, ?, ?, ?, ?)',
+                                                              (term, model['cellml'], model['workspace'], model.get('exposure'), model['score']))
+    if args.exposures is not None:
+        if (args.clean):
+            db.execute('delete from pmr_metadata')
+        exposure_metadata = json.load(open(args.exposures))
+        for metadata in exposure_metadata:
+            exposure = metadata.get('exposure')
+            if exposure is not None:
+                db.execute('insert or replace into pmr_metadata (entity, metadata) values (?, ?)',
+                                                                (exposure, json.dumps(metadata)))
+
+    # All done, commit transaction and close knowledge store
+
+    db.commit()
     knowledge_store.close()
 
 #===============================================================================
@@ -87,6 +123,20 @@ if __name__ == '__main__':
             "score": 0.9161473512649536
         }
     ],
+}
+
+[
+    {
+        "exposure": "https://models.physiomeproject.org/exposure/7f056cfd284daf3b3bbaf2ae23b0ff5e",
+        "title": "Mosekilde, Lading, Yanchuk, Maistrenko, 2001",
+        "sha": "aa0e676c403f6edc747b9a481fcfbb039baab391",
+        "workspace": "https://models.physiomeproject.org/workspace/mosekilde_lading_yanchuk_maistrenko_2001",
+        "omex": "https://models.physiomeproject.org/exposure/7f056cfd284daf3b3bbaf2ae23b0ff5e/download_generated_omex",
+        "image": "https://models.physiomeproject.org/workspace/mosekilde_lading_yanchuk_maistrenko_2001/@@rawfile/aa0e676c403f6edc747b9a481fcfbb039baab391/mosekilde_2001.png",
+        "authors": "admin",
+        "description": ""
+    },
+]
 """
 
 #===============================================================================
