@@ -21,6 +21,8 @@
 import argparse
 import json
 import os
+import sqlite3
+from typing import Optional
 
 #===============================================================================
 
@@ -38,7 +40,22 @@ PMR_KNOWLEDE_SCHEMA = """
 
     create table if not exists pmr_metadata (entity text, metadata text);
     create index if not exists pmr_metadata_term_index on pmr_metadata(entity);
+
+    create virtual table if not exists pmr_text using fts5(entity unindexed, title, description, documentation, tokenize=porter);
 """
+
+
+#===============================================================================
+
+def clean_text(dictionary: dict[str, Optional[str]], key: str, update=False) -> Optional[str]:
+    value = dictionary.pop(key, None)
+    if value is not None:
+        value = value.strip()
+        if value == '':
+            value = None
+        elif update:
+            dictionary[key] = value
+    return value
 
 #===============================================================================
 
@@ -48,13 +65,20 @@ def main():
     parser.add_argument('--clean', action='store_true', help='Remove all existing index and metadata before updating')
     parser.add_argument('--index', metavar='TERM_TO_PMR', help='JSON file associating anatomical terms with PMR models')
     parser.add_argument('--exposures', metavar='PMR_EXPOSURES', help='JSON file with metadata about PMR exposures')
-    parser.add_argument('knowledge_dir', metavar='KNOWLEDGE_DIR', help="A map server's flatmap root directory containing a knowledge store")
+    parser.add_argument('--knowledge', metavar='KNOWLEDGE_DIR', help="A map server's flatmap root directory containing a knowledge store")
+    parser.add_argument('--local', metavar='LOCAL_DATABASE', help="A local database as an alternative to a map server's knowledge store")
     args = parser.parse_args()
+
+    # Check we have a database to update
+
+    if (args.knowledge is     None and args.local is     None
+     or args.knowledge is not None and args.local is not None):
+        exit('Either a KNOWLEDGE_DIR or LOCAL_DATABASE must be specified, but not both')
 
     # Check we have input files
 
     if args.index is None and args.exposures is None:
-        exit(f'At least one of TERM_TO_PMR or PMR_EXPOSURES files must be specified')
+        exit('At least one of TERM_TO_PMR or PMR_EXPOSURES files must be specified')
     if args.index is not None:
         if not os.path.isfile(args.index) or not os.path.exists(args.index):
             exit(f'Missing TERM_TO_PMR file: {args.index}')
@@ -64,13 +88,16 @@ def main():
 
     # Open our knowledge base
 
-    if not os.path.isdir(args.knowledge_dir) or not os.path.exists(args.knowledge_dir):
-        exit(f'Missing flatmap root directory: {args.knowledge_dir}')
-
-    knowledge_store = KnowledgeStore(args.knowledge_dir, create=False, read_only=False, use_npo=False, use_scicrunch=False)
-    db = knowledge_store.db
-    if db is None:
-        exit('Unable to get knowledge database connection')
+    if args.knowledge is not None:
+        if not os.path.isdir(args.knowledge) or not os.path.exists(args.knowledge):
+            exit(f'Missing flatmap root directory: {args.knowledge}')
+        knowledge_store = KnowledgeStore(args.knowledge, create=False, read_only=False, use_npo=False, use_scicrunch=False)
+        db = knowledge_store.db
+        if db is None:
+            exit('Unable to get knowledge database connection')
+    else:
+        db = sqlite3.connect(args.local,
+            detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
 
     # Wrap the entire operation in a transaction
 
@@ -81,24 +108,38 @@ def main():
         if (args.clean):
             db.execute('delete from pmr_models')
         term_index = json.load(open(args.index))
-        for (term, models) in term_index.items():
-            for model in models:
+        for sckan_models in term_index:
+            term = sckan_models['sckan_term']
+            for model in sckan_models['cellmls']:
                 db.execute('insert or replace into pmr_models (term, model, workspace, exposure, score) values (?, ?, ?, ?, ?)',
                                                               (term, model['cellml'], model['workspace'], model.get('exposure'), model['score']))
     if args.exposures is not None:
         if (args.clean):
             db.execute('delete from pmr_metadata')
+            db.execute('delete from pmr_text')
         exposure_metadata = json.load(open(args.exposures))
         for metadata in exposure_metadata:
             exposure = metadata.get('exposure')
             if exposure is not None:
+                # Clean up title and description fields
+                title = clean_text(metadata, 'title', True)
+                description = clean_text(metadata, 'description', True)
+
+                # FTS documentation is not in metadata table
+                documentation = clean_text(metadata, 'documentation')
+
+                # Update metadata table
                 db.execute('insert or replace into pmr_metadata (entity, metadata) values (?, ?)',
                                                                 (exposure, json.dumps(metadata)))
+                # Update FTS table
+                db.execute('insert or replace into pmr_text (entity, title, description, documentation) values (?, ?, ?, ?)',
+                                                                (exposure, title, description, documentation))
 
     # All done, commit transaction and close knowledge store
 
     db.commit()
-    knowledge_store.close()
+    if args.knowledge is not None:
+        knowledge_store.close()     # type: ignore
 
 #===============================================================================
 
@@ -109,21 +150,27 @@ if __name__ == '__main__':
 #===============================================================================
 
 """
-{
-    "UBERON:0001226": [
-        {
-            "cellml": "https://models.physiomeproject.org/workspace/thomas_2000/rawfile/6e123e79c616535a3abc555552f96b87e4fee556/thomas_2000.cellml",
-            "workspace": "https://models.physiomeproject.org/workspace/thomas_2000",
-            "exposure": "https://models.physiomeproject.org/exposure/16c44069cf597b2fe1a3cbc0acc03172",
-            "score": 0.9161473512649536
-        },
-        {
-            "cellml": "https://models.physiomeproject.org/workspace/584/rawfile/ade7933153a72bb89e0b02d75db92d6e4be285f5/thomas_2000.cellml",
-            "workspace": "https://models.physiomeproject.org/workspace/584",
-            "score": 0.9161473512649536
-        }
-    ],
-}
+
+[
+    {
+        "sckan_term": "UBERON:0010247",
+        "label": "choroidal tapetum cellulosum, choroid tapetum cellulosum",
+        "cellmls": [
+            {
+                "cellml": "https://models.physiomeproject.org/workspace/guyton_capillary_dynamics_2008/rawfile/18a2d9f035fb3950ccdae97b7fb21f1bb93d6a67/cap_dynamics_parent.cellml",
+                "workspace": "https://models.physiomeproject.org/workspace/guyton_capillary_dynamics_2008",
+                "score": 0.7016255855560303,
+                "exposure": "https://models.physiomeproject.org/exposure/f3272a51c6e95c70eb1309d30c08d4cf"
+            },
+            {
+                "cellml": "https://models.physiomeproject.org/workspace/guyton_capillary_dynamics_2008/rawfile/18a2d9f035fb3950ccdae97b7fb21f1bb93d6a67/guyton_capillary_dynamics_2008.cellml",
+                "workspace": "https://models.physiomeproject.org/workspace/guyton_capillary_dynamics_2008",
+                "score": 0.7016255855560303,
+                "exposure": "https://models.physiomeproject.org/exposure/f3272a51c6e95c70eb1309d30c08d4cf"
+            }
+        ]
+    },
+]
 
 [
     {
