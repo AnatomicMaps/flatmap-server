@@ -37,6 +37,7 @@ PMR_BASE_URL = 'https://models.physiomeproject.org/'
 PMR_KNOWLEDE_SCHEMA = """
     create table if not exists pmr_models (term text, score number, model text, workspace text, exposure text);
     create index if not exists pmr_models_term_index on pmr_models(term, score);
+    create index if not exists pmr_models_exposure_index on pmr_models(exposure);
 
     create table if not exists pmr_metadata (entity text, metadata text);
     create index if not exists pmr_metadata_term_index on pmr_metadata(entity);
