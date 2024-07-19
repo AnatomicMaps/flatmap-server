@@ -7,11 +7,12 @@ from typing import Optional
 ILX_BASE = 'http://uri.interlex.org/base/ilx_'
 ILX_PREFIX = 'ILX:'
 
+UBERON_BASE = 'http://purl.obolibrary.org/obo/UBERON_'
 UBERON_PREFIX = 'UBERON:'
 
 NAMESPACES = [
     (ILX_PREFIX,    ILX_BASE),
-    (UBERON_PREFIX, 'http://purl.obolibrary.org/obo/UBERON_'),
+    (UBERON_PREFIX, UBERON_BASE),
     ('BFO:',        'http://purl.obolibrary.org/obo/BFO_'),
 ]
 
