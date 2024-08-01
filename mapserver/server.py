@@ -57,6 +57,9 @@ settings['FLATMAP_ROOT'] = normalise_path(FLATMAP_ROOT)
 if not os.path.exists(settings['FLATMAP_ROOT']):
     exit(f'Missing {settings["FLATMAP_ROOT"]} directory -- set FLATMAP_ROOT environment variable to the full path and/or create directory')
 
+FLATMAP_VIEWER = os.environ.get('FLATMAP_VIEWER', './viewer')
+settings['FLATMAP_VIEWER'] = normalise_path(FLATMAP_VIEWER)
+
 FLATMAP_SERVER_LOGS = os.environ.get('FLATMAP_SERVER_LOGS', './logs')
 settings['FLATMAP_SERVER_LOGS'] = normalise_path(FLATMAP_SERVER_LOGS)
 if not os.path.exists(settings['FLATMAP_SERVER_LOGS']):
@@ -137,7 +140,7 @@ async def maker_auth_check():
 #===============================================================================
 
 viewer_blueprint = Blueprint('viewer', __name__,
-                             root_path=normalise_path('./viewer/dist'),
+                             root_path=os.path.join(settings['FLATMAP_VIEWER'], 'dist'),
                              url_prefix='/viewer')
 
 #===============================================================================
@@ -560,6 +563,8 @@ app.register_blueprint(viewer_blueprint)
 #===============================================================================
 
 def initialise(viewer=False):
+    if viewer and not os.path.exists(settings['FLATMAP_VIEWER']):
+        exit(f'Missing {settings["FLATMAP_VIEWER"]} directory -- set FLATMAP_VIEWER environment variable to the full path')
     settings['MAP_VIEWER'] = viewer
     app.logger.info(f'Started flatmap server version {__version__}')
     if not settings['MAPMAKER_TOKENS']:
