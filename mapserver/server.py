@@ -261,7 +261,7 @@ async def map(map_id):
     if 'json' not in quart.request.accept_mimetypes.best:
         filename = os.path.join(settings['FLATMAP_ROOT'], map_id, '{}.svg'.format(map_id))
         if os.path.exists(filename):
-            return quart.send_file(filename, mimetype='image/svg+xml')
+            return await quart.send_file(filename, mimetype='image/svg+xml')
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.json')
     return await send_json(filename)
 
