@@ -54,6 +54,8 @@ def normalise_path(path):
 
 FLATMAP_ROOT = os.environ.get('FLATMAP_ROOT', './flatmaps')
 settings['FLATMAP_ROOT'] = normalise_path(FLATMAP_ROOT)
+if not os.path.exists(settings['FLATMAP_ROOT']):
+    exit(f'Missing {settings["FLATMAP_ROOT"]} directory -- set FLATMAP_ROOT environment variable to the full path and/or create directory')
 
 MAPMAKER_LOGS = os.environ.get('MAPMAKER_ROOT', './logs/mapmaker')
 settings['MAPMAKER_LOGS'] = normalise_path(MAPMAKER_LOGS)
