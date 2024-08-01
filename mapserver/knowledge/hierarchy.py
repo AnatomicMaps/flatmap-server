@@ -19,6 +19,7 @@
 #===============================================================================
 
 import functools
+import importlib.resources
 import itertools
 import json
 import os
@@ -42,11 +43,17 @@ TREE_VERSION = '1.1'
 
 #===============================================================================
 
+# Cached hierarchies within FLATMAP_ROOT
+
 CACHED_MAP_HIERARCHY = 'hierarchy.json'
 CACHED_SPARC_HIERARCHY = 'sparc-hierarchy.json'
 
-NPO_ONTOLOGY = './ontologies/npo.ttl'
-UBERON_ONTOLOGY = './ontologies/uberon-basic.json'
+#===============================================================================
+
+ONTOLOGY_RESOURCE = importlib.resources.files() / 'ontologies'
+
+NPO_ONTOLOGY = str(ONTOLOGY_RESOURCE / 'npo.ttl')
+UBERON_ONTOLOGY = str(ONTOLOGY_RESOURCE / 'uberon-basic.json')
 
 #===============================================================================
 
