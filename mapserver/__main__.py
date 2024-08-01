@@ -80,8 +80,8 @@ async def main(viewer=False):
 #============================
     config.bind = [f'{SERVER_INTERFACE}:{SERVER_PORT}']
     config.worker_class = 'uvloop'
-    config.accesslog = './logs/access_log'
-    config.errorlog = './logs/error_log'
+    config.accesslog = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'access_log')
+    config.errorlog = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'error_log')
     settings['LOGGER'] = config.log
     app.logger = SyncLogger(config.log)
 

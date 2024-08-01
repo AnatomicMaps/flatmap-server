@@ -57,7 +57,12 @@ settings['FLATMAP_ROOT'] = normalise_path(FLATMAP_ROOT)
 if not os.path.exists(settings['FLATMAP_ROOT']):
     exit(f'Missing {settings["FLATMAP_ROOT"]} directory -- set FLATMAP_ROOT environment variable to the full path and/or create directory')
 
-MAPMAKER_LOGS = os.environ.get('MAPMAKER_ROOT', './logs/mapmaker')
+FLATMAP_SERVER_LOGS = os.environ.get('FLATMAP_SERVER_LOGS', './logs')
+settings['FLATMAP_SERVER_LOGS'] = normalise_path(FLATMAP_SERVER_LOGS)
+if not os.path.exists(settings['FLATMAP_SERVER_LOGS']):
+    exit(f'Missing {settings["FLATMAP_SERVER_LOGS"]} directory -- set FLATMAP_SERVER_LOGS environment variable to the full path and/or create directory')
+
+MAPMAKER_LOGS = os.environ.get('MAPMAKER_LOGS', os.path.join(FLATMAP_SERVER_LOGS, 'mapmaker'))
 settings['MAPMAKER_LOGS'] = normalise_path(MAPMAKER_LOGS)
 
 #===============================================================================
