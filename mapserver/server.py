@@ -140,7 +140,7 @@ async def maker_auth_check():
 #===============================================================================
 
 viewer_blueprint = Blueprint('viewer', __name__,
-                             root_path=os.path.join(settings['FLATMAP_VIEWER'], 'dist'),
+                             root_path=os.path.join(settings['FLATMAP_VIEWER'], 'app/dist'),
                              url_prefix='/viewer')
 
 #===============================================================================
