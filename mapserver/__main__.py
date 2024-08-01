@@ -76,8 +76,8 @@ def __signal_handler(*_: Any) -> None:
     if map_maker is not None:
         map_maker.terminate()
 
-async def main(viewer=False):
-#============================
+async def runserver(viewer=False):
+#=================================
     config.bind = [f'{SERVER_INTERFACE}:{SERVER_PORT}']
     config.worker_class = 'uvloop'
     config.accesslog = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'access_log')
@@ -96,12 +96,25 @@ async def main(viewer=False):
 
 #===============================================================================
 
-if __name__ == '__main__':
-#=========================
-    enable_viewer = len(sys.argv) > 1 and sys.argv[1] == 'viewer'
+def main(viewer=False):
+#======================
     try:
-        asyncio.run(main(viewer=enable_viewer))
+        asyncio.run(runserver(viewer))
     except KeyboardInterrupt:
         pass
+
+def mapserver():
+#===============
+    main()
+
+def mapviewer():
+#===============
+    main(True)
+
+#===============================================================================
+
+if __name__ == '__main__':
+#=========================
+    main(len(sys.argv) > 1 and sys.argv[1] == 'viewer')
 
 #===============================================================================
