@@ -12,7 +12,7 @@ Documentation
 Prerequisites
 -------------
 
-*   Python 3.10
+*   Python 3.12
 *   `poetry <https://python-poetry.org/docs/#installation>`_
 *   Under Ubuntu, ``sudo apt-get install libgl-mesa-glx``
 
@@ -33,7 +33,7 @@ Running
 
 *   By default, maps are stored in ``./flatmaps``. This can be overridden by setting the ``FLATMAP_ROOT`` environment variable to a directory path.
 *   By default, the server listens at ``http://127.0.0.1:8000``. This can be changed by setting the ``SERVER_INTERFACE`` and ``SERVER_PORT`` envirinment variables before starting the server.
-*   Access and error logs are stored in ``./logs``, with map-making logs in ``.logs/mapmaker``.
+*   Access and error logs are stored in ``./logs``, with map-making logs in ``./logs/mapmaker``.
 
 
 Optional map viewer
@@ -41,7 +41,7 @@ Optional map viewer
 
 As an option, the server provides a simple flatmap viewer application. Prerequisites are ``node`` and ``npm``. To install the viewer give the following commands from the top-level server directory::
 
-    $ git clone https://github.com/AnatomicMaps/flatmap-server-viewer.git viewer
+    $ git clone https://github.com/dbrnz/flatmap-viewer.git viewer
     $ cd viewer
     $ npm install
     $ npm run build
