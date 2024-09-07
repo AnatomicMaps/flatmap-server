@@ -86,6 +86,9 @@ def extract(args):
         knowledge_source=knowledge_source)
     if store.db is None:
         raise IOError(f'Unable to open knowledge store {args.store_directory}/{args.knowledge_store}')
+    knowledge_source = store.source
+    if knowledge_source is None:
+        raise ValueError(f'No valid knowledge sources in {args.store_directory}/{args.knowledge_store}')
 
     saved_knowledge = {
         'source': knowledge_source,
