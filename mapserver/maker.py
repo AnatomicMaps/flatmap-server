@@ -231,7 +231,7 @@ class Manager(threading.Thread):
         process.start()
         async with self.__process_lock:
             self.__running_processes.append(process.id)
-        await settings['LOGGER'].info(f'Started mapmaker process: {process.name}')
+        await settings['LOGGER'].info(f'Started mapmaker process: {process.name}, PID: {process.process_id}')
 
 #===============================================================================
 

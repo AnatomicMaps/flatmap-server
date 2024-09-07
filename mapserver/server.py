@@ -18,6 +18,7 @@
 #
 #===============================================================================
 
+from datetime import datetime
 import gzip
 import io
 import json
@@ -493,6 +494,7 @@ async def maker_log(id: str, start_line=1):
     log_data = await map_maker.get_log(id, start_line)
     status = await map_maker.status(id)
     status['log'] = log_data
+    status['stamp'] = str(datetime.now())
     return quart.jsonify(status)
 
 @maker_blueprint.route('/status/<string:id>')
