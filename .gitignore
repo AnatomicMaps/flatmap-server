@@ -1,5 +1,7 @@
 .venv/
+dist/
 flatmaps/
+pmr/
 viewer/
 *.pyc
 .DS_Store
