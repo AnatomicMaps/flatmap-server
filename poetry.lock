@@ -425,20 +425,20 @@ dotenv = ["python-dotenv"]
 
 [[package]]
 name = "flatmapknowledge"
-version = "1.8.2"
+version = "1.9.1"
 description = ""
 optional = false
 python-versions = ">=3.10,<4.0"
 files = [
-    {file = "flatmapknowledge-1.8.2-py3-none-any.whl", hash = "sha256:32d751888ab555684c61f90426a55b6c57a6964b43cfb07b459108b2fe8b21f4"},
+    {file = "flatmapknowledge-1.9.1-py3-none-any.whl", hash = "sha256:243c808fe42b8681a68565fb7634e845a683ba57ef10136e3433834afe870d57"},
 ]
 
 [package.dependencies]
-mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.18.2/mapknowledge-0.18.2-py3-none-any.whl"}
+mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.19.1/mapknowledge-0.19.1-py3-none-any.whl"}
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.8.2/flatmapknowledge-1.8.2-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.9.1/flatmapknowledge-1.9.1-py3-none-any.whl"
 
 [[package]]
 name = "frozendict"
