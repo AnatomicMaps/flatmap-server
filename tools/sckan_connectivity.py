@@ -21,6 +21,7 @@
 import json
 import logging
 import os
+from pathlib import Path
 
 from tqdm import tqdm
 
@@ -68,7 +69,7 @@ def load(args):
     logging.info(f'Loaded connectivity for {path_count} paths for `{knowledge_source}`')
 
     # Having loaded connectivity we can now save it to JSON
-    if args.json_file:
+    if args.save_json:
         args.source = knowledge_source
         extract(args)
 
@@ -95,9 +96,10 @@ def extract(args):
         knowledge['id'] = row[0]
         saved_knowledge['knowledge'].append(knowledge)
 
-    with open(args.json_file, 'w') as fp:
+    json_file = Path(args.store_directory) / f'{knowledge_source}.json'
+    with open(json_file, 'w') as fp:
         json.dump(saved_knowledge, fp, indent=4)
-    logging.info(f"Saved {len(saved_knowledge['knowledge'])} records for `{knowledge_source}` to `{args.json_file}`")
+    logging.info(f"Saved {len(saved_knowledge['knowledge'])} records for `{knowledge_source}` to `{json_file}`")
 
 #===============================================================================
 
@@ -168,21 +170,20 @@ if __name__ == '__main__':
 
     subparsers = parser.add_subparsers(title='commands', required=True)
 
-    parser_load = subparsers.add_parser('load', help='Load connectivity knowledge from SCKAN into a local knowledge store')
-    parser_load.add_argument('--sckan', help='SCKAN release identifier. Defaults to latest available version of SCKAN')
-    parser_load.add_argument('--json', dest='json_file', metavar='JSON_FILE', help='Optionally save connectivity knowledge as JSON.')
+    parser_load = subparsers.add_parser('load', help='Load connectivity knowledge from SCKAN into a local knowledge store.')
+    parser_load.add_argument('--sckan', help='SCKAN release identifier; defaults to latest available version of SCKAN')
+    parser_load.add_argument('--save-json', action='store_true', help='Optionally save connectivity knowledge as JSON in the store directory.')
     parser_load.set_defaults(func=load)
 
-    parser_extract = subparsers.add_parser('extract', help='Extract connectivity knowledge from a local store as JSON')
-    parser_extract.add_argument('--source', help='Knowledge source to extract. Defaults to latest version')
-    parser_extract.add_argument('json_file', metavar='JSON_FILE', help='File to save connectivity knowledge to.')
+    parser_extract = subparsers.add_parser('extract', help='Save connectivity knowledge from a local store as JSON in the store directory.')
+    parser_extract.add_argument('--source', help='Knowledge source to extract; defaults to the most recent source in the store.')
     parser_extract.set_defaults(func=extract)
 
-    parser_restore = subparsers.add_parser('restore', help='Restore connectivity knowledge to a local store from JSON')
+    parser_restore = subparsers.add_parser('restore', help='Restore connectivity knowledge to a local store from JSON.')
     parser_restore.add_argument('json_file', metavar='JSON_FILE', help='File to load connectivity knowledge from.')
     parser_restore.set_defaults(func=restore)
 
-    parser_info = subparsers.add_parser('info', help='List knowledge sources in a local store')
+    parser_info = subparsers.add_parser('info', help='List knowledge sources in a local store.')
     parser_info.set_defaults(func=info)
 
     args = parser.parse_args()
