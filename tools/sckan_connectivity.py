@@ -46,7 +46,7 @@ def load(args):
         raise IOError(f'Unable to open knowledge store {args.store_directory}/{args.knowledge_store}')
 
     knowledge_source = store.source
-    logging.info(f'Loading SCKAN connectivity for source `{knowledge_source}`')
+    logging.info(f'Loading SCKAN NPO connectivity for source `{knowledge_source}`')
 
     store.db.execute('begin')
     store.db.execute('delete from knowledge where source=?', (knowledge_source,))
@@ -166,14 +166,14 @@ if __name__ == '__main__':
 
     import argparse
 
-    parser = argparse.ArgumentParser(description='Load, extract, and restore SCKAN connectivity knowledge in a local knowledge store.')
+    parser = argparse.ArgumentParser(description='Load, extract, and restore SCKAN NPO connectivity knowledge in a local knowledge store.')
     parser.add_argument('--store-directory', required=True, help='Directory containing a knowledge store')
     parser.add_argument('--knowledge-store', default=DEFAULT_STORE, help=f'Name of knowledge store file. Defaults to `{DEFAULT_STORE}`')
     parser.add_argument('-q', '--quiet', action='store_true', help='Suppress INFO log messages')
 
     subparsers = parser.add_subparsers(title='commands', required=True)
 
-    parser_load = subparsers.add_parser('load', help='Load connectivity knowledge from SCKAN into a local knowledge store.')
+    parser_load = subparsers.add_parser('load', help='Load connectivity knowledge from SCKAN NPO into a local knowledge store.')
     parser_load.add_argument('--sckan', help='SCKAN release identifier; defaults to latest available version of SCKAN')
     parser_load.add_argument('--save-json', action='store_true', help='Optionally save connectivity knowledge as JSON in the store directory.')
     parser_load.set_defaults(func=load)
