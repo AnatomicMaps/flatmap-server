@@ -404,7 +404,7 @@ async def knowledge_label(entity: str):
     Find an entity's label from the flatmap server's knowledge base.
     """
     ## do we upen without SCKAN and reopen if can't find label??
-    knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=False, read_only=False)
+    knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'])
     label = knowledge_store.label(entity)
     knowledge_store.close()
     return quart.jsonify({'entity': entity, 'label': label})
@@ -426,7 +426,7 @@ async def knowledge_query():
         return quart.jsonify({'error': 'No SQL specified in request'})
     else:
         ## do we upen without SCKAN and reopen if can't find knowledge??
-        knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=False, read_only=True)
+        knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'])
         result = knowledge_store.query(params.get('sql'), params.get('params', []))  ## set source from map's metadata??
                                                                                      ## ==> map specific query endpoint... ???
         knowledge_store.close()
