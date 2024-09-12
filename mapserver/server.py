@@ -577,9 +577,8 @@ def initialise(viewer=False):
     if knowledge_store.error is not None:
         app.logger.error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
 
-    if 'sphinx' not in sys.modules:
-        # Having a Manager prevents Sphinx from exiting and hangs a ``readthedocs``
-        # build
+    if settings['MAPMAKER_TOKENS'] and 'sphinx' not in sys.modules:
+        # Having a Manager prevents Sphinx from exiting and hangs a ``readthedocs`` build
         from .maker import Manager
 
         global map_maker
