@@ -144,6 +144,10 @@ viewer_blueprint = Blueprint('viewer', __name__,
                              root_path=os.path.join(settings['FLATMAP_VIEWER'], 'app/dist'),
                              url_prefix='/viewer')
 
+connectivity_blueprint = Blueprint('connectivity', __name__,
+                             root_path=os.path.join(normalise_path('./connectivity'), 'dist'),
+                             url_prefix='/connectivity')
+
 #===============================================================================
 #===============================================================================
 
@@ -538,6 +542,17 @@ async def viewer_app(filename='index.html'):
         quart.abort(404)
 
 #===============================================================================
+
+@connectivity_blueprint.route('/')
+@connectivity_blueprint.route('/<path:filename>')
+async def connectivity_app(filename='index.html'):
+    filename = os.path.join(connectivity_blueprint.root_path, filename)
+    if os.path.exists(filename):
+        return await quart.send_file(filename)
+    else:
+        quart.abort(404)
+
+#===============================================================================
 #===============================================================================
 
 # Add annotator routes
@@ -563,6 +578,7 @@ app.register_blueprint(knowledge_blueprint)
 
 app.register_blueprint(maker_blueprint)
 app.register_blueprint(viewer_blueprint)
+app.register_blueprint(connectivity_blueprint)
 
 #===============================================================================
 #===============================================================================
