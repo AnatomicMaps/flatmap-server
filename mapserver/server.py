@@ -146,7 +146,7 @@ viewer_blueprint = Blueprint('viewer', __name__,
 
 connectivity_blueprint = Blueprint('connectivity', __name__,
                              root_path=os.path.join(normalise_path('./connectivity'), 'dist'),
-                             url_prefix='/connectivity')
+                             url_prefix='/connectivity-graph')
 
 #===============================================================================
 #===============================================================================

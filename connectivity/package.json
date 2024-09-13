@@ -9,8 +9,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "vite serve --port 3002",
-    "build": "vite build . --base /connectivity/",
     "comment": "vite build app --base /curation/flatmap/connectivity/"
+    "build": "vite build . --base /connectivity-graph/",
   },
   "dependencies": {
     "cytoscape": "^3.29.2"
