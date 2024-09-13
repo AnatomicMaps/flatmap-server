@@ -26,7 +26,7 @@ type KnowledgeNode = [string, string[]]
 
 type KnowledgeEdge = [KnowledgeNode, KnowledgeNode]
 
-interface ConnectivityKnowledge
+export interface ConnectivityKnowledge
 {
     connectivity: KnowledgeEdge[]
     axons: KnowledgeNode[]
@@ -58,36 +58,10 @@ export class ConnectivityGraph
     #axons: string[]
     #dendrites: string[]
     #mapServer: string
-    #spinner: HTMLElement;
 
     constructor(mapServer: string)
     {
         this.#mapServer = mapServer
-        this.#spinner = document.getElementById('spinner')
-    }
-
-    async #loadKnowledge(pathUri: string): Promise<ConnectivityKnowledge>
-    //===================================================================
-    {
-        const url = `${this.#mapServer}/knowledge/query/`
-        const query = {
-            sql: `select knowledge from knowledge where entity=?`,
-            params: [pathUri]
-        }
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                "Accept": "application/json; charset=utf-8",
-                "Cache-Control": "no-store",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(query)
-        })
-        if (!response.ok) {
-            throw new Error(`Cannot access ${url}`)
-        }
-        const data = await response.json()
-        return JSON.parse(data.values[0])
     }
 
     async #getLabel(term: string): Promise<string>
@@ -110,25 +84,29 @@ export class ConnectivityGraph
         return data.label
     }
 
-    async addConnectivity(pathUri: string)
-    //====================================
+    async addConnectivity(knowledge: ConnectivityKnowledge)
+    //=====================================================
     {
-        this.#spinner.hidden = false
-        const knowledge = await this.#loadKnowledge(pathUri)
         this.#axons = knowledge.axons.map(node => JSON.stringify(node))
         this.#dendrites = knowledge.dendrites.map(node => JSON.stringify(node))
-        for (const edge of knowledge.connectivity) {
-            const e0 = await this.#graphNode(edge[0])
-            const e1 = await this.#graphNode(edge[1])
-            this.#nodes.push(e0)
-            this.#nodes.push(e1)
-            this.#edges.push({
-                id: `${e0.id}_${e1.id}`,
-                source: e0.id,
-                target: e1.id
+        if (knowledge.connectivity.length) {
+            for (const edge of knowledge.connectivity) {
+                const e0 = await this.#graphNode(edge[0])
+                const e1 = await this.#graphNode(edge[1])
+                this.#nodes.push(e0)
+                this.#nodes.push(e1)
+                this.#edges.push({
+                    id: `${e0.id}_${e1.id}`,
+                    source: e0.id,
+                    target: e1.id
+                })
+            }
+        } else {
+            this.#nodes.push({
+                id: 'MISSING',
+                label: 'NO PATHS'
             })
         }
-        this.#spinner.hidden = true
     }
 
     showConnectivity()
@@ -239,7 +217,7 @@ const GRAPH_STYLE = [
 
 //==============================================================================
 
-export class CytoscapeGraph
+class CytoscapeGraph
 {
     #cy
     #tooltip: HTMLElement

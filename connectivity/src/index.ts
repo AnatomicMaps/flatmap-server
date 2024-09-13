@@ -18,61 +18,31 @@ limitations under the License.
 
 ==============================================================================*/
 
-import { ConnectivityGraph, CytoscapeGraph } from './graph'
-
-//==============================================================================
-
-/*
-
-        mapSelector.innerHTML = mapList.join('')
-        mapSelector.onchange = (e) => {
-            if (e.target.value !== '') {
-                setGenerationSelector(e.target.value)
-                loadMap(currentManager, e.target.value)
-            }
-        }
-        mapGeneration.onchange = (e) => {
-            if (e.target.value !== '') {
-                loadMap(currentManager, e.target.value)
-            }
-        }
-
-
-        const generationList = []
-        const mapName = mapIdToName.get(mapId)
-        if (mapName) {
-            for (const map of mapGenerations.get(mapName)) {
-                const id = ('uuid' in map) ? map.uuid : map.id
-                const selected = (mapId === id) ? 'selected' : ''
-                generationList.push(`<option value="${id}" ${selected}>${map.created}</option>`)
-            }
-        }
-        mapGeneration.innerHTML = generationList.join('')
-
-
-
-
- */
+import { ConnectivityGraph, ConnectivityKnowledge } from './graph'
 
 //==============================================================================
 
 export class App
 {
     #connectivityGraph: ConnectivityGraph|null
+    #knowledgeByPath: Map<string, ConnectivityKnowledge> = new Map()
     #mapServer: string
     #pathSelector: HTMLElement
     #sourceSelector: HTMLElement
+    #spinner: HTMLElement
 
     constructor(mapServer: string)
     {
         this.#mapServer = mapServer
         this.#sourceSelector = document.getElementById('source-selector')
         this.#pathSelector = document.getElementById('path-selector')
+        this.#spinner = document.getElementById('spinner')
     }
 
     async run()
     //=========
     {
+        this.#showSpinner()
         const selectedSource = await this.#setSourceList()
         this.#sourceSelector.onchange = async (e) => {
             // @ts-ignore
@@ -81,7 +51,6 @@ export class App
                 await this.#setPathList(e.target.value)
             }
         }
-
         await this.#setPathList(selectedSource)
         this.#pathSelector.onchange = async (e) => {
             // @ts-ignore
@@ -93,14 +62,29 @@ export class App
                 this.#connectivityGraph = null
             }
         }
+        this.#hideSpinner()
     }
 
     async #showGraph(neuronPath: string)
     //==================================
     {
+        this.#showSpinner()
         this.#connectivityGraph = new ConnectivityGraph(this.#mapServer)
-        await this.#connectivityGraph.addConnectivity(neuronPath)
+        await this.#connectivityGraph.addConnectivity(this.#knowledgeByPath.get(neuronPath))
+        this.#hideSpinner()
         this.#connectivityGraph.showConnectivity()
+    }
+
+    #hideSpinner()
+    //============
+    {
+        this.#spinner.hidden = true
+    }
+
+    #showSpinner()
+    //============
+    {
+        this.#spinner.hidden = false
     }
 
     async #setPathList(source: string): Promise<string>
@@ -108,10 +92,9 @@ export class App
     {
         const url = `${this.#mapServer}/knowledge/query/`
         const query = {
-            sql: `select distinct k.entity, l.label from knowledge as k
-                    left join labels as l on k.entity=l.entity
-                    where k.entity like 'ilxtr:%' and source=?
-                    order by k.entity`,
+            sql: `select entity, knowledge from knowledge
+                    where entity like 'ilxtr:%' and source=?
+                    order by entity`,
             params: [source]
         }
         const response = await fetch(url, {
@@ -128,8 +111,16 @@ export class App
         }
         const data = await response.json()
         const pathList: string[] = ['<option value="">Please select path:</option>']
-        for (const [key, label] of data.values) {
-            pathList.push(`<option value="${key}" label="${key}&nbsp;&nbsp;${label.slice(0, 50)}..."></option>`)
+        this.#knowledgeByPath.clear()
+        for (const [key, jsonKnowledge] of data.values) {
+            const knowledge = JSON.parse(jsonKnowledge)
+            if ('connectivity' in knowledge) {
+                const label = knowledge.label || key
+                const shortLabel = (label === key.slice(6).replace('-prime', "'").replaceAll('-', ' ')) ? ''
+                                 : (label.length < 50) ? label : `${label.slice(0, 50)}...`
+                pathList.push(`<option value="${key}" label="${key}&nbsp;&nbsp;${shortLabel}"></option>`)
+                this.#knowledgeByPath.set(key, knowledge)
+            }
         }
         this.#pathSelector.innerHTML = pathList.join('')
         return ''
