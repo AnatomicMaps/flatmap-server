@@ -92,8 +92,8 @@ export class ConnectivityGraph
         return data.label
     }
 
-    async addKnowledge(pathUri: string)
-    //=================================
+    async addConnectivity(pathUri: string)
+    //====================================
     {
         this.#spinner.hidden = false
         const knowledge = await this.loadKnowledge(pathUri)

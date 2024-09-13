@@ -15,7 +15,7 @@ const neuron_path = 'ilxtr:neuron-type-aacar-5'
 //const knowledge = await loadKnowledge('ilxtr:neuron-type-keast-9')
 
 const connectivityGraph = new ConnectivityGraph(MAP_SERVER)
-await connectivityGraph.addKnowledge(neuron_path)
+await connectivityGraph.addConnectivity(neuron_path)
 
 const cy = new CytoscapeGraph(connectivityGraph)
 
