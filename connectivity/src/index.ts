@@ -39,10 +39,12 @@ export class ConnectivityGraph
     #axons: string[]
     #dendrites: string[]
     #mapServer: string
+    #spinner: HTMLElement;
 
     constructor(mapServer: string)
     {
         this.#mapServer = mapServer
+        this.#spinner = document.getElementById('spinner')
     }
 
     async loadKnowledge(pathUri: string): Promise<ConnectivityKnowledge>
@@ -93,6 +95,7 @@ export class ConnectivityGraph
     async addKnowledge(pathUri: string)
     //=================================
     {
+        this.#spinner.hidden = false
         const knowledge = await this.loadKnowledge(pathUri)
         this.#axons = knowledge.axons.map(node => JSON.stringify(node))
         this.#dendrites = knowledge.dendrites.map(node => JSON.stringify(node))
@@ -107,6 +110,7 @@ export class ConnectivityGraph
                 target: e1.id
             })
         }
+        this.#spinner.hidden = true
     }
 
     get elements()
