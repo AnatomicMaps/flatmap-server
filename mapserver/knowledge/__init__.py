@@ -52,7 +52,7 @@ def get_metadata(map_id: str, name: str):
 class KnowledgeStore(flatmapknowledge.KnowledgeStore):
     def __init__(self, directory_path, create=False):
         try:
-            super().__init__(directory_path, create=create, read_only=True, use_npo=False)
+            super().__init__(directory_path, create=create, read_only=True, verbose=False)
             self.__error = None
         except (sqlite3.DatabaseError, sqlite3.OperationalError) as error:
             self.__error = str(error)

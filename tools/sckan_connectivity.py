@@ -41,7 +41,9 @@ def load(args):
         store_directory=args.store_directory,
         knowledge_base=args.knowledge_store,
         sckan_version=args.sckan,
-        scicrunch_key=scicrunch_key)
+        scicrunch_key=scicrunch_key,
+        use_sckan=True
+        )
     if store.db is None:
         raise IOError(f'Unable to open knowledge store {args.store_directory}/{args.knowledge_store}')
 
@@ -81,8 +83,6 @@ def extract(args):
         store_directory=args.store_directory,
         knowledge_base=args.knowledge_store,
         read_only=True,
-        use_scicrunch=False,
-        use_npo=False,
         knowledge_source=knowledge_source)
     if store.db is None:
         raise IOError(f'Unable to open knowledge store {args.store_directory}/{args.knowledge_store}')
@@ -112,8 +112,7 @@ def restore(args):
     store = KnowledgeStore(
         store_directory=args.store_directory,
         knowledge_base=args.knowledge_store,
-        use_scicrunch=False,
-        use_npo=False)
+        use_sckan=False)
     if store.db is None:
         raise IOError(f'Unable to open knowledge store {args.store_directory}/{args.knowledge_store}')
 
