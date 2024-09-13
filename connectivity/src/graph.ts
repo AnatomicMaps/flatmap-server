@@ -53,7 +53,8 @@ export class ConnectivityGraph
         const url = `${this.#mapServer}/knowledge/query/`
 
         const query = {
-            sql: `select knowledge from knowledge where entity = '${pathUri}'`
+            sql: `select knowledge from knowledge where entity=?`,
+            params: [pathUri]
         }
 
         const response = await fetch(url, {

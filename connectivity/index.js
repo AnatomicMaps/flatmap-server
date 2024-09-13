@@ -1,4 +1,4 @@
-import { ConnectivityGraph, CytoscapeGraph } from './src'
+import { ConnectivityGraph, CytoscapeGraph } from './src/graph'
 
 //==============================================================================
 
