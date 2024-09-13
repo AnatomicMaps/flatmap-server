@@ -1,4 +1,22 @@
-//==============================================================================
+/*==============================================================================
+
+A viewer for neuron connectivity graphs.
+
+Copyright (c) 2019 - 2024  David Brooks
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+==============================================================================*/
 
 import cytoscape from 'cytoscape'
 
@@ -34,6 +52,7 @@ type GraphEdge = {
 
 export class ConnectivityGraph
 {
+    #cy: CytoscapeGraph|null = null
     #nodes: GraphNode[] = []
     #edges: GraphEdge[] = []
     #axons: string[]
@@ -47,16 +66,14 @@ export class ConnectivityGraph
         this.#spinner = document.getElementById('spinner')
     }
 
-    async loadKnowledge(pathUri: string): Promise<ConnectivityKnowledge>
-    //==================================================================
+    async #loadKnowledge(pathUri: string): Promise<ConnectivityKnowledge>
+    //===================================================================
     {
         const url = `${this.#mapServer}/knowledge/query/`
-
         const query = {
             sql: `select knowledge from knowledge where entity=?`,
             params: [pathUri]
         }
-
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -73,8 +90,8 @@ export class ConnectivityGraph
         return JSON.parse(data.values[0])
     }
 
-    async getLabel(term: string): Promise<string>
-    //===========================================
+    async #getLabel(term: string): Promise<string>
+    //============================================
     {
         const url = `${this.#mapServer}/knowledge/label/${term}`
 
@@ -97,7 +114,7 @@ export class ConnectivityGraph
     //====================================
     {
         this.#spinner.hidden = false
-        const knowledge = await this.loadKnowledge(pathUri)
+        const knowledge = await this.#loadKnowledge(pathUri)
         this.#axons = knowledge.axons.map(node => JSON.stringify(node))
         this.#dendrites = knowledge.dendrites.map(node => JSON.stringify(node))
         for (const edge of knowledge.connectivity) {
@@ -112,6 +129,21 @@ export class ConnectivityGraph
             })
         }
         this.#spinner.hidden = true
+    }
+
+    showConnectivity()
+    //================
+    {
+        this.#cy = new CytoscapeGraph(this)
+    }
+
+    clearConnectivity()
+    //=================
+    {
+        if (this.#cy) {
+            this.#cy.remove()
+            this.#cy = null
+        }
     }
 
     get elements()
@@ -138,7 +170,7 @@ export class ConnectivityGraph
 
         const humanLabels: string[] = []
         for (const term of label) {
-            const humanLabel = await this.getLabel(term)
+            const humanLabel = await this.#getLabel(term)
             humanLabels.push(humanLabel)
         }
         label.push(...humanLabels)
@@ -234,6 +266,14 @@ export class CytoscapeGraph
         this.#tooltip.id = 'tooltip'
         this.#tooltip.hidden = true
         graphCanvas!.lastChild!.appendChild(this.#tooltip)
+    }
+
+    remove()
+    //======
+    {
+        if (this.#cy) {
+            this.#cy.destroy()
+        }
     }
 
     #checkRightBoundary(leftPos: number)

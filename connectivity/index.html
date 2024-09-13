@@ -32,8 +32,9 @@
       #graph-canvas {
         border: 2px solid grey;
         position: absolute;
+        left: 8px;
         height: calc(100% - 46px);
-        width: calc(100% - 4px);
+        width: calc(100% - 20px);
       }
       #tooltip {
         position: relative;
@@ -43,6 +44,7 @@
         width: fit-content;
         border: 1px solid red;
         background: white;
+        padding: 3px;
       }
 
       @keyframes spinner {
@@ -69,8 +71,8 @@
     <div>
       <div class='top-bar'>
         <span>
-          <label for="sckan-selector">SCKAN Release:</label>
-          <select id="sckan-selector" class="selector"></select>
+          <label for="source-selector">SCKAN Release:</label>
+          <select id="source-selector" class="selector"></select>
         </span>
         <span id="path-selection">
           <label for="path-selector">Neuron Path:</label>
