@@ -49,6 +49,7 @@ export class App
             if (e.target.value !== '') {
                 // @ts-ignore
                 await this.#setPathList(e.target.value)
+                this.#clearConnectivity()
             }
         }
         await this.#setPathList(selectedSource)
@@ -57,9 +58,8 @@ export class App
             if (e.target.value !== '') {
                 // @ts-ignore
                 await this.#showGraph(e.target.value)
-            } else if (this.#connectivityGraph) {
-                this.#connectivityGraph.clearConnectivity()
-                this.#connectivityGraph = null
+            } else {
+                this.#clearConnectivity()
             }
         }
         this.#hideSpinner()
@@ -73,6 +73,15 @@ export class App
         await this.#connectivityGraph.addConnectivity(this.#knowledgeByPath.get(neuronPath))
         this.#hideSpinner()
         this.#connectivityGraph.showConnectivity()
+    }
+
+    #clearConnectivity()
+    //==================
+    {
+        if (this.#connectivityGraph) {
+            this.#connectivityGraph.clearConnectivity()
+            this.#connectivityGraph = null
+        }
     }
 
     #hideSpinner()
