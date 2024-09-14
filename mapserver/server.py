@@ -97,6 +97,12 @@ anatomical_hierarchy = AnatomicalHierarchy()
 
 #===============================================================================
 
+# We use a single, read-only KnowledgeStore
+
+knowledge_store = None
+
+#===============================================================================
+
 # Don't import unnecessary packages nor instantiate a Manager when building
 # documentation as otherwise a ``readthedocs`` build either hangs or aborts
 # with ``excessive memory consumption``
@@ -404,9 +410,7 @@ async def knowledge_label(entity: str):
     Find an entity's label from the flatmap server's knowledge base.
     """
     ## do we upen without SCKAN and reopen if can't find label??
-    knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'])
     label = knowledge_store.label(entity)
-    knowledge_store.close()
     return quart.jsonify({'entity': entity, 'label': label})
 
 @knowledge_blueprint.route('query/', methods=['POST'])
@@ -426,10 +430,8 @@ async def knowledge_query():
         return quart.jsonify({'error': 'No SQL specified in request'})
     else:
         ## do we upen without SCKAN and reopen if can't find knowledge??
-        knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'])
         result = knowledge_store.query(params.get('sql'), params.get('params', []))  ## set source from map's metadata??
                                                                                      ## ==> map specific query endpoint... ???
-        knowledge_store.close()
         if 'error' in result:
             app.logger.warning('SQL: {}'.format(result['error']))
         return quart.jsonify(result)
@@ -593,6 +595,7 @@ def initialise(viewer=False):
         # Only warn once...
         app.logger.warning('No bearer tokens defined')
     # Open our knowledge base
+    global knowledge_store
     knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=True)
     if knowledge_store.error is not None:
         app.logger.error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
