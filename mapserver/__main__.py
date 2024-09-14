@@ -87,6 +87,7 @@ def main(viewer=False):
 
         uvloop.install()
         loop = uvloop.new_event_loop()
+        loop.add_signal_handler(signal.SIGINT, __signal_handler)
         loop.add_signal_handler(signal.SIGTERM, __signal_handler)
         asyncio.set_event_loop(loop)
 
