@@ -71,6 +71,7 @@ __shutdown_event = asyncio.Event()
 
 def __signal_handler(*_: Any) -> None:
 #=====================================
+    print('Shutting down...')
     __shutdown_event.set()
     if map_maker is not None:
         map_maker.terminate()
@@ -93,6 +94,7 @@ def main(viewer=False):
 
         config.worker_class = 'uvloop'
         config.bind = [f'{SERVER_INTERFACE}:{SERVER_PORT}']
+        print(f'Running on {config.bind[0]} (CTRL + C to quit)')
         asyncio.run(serve(app, config, shutdown_trigger=__shutdown_event.wait))
     except KeyboardInterrupt:
         pass

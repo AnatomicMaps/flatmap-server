@@ -587,7 +587,8 @@ def initialise(viewer=False):
     if viewer and not os.path.exists(settings['FLATMAP_VIEWER']):
         exit(f'Missing {settings["FLATMAP_VIEWER"]} directory -- set FLATMAP_VIEWER environment variable to the full path')
     settings['MAP_VIEWER'] = viewer
-    app.logger.info(f'Started flatmap server version {__version__}')
+    app.logger.info(f'Starting flatmap server version {__version__}')
+    print(f'Starting flatmap server version {__version__}')
     if not settings['MAPMAKER_TOKENS']:
         # Only warn once...
         app.logger.warning('No bearer tokens defined')
