@@ -37,9 +37,8 @@ def add_body(db):
                 annotation['body']['evidence'] = evidence
             annotations.append({'rowid': row[0], 'annotation': json.dumps(annotation)})
     if len(annotations):
-        db.execute('begin')
         db.executemany('update annotations set annotation=:annotation where rowid=:rowid', annotations)
-        db.execute('commit')
+        db.commit()
 
 #===============================================================================
 
