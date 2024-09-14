@@ -436,6 +436,11 @@ async def knowledge_query():
             app.logger.warning('SQL: {}'.format(result['error']))
         return quart.jsonify(result)
 
+@knowledge_blueprint.route('sources')
+async def knowledge_sources():
+    sources = knowledge_store.knowledge_sources() if knowledge_store else []
+    return quart.jsonify({'sources': sources})
+
 @knowledge_blueprint.route('sparcterms')
 async def sparcterms():
     filename = os.path.join(settings['FLATMAP_ROOT'], CACHED_SPARC_HIERARCHY)
