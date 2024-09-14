@@ -14,10 +14,23 @@
         overflow: hidden;
         font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
       }
+      .container {
+        display: flex;
+        flex-flow: column;
+        height: 100%;
+      }
       .top-bar {
+        flex: 0 1 auto;
         padding: 10px;
-        height: 25px;
+        min-height: 25px;
         padding-bottom: 0;
+        width: 100%;
+      }
+      .content {
+        flex: 1 1 auto;
+      }
+      .inline {
+        display: inline-block;
       }
       .selector {
         width: 200px;
@@ -25,15 +38,17 @@
       }
       #path-selector {
         width: 400px;
+        margin-right: 10px;
       }
       #path-selection {
         margin-left: 20px;
       }
       #graph-canvas {
+        position: relative;
         border: 2px solid grey;
-        position: absolute;
         left: 8px;
-        height: calc(100% - 46px);
+        top: 8px;
+        height: calc(100% - 20px);
         width: calc(100% - 20px);
       }
       #tooltip {
@@ -47,10 +62,39 @@
         padding: 3px;
       }
 
+      #path-prompt {
+        position: absolute;
+        top: 100px;
+        left: 20%;
+        font-size: x-large;
+      }
+      #node-key {
+        position: absolute;
+        top: 80px;
+        right: 40px;
+        border: 2px solid blue;
+        z-index: 100;
+        padding: 4px;
+      }
+      .key-head {
+        text-align: center;
+        font-weight: bold;
+        border-bottom: 1px solid gray;
+        padding-bottom: 4px;
+        margin-bottom: 4px;
+      }
+      #node-key div div {
+        width: 90px;
+      }
+      .key-box {
+        float: right;
+        width: 12px;
+        height: 12px;
+      }
       @keyframes spinner {
         to {transform: rotate(360deg);}
       }
-      #spinner:before {
+      #spinner {
         content: '';
         box-sizing: border-box;
         position: absolute;
@@ -64,25 +108,35 @@
         border: 5px solid #ccc;
         border-top-color: #000;
         animation: spinner .8s linear infinite;
+        display: none;
       }
     </style>
   </head>
   <body>
-    <div>
+    <div class="container">
       <div class='top-bar'>
-        <span>
+        <span class="inline">
           <label for="source-selector">SCKAN Release:</label>
           <select id="source-selector" class="selector"></select>
         </span>
-        <span id="path-selection">
+        <span  class="inline" id="path-selection">
           <label for="path-selector">Neuron Path:</label>
           <select id="path-selector" class="selector"></select>
         </span>
       </div>
-      <div id="content">
-        <div id='spinner' hidden></div>
+      <div class="content">
         <div id="graph-canvas"></div>
+        <div id='spinner'></div>
+        <div id='path-prompt'>Please select path above...</div>
+      <div id="node-key">
+        <div class="key-head">Node type:</div>
+        <div>
+          <div><span>Node:</span><span class="key-box" style="background: #80F0F0"/></div>
+          <div><span>Axon:</span><span class="key-box" style="background: green"/></div>
+          <div><span>Dendrite:</span><span class="key-box" style="background: red"/></div>
+          <div><span>Both:</span><span class="key-box" style="background: gray"/></div>
       </div>
+    </div>
     </div>
   </body>
   <script type="module" src="index.js"></script>

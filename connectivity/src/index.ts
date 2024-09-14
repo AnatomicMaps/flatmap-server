@@ -27,6 +27,7 @@ export class App
     #connectivityGraph: ConnectivityGraph|null
     #knowledgeByPath: Map<string, ConnectivityKnowledge> = new Map()
     #mapServer: string
+    #pathPrompt: HTMLElement
     #pathSelector: HTMLElement
     #sourceSelector: HTMLElement
     #spinner: HTMLElement
@@ -35,6 +36,7 @@ export class App
     {
         this.#mapServer = mapServer
         this.#sourceSelector = document.getElementById('source-selector')
+        this.#pathPrompt = document.getElementById('path-prompt')
         this.#pathSelector = document.getElementById('path-selector')
         this.#spinner = document.getElementById('spinner')
     }
@@ -63,11 +65,13 @@ export class App
             }
         }
         this.#hideSpinner()
+        this.#showPrompt()
     }
 
     async #showGraph(neuronPath: string)
     //==================================
     {
+        this.#hidePrompt()
         this.#showSpinner()
         this.#connectivityGraph = new ConnectivityGraph(this.#mapServer)
         await this.#connectivityGraph.addConnectivity(this.#knowledgeByPath.get(neuronPath))
@@ -81,19 +85,30 @@ export class App
         if (this.#connectivityGraph) {
             this.#connectivityGraph.clearConnectivity()
             this.#connectivityGraph = null
+            this.#showPrompt()
         }
+    }
+
+    #hidePrompt()
+    //===========
+    {
+        this.#pathPrompt.style.display = 'none'
+    }
+    #showPrompt()
+    //===========
+    {
+        this.#pathPrompt.style.display = 'block'
     }
 
     #hideSpinner()
     //============
     {
-        this.#spinner.hidden = true
+        this.#spinner.style.display = 'none'
     }
-
     #showSpinner()
     //============
     {
-        this.#spinner.hidden = false
+        this.#spinner.style.display = 'block'
     }
 
     async #setPathList(source: string): Promise<string>
