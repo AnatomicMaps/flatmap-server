@@ -37,9 +37,9 @@ export class App
     constructor(mapServer: string)
     {
         this.#mapServer = mapServer
-        this.#sourceSelector = document.getElementById('source-selector')
         this.#pathPrompt = document.getElementById('path-prompt')
         this.#pathSelector = document.getElementById('path-selector')
+        this.#sourceSelector = document.getElementById('source-selector')
         this.#spinner = document.getElementById('spinner')
     }
 
@@ -194,7 +194,7 @@ export class App
     async #setSourceList(): Promise<string>
     //=====================================
     {
-        const url = `${this.#mapServer}/knowledge/sources`
+        const url = `${this.#mapServer}knowledge/sources`
         const response = await fetch(url, {
             method: 'GET',
             headers: {
