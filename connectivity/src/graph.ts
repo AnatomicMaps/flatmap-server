@@ -22,7 +22,7 @@ import cytoscape from 'cytoscape'
 
 //==============================================================================
 
-type KnowledgeNode = [string, string[]]
+export type KnowledgeNode = [string, string[]]
 
 type KnowledgeEdge = [KnowledgeNode, KnowledgeNode]
 
@@ -57,31 +57,11 @@ export class ConnectivityGraph
     #edges: GraphEdge[] = []
     #axons: string[]
     #dendrites: string[]
-    #mapServer: string
+    #labelCache: Map<string, string>
 
-    constructor(mapServer: string)
+    constructor(labelCache: Map<string, string>)
     {
-        this.#mapServer = mapServer
-    }
-
-    async #getLabel(term: string): Promise<string>
-    //============================================
-    {
-        const url = `${this.#mapServer}/knowledge/label/${term}`
-
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                "Accept": "application/json; charset=utf-8",
-                "Cache-Control": "no-store",
-                "Content-Type": "application/json"
-            }
-        })
-        if (!response.ok) {
-            throw new Error(`Cannot access ${url}`)
-        }
-        const data = await response.json()
-        return data.label
+        this.#labelCache = labelCache
     }
 
     async addConnectivity(knowledge: ConnectivityKnowledge)
@@ -143,12 +123,10 @@ export class ConnectivityGraph
     //=======================================================
     {
         const id = JSON.stringify(node)
-        const label = [node[0]]
-        label.push(...node[1])
-
+        const label = [node[0], ...node[1]]
         const humanLabels: string[] = []
         for (const term of label) {
-            const humanLabel = await this.#getLabel(term)
+            const humanLabel = this.#labelCache.has(term) ? this.#labelCache.get(term) : ''
             humanLabels.push(humanLabel)
         }
         label.push(...humanLabels)

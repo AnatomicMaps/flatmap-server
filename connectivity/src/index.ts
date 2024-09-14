@@ -18,7 +18,7 @@ limitations under the License.
 
 ==============================================================================*/
 
-import { ConnectivityGraph, ConnectivityKnowledge } from './graph'
+import { ConnectivityGraph, ConnectivityKnowledge, KnowledgeNode } from './graph'
 
 //==============================================================================
 
@@ -26,6 +26,8 @@ export class App
 {
     #connectivityGraph: ConnectivityGraph|null
     #knowledgeByPath: Map<string, ConnectivityKnowledge> = new Map()
+    #labelCache: Map<string, string> = new Map()
+    #labelledTerms: Set<string> = new Set()
     #mapServer: string
     #pathPrompt: HTMLElement
     #pathSelector: HTMLElement
@@ -73,7 +75,7 @@ export class App
     {
         this.#hidePrompt()
         this.#showSpinner()
-        this.#connectivityGraph = new ConnectivityGraph(this.#mapServer)
+        this.#connectivityGraph = new ConnectivityGraph(this.#labelCache)
         await this.#connectivityGraph.addConnectivity(this.#knowledgeByPath.get(neuronPath))
         this.#hideSpinner()
         this.#connectivityGraph.showConnectivity()
@@ -111,16 +113,11 @@ export class App
         this.#spinner.style.display = 'block'
     }
 
-    async #setPathList(source: string): Promise<string>
-    //=================================================
+    async #query(sql: string, params: string[]=[])
+    //============================================
     {
-        const url = `${this.#mapServer}/knowledge/query/`
-        const query = {
-            sql: `select entity, knowledge from knowledge
-                    where entity like 'ilxtr:%' and source=?
-                    order by entity`,
-            params: [source]
-        }
+        const url = `${this.#mapServer}knowledge/query/`
+        const query = { sql, params }
         const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -133,9 +130,51 @@ export class App
         if (!response.ok) {
             throw new Error(`Cannot access ${url}`)
         }
-        const data = await response.json()
+        return await response.json()
+    }
+
+    async #getCachedTermLabels()
+    //==========================
+    {
+        if (this.#labelledTerms.size) {
+            const termLabels = await this.#query(`
+                select entity, label from labels
+                    where entity in (?${', ?'.repeat(this.#labelledTerms.size-1)})`,
+                [...this.#labelledTerms.values()])
+            for (const termLabel of termLabels.values) {
+                this.#labelCache.set(termLabel[0], termLabel[1])
+            }
+        }
+    }
+
+    #cacheNodeLabels(node: KnowledgeNode)
+    //===================================
+    {
+        for (const term of [node[0], ...node[1]]) {
+            this.#labelledTerms.add(term)
+        }
+    }
+
+    async #cacheLabels(knowledge: ConnectivityKnowledge)
+    //==================================================
+    {
+        for (const edge of knowledge.connectivity) {
+            this.#cacheNodeLabels(edge[0])
+            this.#cacheNodeLabels(edge[1])
+        }
+    }
+
+    async #setPathList(source: string): Promise<string>
+    //=================================================
+    {
+        const data = await this.#query(
+            `select entity, knowledge from knowledge
+                where entity like 'ilxtr:%' and source=?
+                order by entity`,
+            [source])
         const pathList: string[] = ['<option value="">Please select path:</option>']
         this.#knowledgeByPath.clear()
+        this.#labelledTerms = new Set()
         for (const [key, jsonKnowledge] of data.values) {
             const knowledge = JSON.parse(jsonKnowledge)
             if ('connectivity' in knowledge) {
@@ -144,8 +183,10 @@ export class App
                                  : (label.length < 50) ? label : `${label.slice(0, 50)}...`
                 pathList.push(`<option value="${key}" label="${key}&nbsp;&nbsp;${shortLabel}"></option>`)
                 this.#knowledgeByPath.set(key, knowledge)
+                this.#cacheLabels(knowledge)
             }
         }
+        await this.#getCachedTermLabels()
         this.#pathSelector.innerHTML = pathList.join('')
         return ''
     }
