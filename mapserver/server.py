@@ -446,6 +446,16 @@ async def sparcterms():
     filename = os.path.join(settings['FLATMAP_ROOT'], CACHED_SPARC_HIERARCHY)
     return await send_json(filename)
 
+@knowledge_blueprint.route('schema-version')
+async def knowledge_schema_version():
+    result = knowledge_store.query('select value from metadata where name=?',
+                                   ['schema_version']) if knowledge_store else {
+                'error': 'KnowledgeStore not available'
+             }
+    if 'error' in result:
+        app.logger.warning('SQL: {}'.format(result['error']))
+    return quart.jsonify({'version': result['values'][0][0]})
+
 #===============================================================================
 #===============================================================================
 
