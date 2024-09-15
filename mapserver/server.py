@@ -428,9 +428,11 @@ async def knowledge_query():
     if params is None or 'sql' not in params:
         return quart.jsonify({'error': 'No SQL specified in request'})
     else:
-        ## do we upen without SCKAN and reopen if can't find knowledge??
-        result = knowledge_store.query(params.get('sql'), params.get('params', []))  ## set source from map's metadata??
-                                                                                     ## ==> map specific query endpoint... ???
+        result = knowledge_store.query(params.get('sql'), params.get('params', [])) if knowledge_store else {
+                    'error': 'KnowledgeStore not available'
+                 }
+            ## set source from map's metadata??
+            ## ==> map specific query endpoint... ???
         if 'error' in result:
             app.logger.warning('SQL: {}'.format(result['error']))
         return quart.jsonify(result)
