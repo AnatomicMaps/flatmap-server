@@ -149,8 +149,7 @@ def info(args):
         store_directory=args.store_directory,
         knowledge_base=args.knowledge_store,
         read_only=True,
-        use_scicrunch=False,
-        use_npo=False)
+        use_sckan=False)
     for source in store.knowledge_sources():
         print(source)
 
