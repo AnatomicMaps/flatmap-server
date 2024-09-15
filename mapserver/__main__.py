@@ -76,11 +76,19 @@ def __signal_handler(*_: Any) -> None:
     if map_maker is not None:
         map_maker.terminate()
 
+## NB. We initialise logging and run the event log this particular way in order
+##     to catch exceptions and capture all log messages
+
 async def runserver(viewer=False):
 #=================================
     config.accesslog = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'access_log')
     config.errorlog = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'error_log')
     settings['LOGGER'] = config.log
+
+    ## NB. This currently works but might break with a ``quart`` upgrade
+    ##
+    ## We need to better initialise logging, using ``logging.config.dictConfig``
+    ##
     app.logger = SyncLogger(config.log)
 
     initialise(viewer)
