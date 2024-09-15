@@ -409,8 +409,7 @@ async def knowledge_label(entity: str):
     """
     Find an entity's label from the flatmap server's knowledge base.
     """
-    ## do we upen without SCKAN and reopen if can't find label??
-    label = knowledge_store.label(entity)
+    label = knowledge_store.label(entity) if knowledge_store else entity
     return quart.jsonify({'entity': entity, 'label': label})
 
 @knowledge_blueprint.route('query/', methods=['POST'])
