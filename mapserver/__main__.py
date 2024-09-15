@@ -76,26 +76,34 @@ def __signal_handler(*_: Any) -> None:
     if map_maker is not None:
         map_maker.terminate()
 
+async def runserver(viewer=False):
+#=================================
+    config.accesslog = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'access_log')
+    config.errorlog = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'error_log')
+    settings['LOGGER'] = config.log
+    app.logger = SyncLogger(config.log)
+
+    initialise(viewer)
+
+    uvloop.install()
+    config.worker_class = 'uvloop'
+    loop = asyncio.get_event_loop()
+    loop.add_signal_handler(signal.SIGINT, __signal_handler)
+    loop.add_signal_handler(signal.SIGTERM, __signal_handler)
+
+    config.bind = [f'{SERVER_INTERFACE}:{SERVER_PORT}']
+    print(f'Running on {config.bind[0]} (CTRL + C to quit)')
+
+    loop.run_until_complete(
+        serve(app, config, shutdown_trigger=__shutdown_event.wait)
+    )
+
+#===============================================================================
+
 def main(viewer=False):
 #======================
     try:
-        config.accesslog = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'access_log')
-        config.errorlog = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'error_log')
-        settings['LOGGER'] = config.log
-        app.logger = SyncLogger(config.log)
-
-        initialise(viewer)
-
-        uvloop.install()
-        loop = uvloop.new_event_loop()
-        loop.add_signal_handler(signal.SIGINT, __signal_handler)
-        loop.add_signal_handler(signal.SIGTERM, __signal_handler)
-        asyncio.set_event_loop(loop)
-
-        config.worker_class = 'uvloop'
-        config.bind = [f'{SERVER_INTERFACE}:{SERVER_PORT}']
-        print(f'Running on {config.bind[0]} (CTRL + C to quit)')
-        asyncio.run(serve(app, config, shutdown_trigger=__shutdown_event.wait))
+        asyncio.run(runserver(viewer))
     except KeyboardInterrupt:
         pass
 
