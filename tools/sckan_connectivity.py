@@ -117,9 +117,11 @@ def restore(args):
 
     knowledge_source = saved_knowledge['source']
     store.clean_connectivity(knowledge_source)
+    store.db.execute('delete from knowledge where source=?', (knowledge_source,))
+    store.db.execute('delete from connectivity_nodes where source=?', (knowledge_source,))
     for knowledge in saved_knowledge['knowledge']:
         entity = knowledge['id']
-        store.db.execute('replace into knowledge (source, entity, knowledge) values (?, ?, ?)',
+        store.db.execute('insert into knowledge (source, entity, knowledge) values (?, ?, ?)',
                                              (knowledge_source, entity, json.dumps(knowledge)))
         # Save label and references in their own tables
         if 'label' in knowledge:
@@ -136,8 +138,8 @@ def restore(args):
                     node = (node[0], tuple(node[1]))
                     if node not in seen_nodes:
                         seen_nodes.add(node)
-                        store.db.execute('insert or replace into connectivity_nodes (source, node, path) values (?, ?, ?)',
-                                                                              (knowledge_source, json.dumps(node), entity))
+                        store.db.execute('insert into connectivity_nodes (source, node, path) values (?, ?, ?)',
+                                                                    (knowledge_source, json.dumps(node), entity))
     store.db.commit()
 
     logging.info(f"Restored {len(saved_knowledge['knowledge'])} records for `{knowledge_source}` from `{args.json_file}`")
