@@ -1087,12 +1087,12 @@ url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.18.2/m
 
 [[package]]
 name = "mapmaker"
-version = "1.11.2"
+version = "1.11.3"
 description = ""
 optional = false
 python-versions = ">=3.12,<4.0"
 files = [
-    {file = "mapmaker-1.11.2-py3-none-any.whl", hash = "sha256:c8ccc53cba95dcdee8bc304734bc1bc7c47af6b3f511dd1f48f1008ba58baae3"},
+    {file = "mapmaker-1.11.3-py3-none-any.whl", hash = "sha256:093ade1384cdf41362f48e95a2d820c14231715cb08772388478cf935d6c124c"},
 ]
 
 [package.dependencies]
@@ -1134,7 +1134,7 @@ xmltodict = ">=0.12.0,<0.13.0"
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.11.2/mapmaker-1.11.2-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.11.3/mapmaker-1.11.3-py3-none-any.whl"
 
 [[package]]
 name = "markupsafe"
