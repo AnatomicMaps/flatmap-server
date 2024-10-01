@@ -245,5 +245,5 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     generator = Manager()
-    status = generator.make_map({'map': args.map})
+    status = generator.make({'source': args.map})
 
