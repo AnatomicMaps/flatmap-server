@@ -431,6 +431,13 @@ async def knowledge_query():
 
 @knowledge_blueprint.route('sources')
 async def knowledge_sources():
+    """
+    Return the knowledge sources available in the server's knowledge store.
+
+    :>json array(string) sources: a list of knowledge sources. The list is
+                                  in descending order, with the most recent
+                                  source at the beginning
+    """
     sources = knowledge_store.knowledge_sources() if knowledge_store else []
     return quart.jsonify({'sources': sources})
 
@@ -441,6 +448,9 @@ async def sparcterms():
 
 @knowledge_blueprint.route('schema-version')
 async def knowledge_schema_version():
+    """
+    :>json number version: the version of the store's schema
+    """
     result = knowledge_store.query('select value from metadata where name=?',
                                    ['schema_version']) if knowledge_store else {
                 'error': 'KnowledgeStore not available'
