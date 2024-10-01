@@ -1,6 +1,6 @@
-==============
-Knowledge base
-==============
+===============
+Knowledge Store
+===============
 
 .. autoflask:: mapserver.server:app
    :blueprints: knowledge
