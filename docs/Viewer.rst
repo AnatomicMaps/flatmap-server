@@ -2,6 +2,6 @@
 Map viewing
 ===========
 
-.. autoflask:: src.server:app
+.. autoflask:: mapserver.server:app
    :blueprints: viewer
    :undoc-static:

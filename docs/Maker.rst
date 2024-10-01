@@ -2,6 +2,6 @@
 Map generation
 ==============
 
-.. autoflask:: src.server:app
+.. autoflask:: mapserver.server:app
    :blueprints: maker
    :undoc-static:
