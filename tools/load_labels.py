@@ -103,14 +103,13 @@ def update_labels(db):
     uberon_terms = UberonTerms(UBERON_ONTOLOGY)
     ilx_terms = IlxTerms(NPO_ONTOLOGY)
 
-    db.execute('begin')
     db.execute('delete from labels where entity like "UBERON:%"')
     db.executemany('insert into labels (entity, label) values (?, ?)',
         [(t.uri, t.label) for t in uberon_terms.term_list()])
     db.execute('delete from labels where entity like "ILX:%"')
     db.executemany('insert into labels (entity, label) values (?, ?)',
         [(t.uri, t.label) for t in ilx_terms.term_list()])
-    db.execute('commit')
+    db.commit()
 
 #===============================================================================
 

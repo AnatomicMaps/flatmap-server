@@ -34,20 +34,19 @@ LOOKUP_TIMEOUT = 30    # seconds; for `requests.get()`
 #===============================================================================
 
 SCHEMA_UPDATE = '''
-begin;
 alter table annotations add column itemid text;
 drop index annotations_index;
 create index annotations_index on annotations(resource, itemid, created, orcid);
 drop index features_index;
 alter table features rename column item to itemid;
 create index features_index on features(resource, itemid, deleted);
-commit;
 '''
 
 def upgrade_schema(db):
 #=====================
     try:
         db.executescript(SCHEMA_UPDATE)
+        db.commit()
     except sqlite3.OperationalError as error:
         exit(str(error))
 
@@ -105,9 +104,8 @@ def add_item_details(db, details_lookup: ResourceDetails):
             items.append({'rowid': row[0], 'item_id': item_id, 'item': json.dumps(item)})
     if len(items):
         pprint(items[:10])
-        db.execute('begin')
         db.executemany('update annotations set itemid=:item_id, item=:item where rowid=:rowid', items)
-        db.execute('commit')
+        db.commit()
 
 #===============================================================================
 

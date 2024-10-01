@@ -102,8 +102,8 @@ def main():
 
     # Wrap the entire operation in a transaction
 
-    db.execute('begin')
     db.executescript(PMR_KNOWLEDE_SCHEMA)
+    db.commit()
 
     if args.index is not None:
         if (args.clean):
@@ -135,10 +135,9 @@ def main():
                 # Update FTS table
                 db.execute('insert or replace into pmr_text (entity, title, description, documentation) values (?, ?, ?, ?)',
                                                                 (exposure, title, description, documentation))
-
     # All done, commit transaction and close knowledge store
-
     db.commit()
+
     if args.knowledge is not None:
         knowledge_store.close()     # type: ignore
 

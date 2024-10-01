@@ -25,11 +25,9 @@ import sqlite3
 #===============================================================================
 
 ORCID_SCHEMA_UPDATE = '''
-begin;
 alter table annotations add column orcid text;
 drop index annotations_index;
 create index annotations_index on annotations(resource, item, created, orcid);
-commit;
 '''
 
 #===============================================================================
@@ -38,6 +36,7 @@ def set_orcids(db):
 #==================
     try:
         db.executescript(ORCID_SCHEMA_UPDATE)
+        db.commit()
     except sqlite3.OperationalError as error:
         exit(str(error))
 
@@ -47,9 +46,8 @@ def set_orcids(db):
         if (orcid := creator.get('orcid')) is not None:
             orcids.append({'rowid': row[0], 'orcid': orcid})
     if len(orcids):
-        db.execute('begin')
         db.executemany('update annotations set orcid=:orcid where rowid=:rowid', orcids)
-        db.execute('commit')
+        db.commit()
 
 #===============================================================================
 

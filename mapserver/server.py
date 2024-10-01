@@ -18,6 +18,7 @@
 #
 #===============================================================================
 
+from datetime import datetime
 import gzip
 import io
 import json
@@ -96,6 +97,12 @@ anatomical_hierarchy = AnatomicalHierarchy()
 
 #===============================================================================
 
+# We use a single, read-only KnowledgeStore
+
+knowledge_store = None
+
+#===============================================================================
+
 # Don't import unnecessary packages nor instantiate a Manager when building
 # documentation as otherwise a ``readthedocs`` build either hangs or aborts
 # with ``excessive memory consumption``
@@ -142,6 +149,10 @@ async def maker_auth_check():
 viewer_blueprint = Blueprint('viewer', __name__,
                              root_path=os.path.join(settings['FLATMAP_VIEWER'], 'app/dist'),
                              url_prefix='/viewer')
+
+connectivity_blueprint = Blueprint('connectivity', __name__,
+                             root_path=os.path.join(normalise_path('./connectivity'), 'dist'),
+                             url_prefix='/connectivity-graph')
 
 #===============================================================================
 #===============================================================================
@@ -393,16 +404,6 @@ async def map_termgraph(map_id):
 #===============================================================================
 #===============================================================================
 
-@knowledge_blueprint.route('label/<string:entity>')
-async def knowledge_label(entity: str):
-    """
-    Find an entity's label from the flatmap server's knowledge base.
-    """
-    knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=False, read_only=False)
-    label = knowledge_store.label(entity)
-    knowledge_store.close()
-    return quart.jsonify({'entity': entity, 'label': label})
-
 @knowledge_blueprint.route('query/', methods=['POST'])
 async def knowledge_query():
     """
@@ -419,17 +420,44 @@ async def knowledge_query():
     if params is None or 'sql' not in params:
         return quart.jsonify({'error': 'No SQL specified in request'})
     else:
-        knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=False, read_only=True)
-        result = knowledge_store.query(params.get('sql'), params.get('params', []))
-        knowledge_store.close()
+        result = knowledge_store.query(params.get('sql'), params.get('params', [])) if knowledge_store else {
+                    'error': 'KnowledgeStore not available'
+                 }
+            ## set source from map's metadata??
+            ## ==> map specific query endpoint... ???
         if 'error' in result:
             app.logger.warning('SQL: {}'.format(result['error']))
         return quart.jsonify(result)
+
+@knowledge_blueprint.route('sources')
+async def knowledge_sources():
+    """
+    Return the knowledge sources available in the server's knowledge store.
+
+    :>json array(string) sources: a list of knowledge sources. The list is
+                                  in descending order, with the most recent
+                                  source at the beginning
+    """
+    sources = knowledge_store.knowledge_sources() if knowledge_store else []
+    return quart.jsonify({'sources': sources})
 
 @knowledge_blueprint.route('sparcterms')
 async def sparcterms():
     filename = os.path.join(settings['FLATMAP_ROOT'], CACHED_SPARC_HIERARCHY)
     return await send_json(filename)
+
+@knowledge_blueprint.route('schema-version')
+async def knowledge_schema_version():
+    """
+    :>json number version: the version of the store's schema
+    """
+    result = knowledge_store.query('select value from metadata where name=?',
+                                   ['schema_version']) if knowledge_store else {
+                'error': 'KnowledgeStore not available'
+             }
+    if 'error' in result:
+        app.logger.warning('SQL: {}'.format(result['error']))
+    return quart.jsonify({'version': result['values'][0][0]})
 
 #===============================================================================
 #===============================================================================
@@ -493,6 +521,7 @@ async def maker_log(id: str, start_line=1):
     log_data = await map_maker.get_log(id, start_line)
     status = await map_maker.status(id)
     status['log'] = log_data
+    status['stamp'] = str(datetime.now())
     return quart.jsonify(status)
 
 @maker_blueprint.route('/status/<string:id>')
@@ -533,6 +562,17 @@ async def viewer_app(filename='index.html'):
         quart.abort(404)
 
 #===============================================================================
+
+@connectivity_blueprint.route('/')
+@connectivity_blueprint.route('/<path:filename>')
+async def connectivity_app(filename='index.html'):
+    filename = os.path.join(connectivity_blueprint.root_path, filename)
+    if os.path.exists(filename):
+        return await quart.send_file(filename)
+    else:
+        quart.abort(404)
+
+#===============================================================================
 #===============================================================================
 
 # Add annotator routes
@@ -558,6 +598,7 @@ app.register_blueprint(knowledge_blueprint)
 
 app.register_blueprint(maker_blueprint)
 app.register_blueprint(viewer_blueprint)
+app.register_blueprint(connectivity_blueprint)
 
 #===============================================================================
 #===============================================================================
@@ -566,18 +607,19 @@ def initialise(viewer=False):
     if viewer and not os.path.exists(settings['FLATMAP_VIEWER']):
         exit(f'Missing {settings["FLATMAP_VIEWER"]} directory -- set FLATMAP_VIEWER environment variable to the full path')
     settings['MAP_VIEWER'] = viewer
-    app.logger.info(f'Started flatmap server version {__version__}')
+    app.logger.info(f'Starting flatmap server version {__version__}')
+    print(f'Starting flatmap server version {__version__}')
     if not settings['MAPMAKER_TOKENS']:
         # Only warn once...
         app.logger.warning('No bearer tokens defined')
     # Open our knowledge base
+    global knowledge_store
     knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=True)
     if knowledge_store.error is not None:
         app.logger.error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
 
-    if 'sphinx' not in sys.modules:
-        # Having a Manager prevents Sphinx from exiting and hangs a ``readthedocs``
-        # build
+    if settings['MAPMAKER_TOKENS'] and 'sphinx' not in sys.modules:
+        # Having a Manager prevents Sphinx from exiting and hangs a ``readthedocs`` build
         from .maker import Manager
 
         global map_maker

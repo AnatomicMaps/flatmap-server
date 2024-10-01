@@ -1,14 +1,14 @@
 [tool.poetry]
 name = "mapserver"
-version = "0.23.7"
+version = "0.23.5"
 description = ""
 authors = ["David Brooks <d.brooks@auckland.ac.nz>"]
 
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"
 landez = "^2.5.0"
-flatmapknowledge = {url="https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.8.2/flatmapknowledge-1.8.2-py3-none-any.whl"}
-mapmaker = {url="https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.11.3/mapmaker-1.11.3-py3-none-any.whl"}
+flatmapknowledge = {url="https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.9.2/flatmapknowledge-1.9.2-py3-none-any.whl"}
+mapmaker = {url="https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.12.0/mapmaker-1.12.0-py3-none-any.whl"}
 Pillow = "^10.3.0"
 quart = "^0.19.5"
 quart-cors = "^0.7.0"
@@ -16,10 +16,12 @@ requests = "^2.31.0"
 uvloop = "^0.19.0"
 hypercorn = "^0.16.0"
 rdflib = ">=7.0.0"
+tqdm = "^4.66.5"
+setuptools = "^75.1.0"
 
 [tool.poetry.dev-dependencies]
-sphinx = "4.0.3"
-sphinx-rtd-theme = "*"
+sphinx = "^8.0"
+sphinx-rtd-theme = "^3.0.0rc"
 sphinxcontrib-httpdomain = "*"
 
 [tool.poetry.scripts]

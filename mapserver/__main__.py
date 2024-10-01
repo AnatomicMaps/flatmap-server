@@ -27,7 +27,6 @@ from typing import Any
 #===============================================================================
 
 from hypercorn.asyncio import serve
-from hypercorn.config import Config
 
 import uvloop
 
@@ -72,24 +71,37 @@ __shutdown_event = asyncio.Event()
 
 def __signal_handler(*_: Any) -> None:
 #=====================================
+    print('Shutting down...')
     __shutdown_event.set()
     if map_maker is not None:
         map_maker.terminate()
 
+## NB. We initialise logging and run the event log this particular way in order
+##     to catch exceptions and capture all log messages
+
 async def runserver(viewer=False):
 #=================================
-    config.bind = [f'{SERVER_INTERFACE}:{SERVER_PORT}']
-    config.worker_class = 'uvloop'
     config.accesslog = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'access_log')
     config.errorlog = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'error_log')
     settings['LOGGER'] = config.log
+
+    ## NB. This currently works but might break with a ``quart`` upgrade
+    ##
+    ## We need to better initialise logging, using ``logging.config.dictConfig``
+    ##
     app.logger = SyncLogger(config.log)
 
     initialise(viewer)
 
     uvloop.install()
+    config.worker_class = 'uvloop'
     loop = asyncio.get_event_loop()
+    loop.add_signal_handler(signal.SIGINT, __signal_handler)
     loop.add_signal_handler(signal.SIGTERM, __signal_handler)
+
+    config.bind = [f'{SERVER_INTERFACE}:{SERVER_PORT}']
+    print(f'Running on {config.bind[0]} (CTRL + C to quit)')
+
     loop.run_until_complete(
         serve(app, config, shutdown_trigger=__shutdown_event.wait)
     )

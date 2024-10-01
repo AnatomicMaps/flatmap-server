@@ -1,7 +1,7 @@
-==============
-Knowledge base
-==============
+===============
+Knowledge Store
+===============
 
-.. autoflask:: src.server:app
+.. autoflask:: mapserver.server:app
    :blueprints: knowledge
    :undoc-static:
