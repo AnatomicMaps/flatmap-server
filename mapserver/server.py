@@ -404,14 +404,6 @@ async def map_termgraph(map_id):
 #===============================================================================
 #===============================================================================
 
-@knowledge_blueprint.route('label/<string:entity>')
-async def knowledge_label(entity: str):
-    """
-    Find an entity's label from the flatmap server's knowledge base.
-    """
-    label = knowledge_store.label(entity) if knowledge_store else entity
-    return quart.jsonify({'entity': entity, 'label': label})
-
 @knowledge_blueprint.route('query/', methods=['POST'])
 async def knowledge_query():
     """
