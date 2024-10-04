@@ -129,7 +129,7 @@ def restore(args):
         if 'references' in knowledge:
             references = knowledge.get('references', [])
             store.db.execute('delete from publications where source=? and entity=?', (knowledge_source, entity, ))
-            store.db.executemany('insert into publications(source, entity, publication) values (?, ?)',
+            store.db.executemany('insert into publications(source, entity, publication) values (?, ?, ?)',
                 ((knowledge_source, entity, reference) for reference in references))
         if 'connectivity' in knowledge:
             seen_nodes = set()
