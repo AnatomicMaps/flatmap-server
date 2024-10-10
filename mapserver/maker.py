@@ -169,6 +169,7 @@ class Manager(threading.Thread):
             'output': self.__map_dir,
             'backgroundTiles': True,
             'silent': True,
+            'noPathLayout': True,
             'logPath': settings['MAPMAKER_LOGS']  # Logfile name is `PROCESS_ID.log`
         })
         process = MakerProcess(params)
