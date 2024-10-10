@@ -193,13 +193,6 @@ def blank_tile():
     return file
 
 #===============================================================================
-
-def normalise_identifier(id):
-#============================
-    return ':'.join([(s[:-1].lstrip('0') + s[-1])
-                        for s in id.split(':')])
-
-#===============================================================================
 #===============================================================================
 
 @flatmap_blueprint.route('/')
@@ -245,10 +238,10 @@ async def maps():
                     if 'created' in metadata:
                         flatmap['created'] = metadata['created']
                     if 'taxon' in metadata:
-                        flatmap['taxon'] = normalise_identifier(metadata['taxon'])
+                        flatmap['taxon'] = metadata['taxon']
                         flatmap['describes'] = metadata['describes'] if 'describes' in metadata else flatmap['taxon']
                     elif 'describes' in metadata:
-                        flatmap['taxon'] = normalise_identifier(metadata['describes'])
+                        flatmap['taxon'] = metadata['describes']
                         flatmap['describes'] = flatmap['taxon']
                     if 'biological-sex' in metadata:
                         flatmap['biologicalSex'] = metadata['biological-sex']
@@ -271,7 +264,7 @@ async def maps():
                         flatmap['created'] = created[0]
                     describes = reader._query("SELECT value FROM metadata WHERE name='describes'").fetchone()
                     if describes is not None and describes[0]:
-                        flatmap['describes'] = normalise_identifier(describes[0])
+                        flatmap['describes'] = describes[0]
                 flatmap_list.append(flatmap)
     return quart.jsonify(flatmap_list)
 

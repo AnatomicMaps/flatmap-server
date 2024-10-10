@@ -31,12 +31,6 @@ from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
 
 #===============================================================================
 
-def normalise_identifier(id):
-    return ':'.join([(s[:-1].lstrip('0') + s[-1])
-                        for s in id.split(':')])
-
-#===============================================================================
-
 def read_metadata(tile_reader, name):
     try:
         row = tile_reader._query("SELECT value FROM metadata WHERE name='{}'".format(name)).fetchone()
@@ -80,10 +74,10 @@ def main():
                     if 'created' in metadata:
                         flatmap['created'] = metadata['created']
                     if 'taxon' in metadata:
-                        flatmap['taxon'] = normalise_identifier(metadata['taxon'])
+                        flatmap['taxon'] = metadata['taxon']
                         flatmap['describes'] = metadata['describes'] if 'describes' in metadata else flatmap['taxon']
                     elif 'describes' in metadata:
-                        flatmap['taxon'] = normalise_identifier(metadata['describes'])
+                        flatmap['taxon'] = metadata['describes']
                         flatmap['describes'] = flatmap['taxon']
                     if 'biological-sex' in metadata:
                         flatmap['biologicalSex'] = metadata['biological-sex']
@@ -107,7 +101,7 @@ def main():
                         flatmap['created'] = created[0]
                     describes = reader._query("SELECT value FROM metadata WHERE name='describes'").fetchone()
                     if describes is not None and describes[0]:
-                        flatmap['describes'] = normalise_identifier(describes[0])
+                        flatmap['describes'] = describes[0]
                 flatmaps_by_dir[str(flatmap_dir)] = flatmap
 
     if not args.all_maps:
