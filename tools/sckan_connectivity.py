@@ -22,12 +22,31 @@ import json
 import logging
 import os
 from pathlib import Path
+from typing import Optional
 
 from tqdm import tqdm
 
 #===============================================================================
 
 from mapknowledge import KnowledgeStore
+
+#===============================================================================
+
+def copy_prior_knowledge(store: KnowledgeStore, knowledge_source: Optional[str]):
+#================================================================================
+    if store.db is not None and knowledge_source is not None:
+        sources = store.knowledge_sources()     # Ordered, most recent first
+        if len(sources) and knowledge_source not in sources:
+            # We have no knowledge of the new source so copy all knowledge from
+            # the previous source, updating the source column for the new source
+            sql = '''insert into knowledge (source, entity, knowledge)
+                        select ?, entity, knowledge from knowledge where source=?'''
+            print(sql)
+            store.db.execute(sql,
+                             (knowledge_source, sources[0]))
+            store.db.commit()
+    # Now remove all connectivity knowledge
+    store.clean_connectivity(knowledge_source)
 
 #===============================================================================
 
@@ -50,9 +69,7 @@ def load(args):
     knowledge_source = store.source
     logging.info(f'Loading SCKAN NPO connectivity for source `{knowledge_source}`')
 
-    store.db.execute('delete from knowledge where source=?', (knowledge_source,))
-    store.db.execute('delete from connectivity_nodes where source=?', (knowledge_source,))
-    store.db.commit()
+    copy_prior_knowledge(store, knowledge_source)
 
     paths = store.connectivity_paths()
     progress_bar = tqdm(total=len(paths),
@@ -116,12 +133,11 @@ def restore(args):
         raise IOError(f'Unable to open knowledge store {args.store_directory}/{args.knowledge_store}')
 
     knowledge_source = saved_knowledge['source']
-    store.clean_connectivity(knowledge_source)
-    store.db.execute('delete from knowledge where source=?', (knowledge_source,))
-    store.db.execute('delete from connectivity_nodes where source=?', (knowledge_source,))
+    copy_prior_knowledge(store, knowledge_source)
+
     for knowledge in saved_knowledge['knowledge']:
         entity = knowledge['id']
-        store.db.execute('insert into knowledge (source, entity, knowledge) values (?, ?, ?)',
+        store.db.execute('replace into knowledge (source, entity, knowledge) values (?, ?, ?)',
                                              (knowledge_source, entity, json.dumps(knowledge)))
         # Save label and references in their own tables
         if 'label' in knowledge:
