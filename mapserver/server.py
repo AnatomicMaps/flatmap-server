@@ -97,12 +97,6 @@ anatomical_hierarchy = AnatomicalHierarchy()
 
 #===============================================================================
 
-# We use a single, read-only KnowledgeStore
-
-knowledge_store = None
-
-#===============================================================================
-
 # Don't import unnecessary packages nor instantiate a Manager when building
 # documentation as otherwise a ``readthedocs`` build either hangs or aborts
 # with ``excessive memory consumption``
@@ -155,6 +149,24 @@ connectivity_blueprint = Blueprint('connectivity', __name__,
                              url_prefix='/connectivity-graph')
 
 #===============================================================================
+#===============================================================================
+
+def query_knowledge(sql: str, params: list[str]) -> dict:
+#========================================================
+    knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'])
+    result = knowledge_store.query(sql, params) if knowledge_store else {
+                'error': 'Knowledge Store not available'
+             }
+    knowledge_store.close()
+    return result
+
+def get_knowledge_sources() -> list[str]:
+#========================================
+    knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'])
+    sources = knowledge_store.knowledge_sources() if knowledge_store else []
+    knowledge_store.close()
+    return sources
+
 #===============================================================================
 
 async def send_json(filename):
@@ -420,11 +432,7 @@ async def knowledge_query():
     if params is None or 'sql' not in params:
         return quart.jsonify({'error': 'No SQL specified in request'})
     else:
-        result = knowledge_store.query(params.get('sql'), params.get('params', [])) if knowledge_store else {
-                    'error': 'KnowledgeStore not available'
-                 }
-            ## set source from map's metadata??
-            ## ==> map specific query endpoint... ???
+        result = query_knowledge(params.get('sql'), params.get('params', []))
         if 'error' in result:
             app.logger.warning('SQL: {}'.format(result['error']))
         return quart.jsonify(result)
@@ -438,7 +446,7 @@ async def knowledge_sources():
                                   in descending order, with the most recent
                                   source at the beginning
     """
-    sources = knowledge_store.knowledge_sources() if knowledge_store else []
+    sources = get_knowledge_sources()
     return quart.jsonify({'sources': sources})
 
 @knowledge_blueprint.route('sparcterms')
@@ -451,10 +459,7 @@ async def knowledge_schema_version():
     """
     :>json number version: the version of the store's schema
     """
-    result = knowledge_store.query('select value from metadata where name=?',
-                                   ['schema_version']) if knowledge_store else {
-                'error': 'KnowledgeStore not available'
-             }
+    result = query_knowledge('select value from metadata where name=?', ['schema_version'])
     if 'error' in result:
         app.logger.warning('SQL: {}'.format(result['error']))
     return quart.jsonify({'version': result['values'][0][0]})
@@ -612,11 +617,12 @@ def initialise(viewer=False):
     if not settings['MAPMAKER_TOKENS']:
         # Only warn once...
         app.logger.warning('No bearer tokens defined')
-    # Open our knowledge base
-    global knowledge_store
+
+    # Try opening our knowledge base
     knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=True)
     if knowledge_store.error is not None:
         app.logger.error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
+    knowledge_store.close()
 
     if settings['MAPMAKER_TOKENS'] and 'sphinx' not in sys.modules:
         # Having a Manager prevents Sphinx from exiting and hangs a ``readthedocs`` build
