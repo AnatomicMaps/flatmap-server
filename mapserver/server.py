@@ -284,12 +284,18 @@ async def map(map_id):
     doesn't specify a JSON response then the SVG is returned, otherwise the
     flatmap's ``index.json`` is returned.
     """
+    index_file = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.json')
+    if not os.path.exists(index_file):
+        quart.abort(404, 'Missing map index')
+    with open(index_file) as fp:
+        index = json.load(fp)
     if 'json' not in quart.request.accept_mimetypes.best:
-        filename = os.path.join(settings['FLATMAP_ROOT'], map_id, '{}.svg'.format(map_id))
-        if os.path.exists(filename):
-            return await quart.send_file(filename, mimetype='image/svg+xml')
-    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.json')
-    return await send_json(filename)
+        svg_file = os.path.join(settings['FLATMAP_ROOT'], map_id, f'{index["id"]}.svg')
+        if not os.path.exists(svg_file):
+            svg_file = os.path.join(settings['FLATMAP_ROOT'], map_id, 'images', f'{index["id"]}.svg')
+        if os.path.exists(svg_file):
+            return await quart.send_file(svg_file, mimetype='image/svg+xml')
+    return quart.jsonify(index)
 
 #===============================================================================
 
