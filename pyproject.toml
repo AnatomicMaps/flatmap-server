@@ -7,8 +7,8 @@ authors = ["David Brooks <d.brooks@auckland.ac.nz>"]
 [tool.poetry.dependencies]
 python = ">=3.12,<4.0"
 landez = "^2.5.0"
-flatmapknowledge = {url="https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v1.9.4/flatmapknowledge-1.9.4-py3-none-any.whl"}
-mapmaker = {url="https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.12.1/mapmaker-1.12.1-py3-none-any.whl"}
+flatmapknowledge = {url="https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.1/flatmapknowledge-2.0.1-py3-none-any.whl"}
+mapmaker = {url="https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.13.1/mapmaker-1.13.1-py3-none-any.whl"}
 Pillow = "^10.3.0"
 quart = "^0.19.5"
 quart-cors = "^0.7.0"
@@ -20,8 +20,8 @@ tqdm = "^4.66.5"
 setuptools = "^75.1.0"
 
 [tool.poetry.dev-dependencies]
-sphinx = "^8.0"
-sphinx-rtd-theme = "^3.0.0rc"
+sphinx = "^8.1"
+sphinx-rtd-theme = "^3.0.1"
 sphinxcontrib-httpdomain = "*"
 
 [tool.poetry.scripts]
