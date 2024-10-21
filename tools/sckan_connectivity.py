@@ -32,21 +32,36 @@ from mapknowledge import KnowledgeStore
 
 #===============================================================================
 
-def copy_prior_knowledge(store: KnowledgeStore, knowledge_source: Optional[str]):
-#================================================================================
+def get_prior_knowledge(store: KnowledgeStore, knowledge_source: Optional[str]) -> list[tuple[str, str]]:
+#========================================================================================================
     if store.db is not None and knowledge_source is not None:
         sources = store.knowledge_sources()     # Ordered, most recent first
         if len(sources) and knowledge_source not in sources:
-            # We have no knowledge of the new source so copy all knowledge from
+            # We have no knowledge of the new source so first copy all knowledge from
             # the previous source, updating the source column for the new source
-            sql = '''insert into knowledge (source, entity, knowledge)
-                        select ?, entity, knowledge from knowledge where source=?'''
-            print(sql)
-            store.db.execute(sql,
-                             (knowledge_source, sources[0]))
+            prior_knowledge = store.db.execute('select entity, knowledge from knowledge where source=?',
+                                (sources[0], )).fetchall()
+            store.db.executemany('insert into knowledge (source, entity, knowledge) values (?, ?, ?)',
+                                ((knowledge_source, row[0], row[1]) for row in prior_knowledge))
             store.db.commit()
-    # Now remove all connectivity knowledge
-    store.clean_connectivity(knowledge_source)
+        # Now remove all connectivity knowledge
+        store.clean_connectivity(knowledge_source)
+        # Get all non-connectivity knowledge
+        prior_knowledge = store.db.execute('select entity, knowledge from knowledge where source=?',
+                                            (knowledge_source, )).fetchall()
+        # Delete everything to do with the new knowledge source
+        store.db.execute('delete from knowledge where source=?', (knowledge_source,))
+        store.db.commit()
+        # Return the non-connectivity knowledge from the previous source
+        return prior_knowledge
+    return []
+
+def save_prior_knowledge(store: KnowledgeStore, knowledge_source: Optional[str], prior_knowledge: list[tuple[str, str]]):
+#========================================================================================================================
+    if store.db is not None and knowledge_source is not None:
+        store.db.executemany('replace into knowledge (source, entity, knowledge) values (?, ?, ?)',
+                            ((knowledge_source, row[0], row[1]) for row in prior_knowledge))
+        store.db.commit()
 
 #===============================================================================
 
@@ -69,7 +84,7 @@ def load(args):
     knowledge_source = store.source
     logging.info(f'Loading SCKAN NPO connectivity for source `{knowledge_source}`')
 
-    copy_prior_knowledge(store, knowledge_source)
+    prior_knowledge = get_prior_knowledge(store, knowledge_source)
 
     paths = store.connectivity_paths()
     progress_bar = tqdm(total=len(paths),
@@ -81,6 +96,8 @@ def load(args):
         store.entity_knowledge(path, source=knowledge_source)
         progress_bar.update(1)
         path_count += 1
+
+    save_prior_knowledge(store, knowledge_source, prior_knowledge)
 
     store.close()
     progress_bar.close()
@@ -114,6 +131,7 @@ def extract(args):
         knowledge = json.loads(row[1])
         knowledge['id'] = row[0]
         saved_knowledge['knowledge'].append(knowledge)
+    store.close()
 
     json_file = Path(args.store_directory) / f'{knowledge_source}.json'
     with open(json_file, 'w') as fp:
@@ -133,7 +151,8 @@ def restore(args):
         raise IOError(f'Unable to open knowledge store {args.store_directory}/{args.knowledge_store}')
 
     knowledge_source = saved_knowledge['source']
-    copy_prior_knowledge(store, knowledge_source)
+
+    prior_knowledge = get_prior_knowledge(store, knowledge_source)
 
     for knowledge in saved_knowledge['knowledge']:
         entity = knowledge['id']
@@ -158,6 +177,9 @@ def restore(args):
                                                                     (knowledge_source, json.dumps(node), entity))
     store.db.commit()
 
+    save_prior_knowledge(store, knowledge_source, prior_knowledge)
+
+    store.close()
     logging.info(f"Restored {len(saved_knowledge['knowledge'])} records for `{knowledge_source}` from `{args.json_file}`")
 
 #===============================================================================
