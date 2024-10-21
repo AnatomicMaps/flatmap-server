@@ -192,6 +192,17 @@ def info(args):
         use_sckan=False)
     for source in store.knowledge_sources():
         print(source)
+    store.close()
+
+#===============================================================================
+
+def upgrade(args):
+    store = KnowledgeStore(
+        store_directory=args.store_directory,
+        knowledge_base=args.knowledge_store,
+        read_only=False,
+        use_sckan=False)
+    store.close()
 
 #===============================================================================
 
@@ -218,12 +229,15 @@ if __name__ == '__main__':
     parser_extract.add_argument('--source', help='Knowledge source to extract; defaults to the most recent source in the store.')
     parser_extract.set_defaults(func=extract)
 
+    parser_info = subparsers.add_parser('info', help='List knowledge sources in a local store.')
+    parser_info.set_defaults(func=info)
+
     parser_restore = subparsers.add_parser('restore', help='Restore connectivity knowledge to a local store from JSON.')
     parser_restore.add_argument('json_file', metavar='JSON_FILE', help='File to load connectivity knowledge from.')
     parser_restore.set_defaults(func=restore)
 
-    parser_info = subparsers.add_parser('info', help='List knowledge sources in a local store.')
-    parser_info.set_defaults(func=info)
+    parser_restore = subparsers.add_parser('upgrade', help='Upgrade local knowledge store to latest database schema.')
+    parser_restore.set_defaults(func=upgrade)
 
     args = parser.parse_args()
     if not args.quiet:
