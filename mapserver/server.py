@@ -299,23 +299,9 @@ async def map(map_id):
 
 #===============================================================================
 
-@flatmap_blueprint.route('flatmap/<string:map_id>/tilejson')
-async def tilejson(map_id):
-    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'tilejson.json')
-    return await send_json(filename)
-
-#===============================================================================
-
 @flatmap_blueprint.route('flatmap/<string:map_id>/style')
 async def style(map_id):
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'style.json')
-    return await send_json(filename)
-
-#===============================================================================
-
-@flatmap_blueprint.route('flatmap/<string:map_id>/styled')
-async def styled(map_id):
-    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'styled.json')
     return await send_json(filename)
 
 #===============================================================================
