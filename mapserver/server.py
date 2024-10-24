@@ -302,7 +302,10 @@ async def map(map_id):
 @flatmap_blueprint.route('flatmap/<string:map_id>/log')
 async def mapmaker_log(map_id):
     filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'mapmaker.log')
-    return await quart.send_file(filename, mimetype='text/plain')
+    try:
+        return await quart.send_file(filename, mimetype='text/plain')
+    except FileNotFoundError:
+        quart.abort(404, 'Missing log file')
 
 #===============================================================================
 
