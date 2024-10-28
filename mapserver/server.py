@@ -583,17 +583,15 @@ from .annotator import annotated_items, annotations, annotation, add_annotation
 #===============================================================================
 
 app = Quart('mapserver')
+app = cors(app, allow_origin='*')
 
-cors_settings = {'allow_origin': '*'}
-app = cors(app, **cors_settings)
-
-annotator_blueprint = cors(annotator_blueprint, **cors_settings)
+annotator_blueprint = cors(annotator_blueprint, allow_origin='*')
 app.register_blueprint(annotator_blueprint)
 
-flatmap_blueprint = cors(flatmap_blueprint, **cors_settings)
+flatmap_blueprint = cors(flatmap_blueprint, allow_origin='*')
 app.register_blueprint(flatmap_blueprint)
 
-knowledge_blueprint = cors(knowledge_blueprint, **cors_settings)
+knowledge_blueprint = cors(knowledge_blueprint, allow_origin='*')
 app.register_blueprint(knowledge_blueprint)
 
 app.register_blueprint(maker_blueprint)
