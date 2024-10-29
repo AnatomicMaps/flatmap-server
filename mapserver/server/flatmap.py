@@ -21,8 +21,6 @@
 import gzip
 import io
 import json
-import os
-import os.path
 import pathlib
 import sqlite3
 
@@ -84,11 +82,11 @@ async def maps(request: Request) -> list:
     root_path = pathlib.Path(settings['FLATMAP_ROOT'])
     if root_path.is_dir():
         for flatmap_dir in root_path.iterdir():
-            index = os.path.join(settings['FLATMAP_ROOT'], flatmap_dir, 'index.json')
-            mbtiles = os.path.join(settings['FLATMAP_ROOT'], flatmap_dir, 'index.mbtiles')
-            map_making = os.path.join(settings['FLATMAP_ROOT'], flatmap_dir, MAKER_SENTINEL)
-            if (os.path.isdir(flatmap_dir) and not os.path.exists(map_making)
-            and os.path.exists(index) and os.path.exists(mbtiles)):
+            index = pathlib.Path(settings['FLATMAP_ROOT']) / flatmap_dir / 'index.json'
+            mbtiles = pathlib.Path(settings['FLATMAP_ROOT']) / flatmap_dir / 'index.mbtiles'
+            map_making = pathlib.Path(settings['FLATMAP_ROOT']) / flatmap_dir / MAKER_SENTINEL
+            if (flatmap_dir.is_dir() and not map_making.exists()
+            and index.exists() and mbtiles.exists()):
                 with open(index) as fp:
                     index = json.loads(fp.read())
                 version = index.get('version', 1.0)
@@ -159,16 +157,16 @@ async def map_index(request: Request, map_id: str) -> Response:
     doesn't specify a JSON response then the SVG is returned, otherwise the
     flatmap's ``index.json`` is returned.
     """
-    index_file = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.json')
-    if not os.path.exists(index_file):
-        raise exceptions.NotFoundException(detail='Missing map index')
+    index_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / 'index.json'
+    if not index_file.exists():
+        return Response(content={'detail': 'Missing map index'}, status_code=404)
     with open(index_file) as fp:
         index = json.load(fp)
     if request.accept.accepts('image/svg+xml'):
-        svg_file = os.path.join(settings['FLATMAP_ROOT'], map_id, f'{index["id"]}.svg')
-        if not os.path.exists(svg_file):
-            svg_file = os.path.join(settings['FLATMAP_ROOT'], map_id, 'images', f'{index["id"]}.svg')
-        if os.path.exists(svg_file):
+        svg_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / f'{index["id"]}.svg'
+        if not svg_file.exists():
+            svg_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / 'images' / f'{index["id"]}.svg'
+        if not svg_file.exists():
             with open(svg_file) as fp:
                 return Response(content=fp.read(), media_type='image/svg+xml')
     return index
@@ -177,25 +175,25 @@ async def map_index(request: Request, map_id: str) -> Response:
 
 @get('flatmap/{map_id:str}/log', media_type='text/plain')
 async def mapmaker_log(map_id: str) -> File:
-    return File(
-        path=os.path.join(settings['FLATMAP_ROOT'], map_id, 'mapmaker.log'),
-        filename='mapmaker.log'
-    )
+    path = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / 'mapmaker.log'
+    if not path.exists():
+        raise exceptions.NotFoundException(detail='Missing mapmaker.log')
+    return File(path=path, filename='mapmaker.log')
 
 #===============================================================================
 
 @get('flatmap/{map_id:str}/style')
 async def map_style(map_id: str) -> dict|list:
-    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'style.json')
-    return read_json(filename)
+    path = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / 'style.json'
+    return read_json(path)
 
 #===============================================================================
 
 ## DEPRECATED
 @get('flatmap/{map_id:str}/markers')
 async def map_markers(map_id: str) -> dict|list:
-    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'markers.json')
-    return read_json(filename)
+    path = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / 'markers.json'
+    return read_json(path)
 
 #===============================================================================
 
@@ -228,18 +226,17 @@ async def map_pathways(map_id: str) -> dict:
 
 @get('flatmap/{map_id:str}/images/{image:str}')
 async def map_background(map_id: str, image:str) -> Response:
-    filename = os.path.join(settings['FLATMAP_ROOT'], map_id, 'images', image)
-    if os.path.exists(filename):
-        return await quart.send_file(filename)
-    else:
-        raise exceptions.NotFoundException(detail=f'Missing image: {filename}')
+    path = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / 'images' / image
+    if not path.exists():
+        raise exceptions.NotFoundException(detail=f'Missing image: {image}')
+    return File(path=path, filename=image)
 
 #===============================================================================
 
 @get('flatmap/{map_id:str}/mvtiles/{z:int}/{x:int}/{y:int}')
 async def vector_tiles(map_id: str, z: int, y:int, x: int) -> Response:
     try:
-        mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.mbtiles')
+        mbtiles = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / 'index.mbtiles'
         tile_reader = MBTilesReader(mbtiles)
         tile_bytes = tile_reader.tile(z, x, y)
         if get_metadata(tile_reader, 'compressed'):
@@ -256,7 +253,7 @@ async def vector_tiles(map_id: str, z: int, y:int, x: int) -> Response:
 @get('flatmap/{map_id:str}/tiles/{layer:int}/{z:int}/{x:int}/{y:int}')
 async def image_tiles(map_id: str, layer: str, z: int, y:int, x: int) -> Response:
     try:
-        mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, '{}.mbtiles'.format(layer))
+        mbtiles = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / f'{layer}.mbtiles'
         reader = MBTilesReader(mbtiles)
         return Response(content=reader.tile(z, x, y), media_type='image/png')
     except ExtractionError:

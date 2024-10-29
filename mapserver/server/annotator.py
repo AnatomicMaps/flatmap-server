@@ -22,7 +22,7 @@ from datetime import datetime, timezone
 from functools import partial
 from pathlib import Path
 import json
-import os
+import pathlib
 import sqlite3
 from typing import Any, Optional
 import uuid
@@ -115,11 +115,11 @@ PROVENANCE_PROPERTIES = [
 #===============================================================================
 
 class AnnotationStore:
-    def __init__(self, db_path=None):
+    def __init__(self, db_path: Optional[pathlib.Path]=None):
         if db_path is None:
-            db_path = os.path.join(settings['FLATMAP_ROOT'], 'annotation_store.db')
+            db_path = pathlib.Path(settings['FLATMAP_ROOT']) / 'annotation_store.db'
         # Create annotation store if it doesn't exist
-        db_name = Path(db_path).resolve()
+        db_name = db_path.resolve()
         if not db_name.exists():
             db = sqlite3.connect(db_name)
             db.executescript(ANNOTATION_STORE_SCHEMA)
