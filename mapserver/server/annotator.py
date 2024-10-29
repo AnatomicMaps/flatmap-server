@@ -30,7 +30,7 @@ import uuid
 #===============================================================================
 
 from litestar import exceptions, get, post, Request, Response, Router
-from litestar.middleware.session.client_side import CookieBackendConfig
+from litestar.middleware.session.server_side import ServerSideSessionConfig
 
 #===============================================================================
 
@@ -435,8 +435,6 @@ async def download()  -> list[dict]:
 #===============================================================================
 #===============================================================================
 
-session_config = CookieBackendConfig(secret=os.urandom(16))  # type: ignore
-
 annotation_router = Router(
     path="/annotator",
     route_handlers=[
@@ -449,7 +447,7 @@ annotation_router = Router(
         features,
         unauthenticate
         ],
-        middleware=[session_config.middleware],
+        middleware=[ServerSideSessionConfig().middleware]
     )
 
 #===============================================================================
