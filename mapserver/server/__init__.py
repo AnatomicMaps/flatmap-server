@@ -50,8 +50,6 @@ from .viewer import viewer_router
 
 #===============================================================================
 
-cors_config = CORSConfig(allow_origins=["*"])
-
 app = Litestar(
     route_handlers=[
         annotator_router,
@@ -61,7 +59,7 @@ app = Litestar(
         maker_router,
         viewer_router
     ],
-    cors_config=cors_config,
+    cors_config=CORSConfig(allow_origins=["*"]),  ## Only for annotator, flatmap and knowledge endpoints (need updated Router)
     openapi_config=OpenAPIConfig(
         title="Flatmap Server Web API",
         version=__version__,
