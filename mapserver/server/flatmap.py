@@ -190,7 +190,7 @@ async def map_style(map_id: str) -> dict|list:
 #===============================================================================
 
 ## DEPRECATED
-@get('flatmap/{map_id:str}/markers')
+@get('flatmap/{map_id:str}/markers', include_in_schema=False)
 async def map_markers(map_id: str) -> dict|list:
     path = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / 'markers.json'
     return read_json(path)
