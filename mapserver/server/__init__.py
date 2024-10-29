@@ -32,6 +32,8 @@ from typing import Optional
 
 from litestar import Litestar
 from litestar.config.cors import CORSConfig
+from litestar.openapi.config import OpenAPIConfig
+from litestar.openapi.plugins import RapidocRenderPlugin
 
 #===============================================================================
 
@@ -59,7 +61,12 @@ app = Litestar(
         maker_router,
         viewer_router
     ],
-    cors_config=cors_config
+    cors_config=cors_config,
+    openapi_config=OpenAPIConfig(
+        title="Flatmap Server Web API",
+        version=__version__,
+        render_plugins=[RapidocRenderPlugin()],
+    ),
 )
 
 #===============================================================================
