@@ -144,7 +144,7 @@ async def maps(request: Request) -> list:
 #===============================================================================
 
 @get('flatmap/{map_id:str}/')
-async def map_index(request: Request, map_id: str) -> Response:
+async def map_index(request: Request, map_id: str) -> dict|Response:
     """
     Return a representation of a flatmap.
 
