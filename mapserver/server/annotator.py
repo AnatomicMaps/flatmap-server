@@ -461,7 +461,8 @@ annotator_router = Router(
         features,
         unauthenticate
         ],
-        middleware=[ServerSideSessionConfig().middleware]
+        middleware=[ServerSideSessionConfig().middleware],
+        include_in_schema=False
     )
 
 #===============================================================================

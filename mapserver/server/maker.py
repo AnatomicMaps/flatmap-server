@@ -165,7 +165,8 @@ maker_router = Router(
         maker_log,
         maker_status,
         process_log
-        ]
+        ],
+    include_in_schema=False
     )
 
 #===============================================================================
