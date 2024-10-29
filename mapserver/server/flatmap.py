@@ -250,7 +250,7 @@ async def vector_tiles(map_id: str, z: int, y:int, x: int) -> Response:
 
 #===============================================================================
 
-@get('flatmap/{map_id:str}/tiles/{layer:int}/{z:int}/{x:int}/{y:int}')
+@get('flatmap/{map_id:str}/tiles/{layer:str}/{z:int}/{x:int}/{y:int}')
 async def image_tiles(map_id: str, layer: str, z: int, y:int, x: int) -> Response:
     try:
         mbtiles = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / f'{layer}.mbtiles'
