@@ -54,18 +54,21 @@ def initialise():
 class MakerData:
     source: str
     manifest: str
-    commit: Optional[str]
-    force: Optional[bool]
+    commit: Optional[str] = None
+    force: Optional[bool] = None
 
 @dataclass
 class MakerResponse(MakerStatus):
     source: str
-    commit: Optional[str]
+    commit: Optional[str] = None
 
 @dataclass
 class MakerLogResponse(MakerStatus):
     log: str
-    stamp: Optional[str]
+    stamp: Optional[str] = None
+
+#===============================================================================
+#===============================================================================
 
 @post('/map')
 async def make_map(data: MakerData) -> MakerResponse|Response:
