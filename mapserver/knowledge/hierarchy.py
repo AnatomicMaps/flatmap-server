@@ -33,8 +33,8 @@ import rdflib
 #===============================================================================
 
 from ..settings import settings
+from ..utils import json_map_metadata
 
-from . import get_metadata
 from .rdf_utils import ILX_BASE, Node, Triple, Uri
 
 #===============================================================================
@@ -307,7 +307,7 @@ class AnatomicalHierarchy:
     def __init__(self):
         self.__sparc_hierarchy = SparcHierarchy(UBERON_ONTOLOGY, NPO_ONTOLOGY)
 
-    def get_hierachy(self, flatmap: str):
+    def get_hierachy(self, flatmap: str) -> dict:
         hierarchy_file = os.path.join(settings['FLATMAP_ROOT'], flatmap, CACHED_MAP_HIERARCHY)
         try:
             with open(hierarchy_file) as fp:
@@ -327,7 +327,7 @@ class AnatomicalHierarchy:
         # Nodes on the graph are SPARC terms, with attributes of the term's label and its distance to
         # a common ``anatomical root``
         map_terms = set(Uri(term) for term in
-                        [ann.get('models') for ann in get_metadata(flatmap, 'annotations').values()]
+                        [ann.get('models') for ann in json_map_metadata(flatmap, 'annotations').values()]
                             if self.__sparc_hierarchy.has(term))
         for term in map_terms:
             distance = self.__sparc_hierarchy.distance_to_root(term)

@@ -18,6 +18,7 @@
 #
 #===============================================================================
 
+from dataclasses import dataclass
 import asyncio
 import multiprocessing
 import multiprocessing.connection
@@ -25,6 +26,7 @@ import os
 import queue
 import sys
 import threading
+from typing import Optional
 import uuid
 
 #===============================================================================
@@ -33,11 +35,21 @@ import uvloop
 
 #===============================================================================
 
-from .settings import settings
+from ..settings import settings
 
 from mapmaker import MapMaker
 import mapmaker.utils as utils
 
+#===============================================================================
+#===============================================================================
+
+@dataclass
+class MakerStatus:
+    id: int
+    status: str
+    pid: Optional[int]
+
+#===============================================================================
 #===============================================================================
 
 def log_file(pid):
@@ -161,8 +173,8 @@ class Manager(threading.Thread):
             return log_lines
         return ''
 
-    async def make(self, params) -> dict:
-    #====================================
+    async def make(self, params) -> MakerStatus:
+    #===========================================
         params = {key: value for (key, value) in params.items()
                                 if key in ['source', 'manifest', 'commit', 'force']}
         params.update({
@@ -210,22 +222,19 @@ class Manager(threading.Thread):
     #===================
         self.__terminate_event.set()
 
-    async def status(self, id) -> dict:
-    #==================================
-        result = {
-            'process': id
-        }
+    async def status(self, id) -> MakerStatus:
+    #=========================================
+        pid = None
         if id in self.__processes_by_id:
             process = self.__processes_by_id[id]
-            result['status'] = process.status
-            if (pid := process.process_id) is not None:
-                result['pid'] = pid
+            status = process.status
+            pid = process.process_id
             if process.status in ['aborted', 'terminated']:
                 async with self.__process_lock:
                     del self.__processes_by_id[id]
         else:
-            result['status'] = 'unknown'
-        return result
+            status = 'unknown'
+        return MakerStatus(id, status, pid)
 
     async def __start_process(self, process: MakerProcess):
     #======================================================

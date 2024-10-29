@@ -2,7 +2,7 @@
 #
 #  Flatmap viewer and annotation tools
 #
-#  Copyright (c) 2019-2023  David Brooks
+#  Copyright (c) 2019-2024  David Brooks
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 #===============================================================================
 
 from datetime import datetime, timezone
-from functools import wraps
+from functools import partial
 from pathlib import Path
 import json
 import os
@@ -29,12 +29,13 @@ import uuid
 
 #===============================================================================
 
-import quart            # type: ignore
+from litestar import exceptions, get, post, Request, Response, Router
+from litestar.middleware.session.client_side import CookieBackendConfig
 
 #===============================================================================
 
-from .pennsieve import get_user
-from .server import annotator_blueprint, settings
+from ..pennsieve import get_user
+from ..settings import settings
 
 #===============================================================================
 '''
@@ -239,8 +240,8 @@ class AnnotationStore:
                 annotation.update(json.loads(row[5]))
         return annotation
 
-    def add_annotation(self, annotation: dict) -> dict:
-    #==================================================
+    def add_annotation(self, annotation: dict) -> dict[str, Any]:
+    #============================================================
         result = {}
         if self.__db is not None:
             created = annotation.pop('created', None)
@@ -300,92 +301,81 @@ def __del_session(session_key: str) -> bool:
     return __sessions.pop(session_key, None) is not None
 
 #===============================================================================
+#===============================================================================
 
-def __authenticated(bearer=False):
-    def check_authenticated(f):
-        @wraps(f)
-        async def decorated_function(*args, **kwargs):
-            if quart.request.method == 'GET':
-                parameters = quart.request.args
-            elif quart.request.method == 'POST':
-                parameters = await quart.request.get_json()
-            else:
-                parameters = {}
-            if ((key := parameters.get('key')) is not None
-              and (session_key := parameters.get('session')) is not None
-              and session_key == __session_key(key)
-              and (data := __session_data(session_key)) is not None):
-                quart.g.update = data.get('canUpdate', False)
-                return await f(*args, **kwargs)
-            if bearer and quart.request.method == 'GET' and settings['ANNOTATOR_TOKENS']:
-                auth = quart.request.headers.get('Authorization', '')
-                if auth.startswith('Bearer '):
-                    if auth.split()[1] in settings['ANNOTATOR_TOKENS']:
-                        quart.g.update = False
-                        return await f(*args, **kwargs)
-            response = await quart.make_response('{"error": "forbidden"}', 403)
-            return response
-        return decorated_function
-    return check_authenticated
+async def __authenticated(request: Request, bearer=False):
+    if request.method == 'GET':
+        parameters = request.query_params
+    elif request.method == 'POST':
+        parameters = await request.json()
+    else:
+        parameters = {}
+    if ((key := parameters.get('key')) is not None
+      and (session_key := parameters.get('session')) is not None
+      and session_key == __session_key(key)
+      and (data := __session_data(session_key)) is not None):
+        request.session['update'] = data.get('canUpdate', False)
+        return
+    if bearer and request.method == 'GET' and settings['ANNOTATOR_TOKENS']:
+        auth = request.headers.get('Authorization', '')
+        if auth.startswith('Bearer '):
+            if auth.split()[1] in settings['ANNOTATOR_TOKENS']:
+                request.session['update'] = False
+                return
+    raise exceptions.NotAuthorizedException()
 
 #===============================================================================
 
-def __get_parameter(name: str, default: Any=None):
-    value = quart.request.args.get(name)
-    result = json.loads(value) if value is not None else default
-    return result
-
-#===============================================================================
-
-@annotator_blueprint.route('authenticate', methods=['GET'])
-async def authenticate():
-    parameters = quart.request.args
+@get('authenticate')
+async def authenticate(request: Request) -> dict|Response:
+    parameters = await request.json()
     if (key := parameters.get('key')) is not None:
         user_data = get_user(key)
+        if 'error' not in user_data:
+            session_key = __new_session(key, user_data)
+            response = {
+                'session': session_key,
+                'data': user_data
+            }
+        else:
+            response = Response(content=user_data, status_code=403)
     else:
-        user_data = {'error': 'forbidden'}
-    if 'error' not in user_data:
-        session_key = __new_session(key, user_data)
-        response = await quart.make_response(json.dumps({
-            'session': session_key,
-            'data': user_data
-        }))
-    else:
-        response = await quart.make_response(json.dumps(user_data), 403)
-    response.mimetype = 'application/json'
+        response = Response(content={'error': 'forbidden'}, status_code=403)
     return response
 
 #===============================================================================
 
-@annotator_blueprint.route('unauthenticate', methods=['GET'])
-async def unauthenticate():
-    response = await quart.make_response('{"success": "Unauthenticated"}')
-    response.mimetype = 'application/json'
-    return response
+@get('unauthenticate')
+async def unauthenticate(request: Request) -> dict:
+    parameters = await request.json()
+    if (key := parameters.get('key')) is not None:
+        request.session['update'] = False
+        __del_session(key)
+    return {"success": "Unauthenticated"}
 
 #===============================================================================
 
-@annotator_blueprint.route('items/', methods=['GET'])
-@__authenticated()
-async def annotated_items():
-    resource_id = __get_parameter('resource')
-    user_id = __get_parameter('user')
+@get('items/', before_request=__authenticated)
+async def annotated_items(request: Request) -> dict:
+    parameters = await request.json()
+    resource_id = parameters.get('resource')
+    user_id = parameters.get('user')
     annotation_store = AnnotationStore()
     if user_id is not None:
-        participated = __get_parameter('participated', True)
+        participated = parameters.get('participated', True)
         item_ids = annotation_store.user_item_ids(resource_id, user_id, participated)
     else:
         item_ids = annotation_store.annotated_item_ids(resource_id)
     annotation_store.close()
-    return quart.jsonify(item_ids)
+    return item_ids
 
 #===============================================================================
 
-@annotator_blueprint.route('features/', methods=['GET'])
-@__authenticated()
-async def features():
-    resource_id = __get_parameter('resource')
-    item_ids = __get_parameter('items')
+@get('features/', before_request=__authenticated)
+async def features(request: Request) -> dict:
+    parameters = await request.json()
+    resource_id = parameters.get('resource')
+    item_ids = parameters.get('items')
     annotation_store = AnnotationStore()
     if item_ids is not None:
         if isinstance(item_ids, str):
@@ -394,57 +384,73 @@ async def features():
     else:
         features = annotation_store.features(resource_id)
     annotation_store.close()
-    return quart.jsonify(features)
+    return features
 
 #===============================================================================
 
-@annotator_blueprint.route('annotations/', methods=['GET'])
-@__authenticated()
-async def annotations():
-    resource_id = __get_parameter('resource')
-    item_id = __get_parameter('item')
+@get('annotations/', before_request=__authenticated)
+async def annotations(request: Request) -> list[dict]:
+    parameters = await request.json()
+    resource_id = parameters.get('resource')
+    item_id = parameters.get('item')
     annotation_store = AnnotationStore()
     annotations = annotation_store.annotations(resource_id, item_id)
     annotation_store.close()
-    return quart.jsonify(annotations)
+    return annotations
 
 #===============================================================================
 
-@annotator_blueprint.route('annotation/', methods=['GET'])
-@annotator_blueprint.route('annotation/<string:id>', methods=['GET'])
-@__authenticated(True)
-async def annotation(id: Optional[str]=None):
-    annotation_id = __get_parameter('annotation') if id is None else id
+@get(['annotation/', 'annotation/<int:id>'], before_request=__authenticated)
+async def annotation(request: Request, id: Optional[int]=None) -> dict:
+    parameters = await request.json()
+    annotation_id = parameters.get('annotation') if id is None else id
     annotation_store = AnnotationStore()
     annotation = annotation_store.annotation(annotation_id)
     annotation_store.close()
-    return quart.jsonify(annotation)
+    return annotation
 
 #===============================================================================
 
-@annotator_blueprint.route('annotation/', methods=['POST'])
-@__authenticated()
-async def add_annotation():
+@post('annotation/', before_request=__authenticated)
+async def add_annotation(request: Request) -> dict|Response:
     annotation_store = AnnotationStore()
-    if quart.request.method == 'POST' and quart.g.update:
-        body = await quart.request.get_json()
+    if request.method == 'POST' and request.session['update']:
+        body = await request.json()
         annotation = body.get('data', {})
         result = annotation_store.add_annotation(annotation)
     else:
-        result = '{"error": "forbidden"}', 403, {'mimetype': 'application/json'}
+        result = Response(content={'error': 'forbidden'}, status_code=403)
     annotation_store.close()
-    return quart.jsonify(result)
+    return result
 
 #===============================================================================
-#===============================================================================
 
-@annotator_blueprint.route('download/', methods=['GET'])
-@__authenticated(True)
-async def download():
+@get('download/', before_request=partial(__authenticated, bearer=True))
+async def download()  -> list[dict]:
     annotation_store = AnnotationStore()
     annotations = annotation_store.annotations()
     annotation_store.close()
-    return quart.jsonify(annotations)
+    return annotations
+
+#===============================================================================
+#===============================================================================
+
+session_config = CookieBackendConfig(secret=os.urandom(16))  # type: ignore
+
+annotation_router = Router(
+    path="/annotator",
+    route_handlers=[
+        add_annotation,
+        annotated_items,
+        annotations,
+        annotation,
+        authenticate,
+        download,
+        features,
+        unauthenticate
+        ],
+        middleware=[session_config.middleware],
+    )
 
 #===============================================================================
 #===============================================================================
