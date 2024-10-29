@@ -18,7 +18,7 @@
 #
 #===============================================================================
 
-import os.path
+import pathlib
 
 #===============================================================================
 
@@ -30,11 +30,12 @@ from ..settings import settings
 
 #===============================================================================
 
-viewer_dir = os.path.join(settings['FLATMAP_VIEWER'], 'app/dist')
+viewer_dir = pathlib.Path(settings['FLATMAP_VIEWER']) / 'app' / 'dist'
 
 viewer_router = create_static_files_router(
     path="/viewer",
-    directories=[viewer_dir]
+    directories=[str(viewer_dir.relative_to(settings['ROOT_PATH']))],
+    html_mode=True
 )
 
 #===============================================================================

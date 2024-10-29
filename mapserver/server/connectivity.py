@@ -18,23 +18,14 @@
 #
 #===============================================================================
 
-import os.path
-
-#===============================================================================
-
 from litestar.static_files import create_static_files_router
 
 #===============================================================================
 
-from ..settings import settings
-
-#===============================================================================
-
-connectivity_dir = os.path.normpath(os.path.join(settings['ROOT_PATH'], 'connectivity'))
-
 connectivity_router = create_static_files_router(
     path="/connectivity-graph",
-    directories=[connectivity_dir]
+    directories=['connectivity/dist'],
+    html_mode=True
 )
 
 #===============================================================================
