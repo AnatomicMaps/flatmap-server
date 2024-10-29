@@ -18,6 +18,8 @@
 #
 #===============================================================================
 
+import dataclasses
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from functools import partial
 from pathlib import Path
@@ -34,7 +36,7 @@ from litestar.middleware.session.server_side import ServerSideSessionConfig
 
 #===============================================================================
 
-from ..pennsieve import get_user
+from ..pennsieve import get_user as get_pennsieve_user
 from ..settings import settings
 
 #===============================================================================
@@ -303,34 +305,33 @@ def __del_session(session_key: str) -> bool:
 #===============================================================================
 #===============================================================================
 
-async def __authenticated(request: Request, bearer=False):
-    if request.method == 'GET':
-        parameters = request.query_params
-    elif request.method == 'POST':
-        parameters = await request.json()
-    else:
-        parameters = {}
-    if ((key := parameters.get('key')) is not None
-      and (session_key := parameters.get('session')) is not None
+def __authenticated_session(query: dict[str, Any], request: Request) -> bool:
+#============================================================================
+    request.session['update'] = False
+    if ((key := query.get('key')) is not None
+      and (session_key := query.get('session')) is not None
       and session_key == __session_key(key)
       and (data := __session_data(session_key)) is not None):
         request.session['update'] = data.get('canUpdate', False)
-        return
-    if bearer and request.method == 'GET' and settings['ANNOTATOR_TOKENS']:
+        return True
+    return False
+
+def __authenticated_bearer(request: Request) -> bool:
+#====================================================
+    if request.method == 'GET' and settings['ANNOTATOR_TOKENS']:
         auth = request.headers.get('Authorization', '')
         if auth.startswith('Bearer '):
             if auth.split()[1] in settings['ANNOTATOR_TOKENS']:
                 request.session['update'] = False
-                return
-    raise exceptions.NotAuthorizedException()
+                return True
+    return False
 
 #===============================================================================
 
 @get('authenticate')
-async def authenticate(request: Request) -> dict|Response:
-    parameters = await request.json()
-    if (key := parameters.get('key')) is not None:
-        user_data = get_user(key)
+async def authenticate(query: dict[str, Any]) -> dict|Response:
+    if (key := query.get('key')) is not None:
+        user_data = get_pennsieve_user(key)
         if 'error' not in user_data:
             session_key = __new_session(key, user_data)
             response = {
@@ -346,91 +347,104 @@ async def authenticate(request: Request) -> dict|Response:
 #===============================================================================
 
 @get('unauthenticate')
-async def unauthenticate(request: Request) -> dict:
-    parameters = await request.json()
-    if (key := parameters.get('key')) is not None:
+async def unauthenticate(query: dict[str, Any], request: Request) -> dict:
+    if (session := query.get('session')) is not None:
+        __del_session(session)
         request.session['update'] = False
-        __del_session(key)
     return {"success": "Unauthenticated"}
 
 #===============================================================================
 
-@get('items/', before_request=__authenticated)
-async def annotated_items(request: Request) -> dict:
-    parameters = await request.json()
-    resource_id = parameters.get('resource')
-    user_id = parameters.get('user')
-    annotation_store = AnnotationStore()
-    if user_id is not None:
-        participated = parameters.get('participated', True)
-        item_ids = annotation_store.user_item_ids(resource_id, user_id, participated)
-    else:
-        item_ids = annotation_store.annotated_item_ids(resource_id)
-    annotation_store.close()
-    return item_ids
+@get('items/')
+async def annotated_items(query: dict[str, Any], request: Request) -> dict:
+    if __authenticated_session(query, request):
+        if (resource_id := query.get('resource')) is not None:
+            user_id = query.get('user')
+            annotation_store = AnnotationStore()
+            if user_id is not None:
+                participated = query.get('participated', True)
+                item_ids = annotation_store.user_item_ids(resource_id, user_id, participated)
+            else:
+                item_ids = annotation_store.annotated_item_ids(resource_id)
+            annotation_store.close()
+            return item_ids
+        return {}
+    raise exceptions.NotAuthorizedException()
 
 #===============================================================================
 
-@get('features/', before_request=__authenticated)
-async def features(request: Request) -> dict:
-    parameters = await request.json()
-    resource_id = parameters.get('resource')
-    item_ids = parameters.get('items')
-    annotation_store = AnnotationStore()
-    if item_ids is not None:
-        if isinstance(item_ids, str):
-            item_ids = [item_ids]
-        features = annotation_store.item_features(resource_id, item_ids)
-    else:
-        features = annotation_store.features(resource_id)
-    annotation_store.close()
-    return features
+@get('features/')
+async def features(query: dict[str, Any], request: Request) -> dict:
+    if __authenticated_session(query, request):
+        if (resource_id := query.get('resource')) is not None:
+            annotation_store = AnnotationStore()
+            if (item_ids := query.get('items')) is not None:
+                if isinstance(item_ids, str):
+                    item_ids = [item_ids]
+                features = annotation_store.item_features(resource_id, item_ids)
+            else:
+                features = annotation_store.features(resource_id)
+            annotation_store.close()
+            return features
+        return {}
+    raise exceptions.NotAuthorizedException()
 
 #===============================================================================
 
-@get('annotations/', before_request=__authenticated)
-async def annotations(request: Request) -> list[dict]:
-    parameters = await request.json()
-    resource_id = parameters.get('resource')
-    item_id = parameters.get('item')
-    annotation_store = AnnotationStore()
-    annotations = annotation_store.annotations(resource_id, item_id)
-    annotation_store.close()
-    return annotations
+@get('annotations/')
+async def annotations(query: dict[str, Any], request: Request) -> list[dict]:
+    if __authenticated_session(query, request):
+        if ((resource_id := query.get('resource')) is not None
+        and (item_id := query.get('item')) is not None):
+            annotation_store = AnnotationStore()
+            annotations = annotation_store.annotations(resource_id, item_id)
+            annotation_store.close()
+            return annotations
+        return []
+    raise exceptions.NotAuthorizedException()
 
 #===============================================================================
 
-@get(['annotation/', 'annotation/<int:id>'], before_request=__authenticated)
-async def annotation(request: Request, id: Optional[int]=None) -> dict:
-    parameters = await request.json()
-    annotation_id = parameters.get('annotation') if id is None else id
-    annotation_store = AnnotationStore()
-    annotation = annotation_store.annotation(annotation_id)
-    annotation_store.close()
-    return annotation
+@get(['annotation/', 'annotation/<int:id>'])
+async def annotation(query: dict[str, Any], request: Request, id: Optional[int]=None) -> dict:
+    if __authenticated_session(query, request):
+        annotation_id = int(query.get('annotation', 0)) if id is None else id
+        annotation_store = AnnotationStore()
+        annotation = annotation_store.annotation(annotation_id)
+        annotation_store.close()
+        return annotation
+    raise exceptions.NotAuthorizedException()
 
 #===============================================================================
 
-@post('annotation/', before_request=__authenticated)
-async def add_annotation(request: Request) -> dict|Response:
-    annotation_store = AnnotationStore()
-    if request.method == 'POST' and request.session['update']:
-        body = await request.json()
-        annotation = body.get('data', {})
-        result = annotation_store.add_annotation(annotation)
-    else:
-        result = Response(content={'error': 'forbidden'}, status_code=403)
-    annotation_store.close()
-    return result
+@dataclass
+class AddAnnotationRequest:
+    key: str
+    session: str
+    data: dict
+
+@post('annotation/')
+async def add_annotation(data: AddAnnotationRequest, request: Request) -> dict|Response:
+    if __authenticated_session(dataclasses.asdict(data), request):
+        if request.session['update']:
+            annotation_store = AnnotationStore()
+            result = annotation_store.add_annotation(data.data)
+            annotation_store.close()
+        else:
+            result = Response(content={'error': 'forbidden'}, status_code=403)
+        return result
+    raise exceptions.NotAuthorizedException()
 
 #===============================================================================
 
-@get('download/', before_request=partial(__authenticated, bearer=True))
-async def download()  -> list[dict]:
-    annotation_store = AnnotationStore()
-    annotations = annotation_store.annotations()
-    annotation_store.close()
-    return annotations
+@get('download/')
+async def download(request: Request)  -> list[dict]:
+    if __authenticated_bearer(request):
+        annotation_store = AnnotationStore()
+        annotations = annotation_store.annotations()
+        annotation_store.close()
+        return annotations
+    raise exceptions.NotAuthorizedException()
 
 #===============================================================================
 #===============================================================================
