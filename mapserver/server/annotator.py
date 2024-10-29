@@ -449,7 +449,7 @@ async def download(request: Request)  -> list[dict]:
 #===============================================================================
 #===============================================================================
 
-annotation_router = Router(
+annotator_router = Router(
     path="/annotator",
     route_handlers=[
         add_annotation,

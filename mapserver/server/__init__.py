@@ -41,7 +41,7 @@ from ..knowledge import KnowledgeStore
 from ..settings import settings
 from .. import __version__
 
-from .annotator import annotation_router
+from .annotator import annotator_router
 from .connectivity import connectivity_router
 from .flatmap import flatmap_router
 from .knowledge import knowledge_router
@@ -54,7 +54,7 @@ cors_config = CORSConfig(allow_origins=["*"])
 
 app = Litestar(
     route_handlers=[
-        annotation_router,
+        annotator_router,
         connectivity_router,
         flatmap_router,
         knowledge_router,
