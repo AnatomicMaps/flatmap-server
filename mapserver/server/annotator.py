@@ -226,36 +226,38 @@ class AnnotationStore:
                     where_clauses.append('itemid=?')
                     where_values.append(item_id)
                 where_statement = 'where ' + ' and '.join(where_clauses)
-            for row in self.__db.execute(f'''select rowid, created, creator, annotation, resource, itemid, item
+            for row in self.__db.execute(f'''select id, created, creator, annotation, resource, itemid, item, status
                                         from annotations {where_statement}
                                         order by created desc, creator''',
                                     tuple(where_values)).fetchall():
                 annotation = {
-                    'annotationId': int(row[0]),
+                    'annotationId': row[0],
                     'resource': row[4],
                     'item': json.loads(row[6]),
                     'created': row[1],
-                    'creator': json.loads(row[2])
+                    'creator': json.loads(row[2]),
+                    'status': row[7]
                 }
                 annotation.update(json.loads(row[3]))
                 annotations.append(annotation)
         return annotations
 
-    def annotation(self, annotation_id: int) -> dict:
+    def annotation(self, annotation_id: str) -> dict:
     #================================================
         annotation = {}
         if self.__db is not None:
-            row = self.__db.execute('''select a.resource, a.itemid, a.item, a.created, a.creator, a.annotation, f.feature
-                                        from annotations as a left join features as f on a.rowid = f.annotation
-                                        where a.rowid=? and f.deleted is null''', (annotation_id, )).fetchone()
+            row = self.__db.execute('''select a.resource, a.itemid, a.item, a.created, a.creator, a.annotation, a.status, f.feature
+                                        from annotations as a left join features as f on a.id = f.annotation
+                                        where a.id=? and f.deleted is null''', (annotation_id, )).fetchone()
             if row is not None:
                 annotation = {
-                    'annotationId': int(annotation_id),
+                    'annotationId': annotation_id,
                     'resource': row[0],
                     'item': json.loads(row[2]),
                     'created': row[3],
                     'creator': json.loads(row[4]),
-                    'feature': json.loads(row[6]) if row[6] else None,
+                    'status': row[6],
+                    'feature': json.loads(row[7]) if row[7] else None,
                 }
                 annotation.update(json.loads(row[5]))
         return annotation
@@ -280,21 +282,23 @@ class AnnotationStore:
                 creator.pop('canUpdate', None)
                 try:
                     feature = annotation.pop('feature', None)
+                    status = annotation.pop('status', None)
+                    annotation_id = str(uuid.uuid4)
+                    result['annotationId'] = annotation_id
                     cursor = self.__db.cursor()
                     cursor.execute('''insert into annotations
-                        (resource, itemid, item, created, orcid, creator, annotation) values (?, ?, ?, ?, ?, ?, ?)''',
-                        (resource_id, item_id, json.dumps(item), created, orcid, json.dumps(creator), json.dumps(annotation)))
-                    if cursor.lastrowid is not None:
-                        result['annotationId'] = int(cursor.lastrowid)
+                        (id, resource, itemid, item, created, orcid, creator, annotation, status) values (?, ?, ?, ?, ?, ?, ?, ?)''',
+                        (annotation_id, resource_id, item_id, json.dumps(item), created, orcid,
+                         json.dumps(creator), json.dumps(annotation), status))
                     # Flag as deleted any non-deleted entries for the feature
                     cursor.execute('''update features set deleted=?
                         where deleted is null and resource=? and itemid=?''',
-                        (result['annotationId'], resource_id, item_id))
+                        (annotation_id, resource_id, item_id))
                     if feature and isinstance(feature, dict):
                         # Add a new row when we have a new feature
                         cursor.execute('''insert into features
                             (resource, itemid, annotation, deleted, feature) values (?, ?, ?, null, ?)''',
-                            (resource_id, item_id, result['annotationId'], json.dumps(feature)))
+                            (resource_id, item_id, annotation_id, json.dumps(feature)))
                     cursor.execute('commit')
                 except sqlite3.OperationalError as err:
                     result['error'] = str(err)
@@ -423,10 +427,10 @@ async def annotations(query: dict[str, Any], request: Request) -> list[dict]:
 
 #===============================================================================
 
-@get(['annotation/', 'annotation/<int:id>'])
-async def annotation(query: dict[str, Any], request: Request, id: Optional[int]=None) -> dict:
+@get(['annotation/', 'annotation/<str:id>'])
+async def annotation(query: dict[str, Any], request: Request, id: Optional[str]=None) -> dict:
     if __authenticated_session(query, request):
-        annotation_id = int(query.get('annotation', 0)) if id is None else id
+        annotation_id = query.get('annotation', '') if id is None else id
         annotation_store = AnnotationStore()
         annotation = annotation_store.annotation(annotation_id)
         annotation_store.close()
@@ -436,13 +440,15 @@ async def annotation(query: dict[str, Any], request: Request, id: Optional[int]=
 #===============================================================================
 
 @dataclass
-class AddAnnotationRequest:
+class AnnotationUpdateRequest:
     key: str
     session: str
     data: dict
 
+#===============================================================================
+
 @post('annotation/')
-async def add_annotation(data: AddAnnotationRequest, request: Request) -> dict|Response:
+async def add_annotation(data: AnnotationUpdateRequest, request: Request) -> dict|Response:
     if __authenticated_session(dataclasses.asdict(data), request):
         if request.session['update']:
             annotation_store = AnnotationStore()
