@@ -43,6 +43,7 @@ from .. import __version__
 
 from .annotator import annotator_router
 from .connectivity import connectivity_router
+from .dashboard import dashboard_router
 from .flatmap import flatmap_router
 from .knowledge import knowledge_router
 from .maker import maker_router, initialise as init_maker
@@ -52,6 +53,7 @@ from .viewer import viewer_router
 
 app = Litestar(
     route_handlers=[
+        dashboard_router,
         annotator_router,
         connectivity_router,
         flatmap_router,
