@@ -143,13 +143,13 @@ async def maps(request: Request) -> list:
 
 #===============================================================================
 
-@get('flatmap/{map_id:str}/')
-async def map_index(request: Request, map_id: str) -> dict|Response:
+@get('flatmap/{map_uuid:str}/')
+async def map_index(request: Request, map_uuid: str) -> dict|Response:
     """
     Return a representation of a flatmap.
 
-    :param map_id: The flatmap identifier
-    :type map_id: string
+    :param map_uuid: The flatmap identifier
+    :type map_uuid: string
 
     :reqheader Accept: Determines the response content
 
@@ -157,15 +157,15 @@ async def map_index(request: Request, map_id: str) -> dict|Response:
     doesn't specify a JSON response then the SVG is returned, otherwise the
     flatmap's ``index.json`` is returned.
     """
-    index_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / 'index.json'
+    index_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'index.json'
     if not index_file.exists():
         return Response(content={'detail': 'Missing map index'}, status_code=404)
     with open(index_file) as fp:
         index = json.load(fp)
     if request.accept.accepts('image/svg+xml'):
-        svg_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / f'{index["id"]}.svg'
+        svg_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / f'{index["id"]}.svg'
         if not svg_file.exists():
-            svg_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / 'images' / f'{index["id"]}.svg'
+            svg_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'images' / f'{index["id"]}.svg'
         if not svg_file.exists():
             with open(svg_file) as fp:
                 return Response(content=fp.read(), media_type='image/svg+xml')
@@ -173,70 +173,70 @@ async def map_index(request: Request, map_id: str) -> dict|Response:
 
 #===============================================================================
 
-@get('flatmap/{map_id:str}/log', media_type='text/plain')
-async def mapmaker_log(map_id: str) -> File:
-    path = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / 'mapmaker.log'
+@get('flatmap/{map_uuid:str}/log', media_type='text/plain')
+async def mapmaker_log(map_uuid: str) -> File:
+    path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'mapmaker.log'
     if not path.exists():
         raise exceptions.NotFoundException(detail='Missing mapmaker.log')
     return File(path=path, filename='mapmaker.log')
 
 #===============================================================================
 
-@get('flatmap/{map_id:str}/style')
-async def map_style(map_id: str) -> dict|list:
-    path = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / 'style.json'
     return read_json(path)
+@get('flatmap/{map_uuid:str}/style')
+async def map_style(map_uuid: str) -> dict|list:
+    path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'style.json'
 
 #===============================================================================
 
 ## DEPRECATED
-@get('flatmap/{map_id:str}/markers', include_in_schema=False)
-async def map_markers(map_id: str) -> dict|list:
-    path = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / 'markers.json'
     return read_json(path)
+@get('flatmap/{map_uuid:str}/markers', include_in_schema=False)
+async def map_markers(map_uuid: str) ->  dict|list:
+    path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'markers.json'
 
 #===============================================================================
 
-@get('flatmap/{map_id:str}/layers')
-async def map_layers(map_id: str) -> dict:
+@get('flatmap/{map_uuid:str}/layers')
+async def map_layers(map_uuid: str) -> dict:
     try:
-        return json_map_metadata(map_id, 'layers')
+        return json_map_metadata(map_uuid, 'layers')
     except IOError as err:
         raise exceptions.NotFoundException(detail=str(err))
 
 #===============================================================================
 
-@get('flatmap/{map_id:str}/metadata')
-async def map_metadata(map_id: str) -> dict:
+@get('flatmap/{map_uuid:str}/metadata')
+async def map_metadata(map_uuid: str) -> dict:
     try:
-        return json_map_metadata(map_id, 'metadata')
+        return json_map_metadata(map_uuid, 'metadata')
     except IOError as err:
         raise exceptions.NotFoundException(detail=str(err))
 
 #===============================================================================
 
-@get('flatmap/{map_id:str}/pathways')
-async def map_pathways(map_id: str) -> dict:
+@get('flatmap/{map_uuid:str}/pathways')
+async def map_pathways(map_uuid: str) -> dict:
     try:
-        return json_map_metadata(map_id, 'pathways')
+        return json_map_metadata(map_uuid, 'pathways')
     except IOError as err:
         raise exceptions.NotFoundException(detail=str(err))
 
 #===============================================================================
 
-@get('flatmap/{map_id:str}/images/{image:str}')
-async def map_background(map_id: str, image:str) -> Response:
-    path = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / 'images' / image
+@get('flatmap/{map_uuid:str}/images/{image:str}')
+async def map_background(map_uuid: str, image:str) -> Response:
+    path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'images' / image
     if not path.exists():
         raise exceptions.NotFoundException(detail=f'Missing image: {image}')
     return File(path=path, filename=image)
 
 #===============================================================================
 
-@get('flatmap/{map_id:str}/mvtiles/{z:int}/{x:int}/{y:int}')
-async def vector_tiles(map_id: str, z: int, y:int, x: int) -> Response:
+@get('flatmap/{map_uuid:str}/mvtiles/{z:int}/{x:int}/{y:int}')
+async def vector_tiles(map_uuid: str, z: int, y:int, x: int) -> Response:
     try:
-        mbtiles = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / 'index.mbtiles'
+        mbtiles = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'index.mbtiles'
         tile_reader = MBTilesReader(mbtiles)
         tile_bytes = tile_reader.tile(z, x, y)
         if get_metadata(tile_reader, 'compressed'):
@@ -250,10 +250,10 @@ async def vector_tiles(map_id: str, z: int, y:int, x: int) -> Response:
 
 #===============================================================================
 
-@get('flatmap/{map_id:str}/tiles/{layer:str}/{z:int}/{x:int}/{y:int}')
-async def image_tiles(map_id: str, layer: str, z: int, y:int, x: int) -> Response:
+@get('flatmap/{map_uuid:str}/tiles/{layer:str}/{z:int}/{x:int}/{y:int}')
+async def image_tiles(map_uuid: str, layer: str, z: int, y:int, x: int) -> Response:
     try:
-        mbtiles = pathlib.Path(settings['FLATMAP_ROOT']) / map_id / f'{layer}.mbtiles'
+        mbtiles = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / f'{layer}.mbtiles'
         reader = MBTilesReader(mbtiles)
         return Response(content=reader.tile(z, x, y), media_type='image/png')
     except ExtractionError:
@@ -264,19 +264,19 @@ async def image_tiles(map_id: str, layer: str, z: int, y:int, x: int) -> Respons
 
 #===============================================================================
 
-@get('flatmap/{map_id:str}/annotations')
-async def map_annotation(map_id: str) -> dict:
+@get('flatmap/{map_uuid:str}/annotations')
+async def map_annotation(map_uuid: str) -> dict:
     try:
-        return json_map_metadata(map_id, 'annotations')
+        return json_map_metadata(map_uuid, 'annotations')
     except IOError as err:
         raise exceptions.NotFoundException(detail=str(err))
 
 #===============================================================================
 
-@get('flatmap/{map_id:str}/termgraph')
-async def map_termgraph(map_id: str) -> dict:
+@get('flatmap/{map_uuid:str}/termgraph')
+async def map_termgraph(map_uuid: str) -> dict:
     try:
-        return anatomical_hierarchy.get_hierachy(map_id)
+        return anatomical_hierarchy.get_hierachy(map_uuid)
     except IOError as err:
         raise exceptions.NotFoundException(detail=str(err))
 
