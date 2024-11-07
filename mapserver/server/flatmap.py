@@ -28,7 +28,7 @@ import sqlite3
 
 from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
 
-from litestar import exceptions, get, Request, Response, Router
+from litestar import exceptions, get, MediaType, Request, Response, Router
 from litestar.response import File
 
 from PIL import Image
@@ -45,6 +45,12 @@ If a file with this name exists in the map's output directory then the map
 is in the process of being made
 """
 MAKER_SENTINEL = '.map_making'
+
+"""
+The name of the log file from when the map was made
+"""
+MAKER_LOG = 'mapmaker.log.json'
+OLD_MAKER_LOG = 'mapmaker.log'
 
 #===============================================================================
 
@@ -173,12 +179,15 @@ async def map_index(request: Request, map_uuid: str) -> dict|Response:
 
 #===============================================================================
 
-@get('flatmap/{map_uuid:str}/log', media_type='text/plain')
+@get('flatmap/{map_uuid:str}/log')
 async def mapmaker_log(map_uuid: str) -> File:
-    path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'mapmaker.log'
+    path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / MAKER_LOG
     if not path.exists():
-        raise exceptions.NotFoundException(detail='Missing mapmaker.log')
-    return File(path=path, filename='mapmaker.log')
+        path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / OLD_MAKER_LOG
+        if not path.exists():
+            raise exceptions.NotFoundException(detail=f'Missing {MAKER_LOG}')
+        return File(path=path, filename=OLD_MAKER_LOG, media_type=MediaType.TEXT)
+    return File(path=path, filename=MAKER_LOG, media_type=MediaType.JSON)
 
 #===============================================================================
 
