@@ -45,7 +45,7 @@ from .annotator import annotator_router
 from .connectivity import connectivity_router
 from .flatmap import flatmap_router
 from .knowledge import knowledge_router
-from .maker import maker_router, initialise as init_maker, map_maker
+from .maker import maker_router, initialise as init_maker
 from .viewer import viewer_router
 
 #===============================================================================
