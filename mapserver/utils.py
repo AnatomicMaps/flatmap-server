@@ -32,18 +32,6 @@ from landez.sources import MBTilesReader, InvalidFormatError
 from .settings import settings
 
 #===============================================================================
-#===============================================================================
-
-def read_json(filename) -> dict|list:
-#====================================
-    try:
-        with open(filename) as fp:
-            return json.loads(fp.read())
-    except FileNotFoundError:
-        return {}
-
-#===============================================================================
-#===============================================================================
 
 def get_metadata(reader: MBTilesReader, name: str) -> Optional[str]:
 #===================================================================

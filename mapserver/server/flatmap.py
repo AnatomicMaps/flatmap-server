@@ -37,7 +37,7 @@ from PIL import Image
 
 from ..knowledge.hierarchy import AnatomicalHierarchy
 from ..settings import settings
-from ..utils import get_metadata, json_metadata, json_map_metadata, read_json
+from ..utils import get_metadata, json_metadata, json_map_metadata
 
 #===============================================================================
 """
@@ -191,18 +191,18 @@ async def mapmaker_log(map_uuid: str) -> File:
 
 #===============================================================================
 
-    return read_json(path)
 @get('flatmap/{map_uuid:str}/style')
-async def map_style(map_uuid: str) -> dict|list:
+async def map_style(map_uuid: str) -> File:
     path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'style.json'
+    return File(path=path, media_type=MediaType.JSON)
 
 #===============================================================================
 
 ## DEPRECATED
-    return read_json(path)
 @get('flatmap/{map_uuid:str}/markers', include_in_schema=False)
-async def map_markers(map_uuid: str) ->  dict|list:
+async def map_markers(map_uuid: str) -> File:
     path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'markers.json'
+    return File(path=path, media_type=MediaType.JSON)
 
 #===============================================================================
 

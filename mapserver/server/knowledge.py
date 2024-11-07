@@ -24,14 +24,14 @@ from typing import Optional
 
 #===============================================================================
 
-from litestar import get, post, Request, Router
+from litestar import get, MediaType, post, Request, Router
+from litestar.response import File
 
 #===============================================================================
 
 from ..knowledge import KnowledgeStore
 from ..knowledge.hierarchy import CACHED_SPARC_HIERARCHY
 from ..settings import settings
-from ..utils import read_json
 
 #===============================================================================
 #===============================================================================
@@ -95,10 +95,10 @@ async def knowledge_sources() -> dict:
     return {'sources': sources}
 
 @get('sparcterms')
-async def sparcterms() -> dict|list:
-#===================================
+async def sparcterms() -> File:
+#==============================
     filename = os.path.join(settings['FLATMAP_ROOT'], CACHED_SPARC_HIERARCHY)
-    return read_json(filename)
+    return File(path=filename, media_type=MediaType.JSON)
 
 @get('schema-version')
 async def knowledge_schema_version(request: Request) -> dict:
