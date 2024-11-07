@@ -36,8 +36,11 @@ from litestar.middleware.session.server_side import ServerSideSessionConfig
 
 #===============================================================================
 
-from ..pennsieve import get_user as get_pennsieve_user
-from ..settings import settings
+if __name__ != '__main__':
+    from ..pennsieve import get_user as get_pennsieve_user
+    from ..settings import settings
+else:
+    settings = {}
 
 #===============================================================================
 '''
@@ -100,19 +103,30 @@ TEST_USER = {
 '''
 #===============================================================================
 
+SCHEMA_VERSION = '1.1'
+
 ANNOTATION_STORE_SCHEMA = """
     begin;
-    create table annotations (resource text, itemid text, item text, created text, orcid text, creator text, annotation text);
+    create table metadata (name text primary key, value text);
+    create table annotations (id text primary key, resource text, itemid text, item text, created text, orcid text, creator text, annotation text, status text);
     create index annotations_index on annotations(resource, itemid, created, orcid);
     create table features (resource text, itemid text, deleted text, annotation text, feature text);
     create index features_index on features(resource, itemid, deleted);
+    create index features_annotation_index on features(annotation, resource, itemid, deleted);
+    insert into metadata (name, value) values ('schema_version', '{SCHEMA_VERSION}');
     commit;
 """
 
-PROVENANCE_PROPERTIES = [
-    'rdfs:comment',
-    'prov:wasDerivedFrom',
-]
+SCHEMA_UPGRADES: dict[Optional[str], tuple[str, str]] = {
+    None: ('1.1', """
+        alter table annotations add id text;
+        alter table annotations add status text;
+        create index features_annotation_index on features(annotation, resource, itemid, deleted);
+        update annotations set id = rowid;
+        create table metadata (name text primary key, value text);
+        replace into metadata (name, value) values ('schema_version', '1.1');
+    """)
+}
 
 #===============================================================================
 
@@ -127,6 +141,10 @@ class AnnotationStore:
             db.executescript(ANNOTATION_STORE_SCHEMA)
             db.close()
         self.__db = sqlite3.connect(db_name)
+
+    @property
+    def db(self):
+        return self.__db
 
     def close(self):
     #===============
@@ -331,7 +349,7 @@ def __authenticated_bearer(request: Request) -> bool:
 @get('authenticate')
 async def authenticate(query: dict[str, Any]) -> dict|Response:
     if (key := query.get('key')) is not None:
-        user_data = get_pennsieve_user(key)
+        user_data = get_pennsieve_user(key)     # type: ignore
         if 'error' not in user_data:
             session_key = __new_session(key, user_data)
             response = {
@@ -464,6 +482,33 @@ annotator_router = Router(
         middleware=[ServerSideSessionConfig().middleware],
         include_in_schema=False
     )
+
+#===============================================================================
+#===============================================================================
+
+if __name__ == '__main__':
+    import logging
+
+    store = AnnotationStore(pathlib.Path('flatmaps/annotation_store.db'))
+    if store.db is not None:
+        schema_version: Optional[str] = None
+        row = store.db.execute("select name from sqlite_schema where type='table' and name='metadata'").fetchone()
+        if row is not None:
+            row = store.db.execute("select value from metadata where name='schema_version").fetchone()
+            if row is not None:
+                schema_version = row[0]
+        if schema_version != SCHEMA_VERSION:
+            while schema_version != SCHEMA_VERSION:
+                if (upgrade := SCHEMA_UPGRADES.get(schema_version)) is None:
+                    raise ValueError(f'Unable to upgrade annotation schema from version {schema_version}')
+                logging.warn(f'Upgrading annotation schema from version {schema_version} to {upgrade[0]}')
+                schema_version = upgrade[0]
+                try:
+                    store.db.executescript(upgrade[1])
+                except sqlite3.Error as e:
+                    store.db.rollback()
+                    raise ValueError(f'Unable to upgrade annotation schema to version {schema_version}: {str(e)}')
+                store.db.commit()
 
 #===============================================================================
 #===============================================================================
