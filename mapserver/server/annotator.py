@@ -306,6 +306,20 @@ class AnnotationStore:
             result['error'] = 'No annotation database...'
         return result
 
+    def update_status(self, annotation_id: str, status: str) -> dict[str, Any]:
+    #==========================================================================
+        result = {}
+        if self.__db is not None:
+            try:
+                cursor = self.__db.cursor()
+                cursor.execute('update annotations set status=? where id=', (annotation_id, status))
+                result['success'] = 'status updated'
+            except sqlite3.OperationalError as err:
+                result['error'] = str(err)
+        else:
+            result['error'] = 'No annotation database...'
+        return result
+
 #===============================================================================
 
 __sessions: dict[str, dict] = {}
@@ -344,7 +358,7 @@ def __authenticated_bearer(request: Request) -> bool:
         auth = request.headers.get('Authorization', '')
         if auth.startswith('Bearer '):
             if auth.split()[1] in settings['ANNOTATOR_TOKENS']:
-                request.session['update'] = False
+                request.session['update'] = auth.split()[1] in settings['ANNOTATOR_UPDATE']
                 return True
     return False
 
@@ -453,6 +467,25 @@ async def add_annotation(data: AnnotationUpdateRequest, request: Request) -> dic
         if request.session['update']:
             annotation_store = AnnotationStore()
             result = annotation_store.add_annotation(data.data)
+            annotation_store.close()
+        else:
+            result = Response(content={'error': 'forbidden'}, status_code=403)
+        return result
+    raise exceptions.NotAuthorizedException()
+
+#===============================================================================
+
+@post('update/')
+async def update_status(data: AnnotationUpdateRequest, request: Request) -> dict|Response:
+    if __authenticated_session(dataclasses.asdict(data), request) or __authenticated_bearer(request):
+        if request.session['update']:
+            annotation_store = AnnotationStore()
+            annotation_id = data.data.get('annotationId')
+            status = data.data.get('status')
+            if annotation_id is not None and status is not None:
+                result = annotation_store.update_status(annotation_id, status)
+            else:
+                result = Response(content={'error': 'invalid parameters'}, status_code=400)
             annotation_store.close()
         else:
             result = Response(content={'error': 'forbidden'}, status_code=403)
