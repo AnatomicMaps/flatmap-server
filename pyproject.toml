@@ -8,7 +8,7 @@ authors = ["David Brooks <d.brooks@auckland.ac.nz>"]
 python = ">=3.12,<4.0"
 landez = "^2.5.0"
 flatmapknowledge = {url="https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.1/flatmapknowledge-2.0.1-py3-none-any.whl"}
-mapmaker = {url="https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.13.2/mapmaker-1.13.2-py3-none-any.whl"}
+mapmaker = {url="https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.14.0/mapmaker-1.14.0-py3-none-any.whl"}
 Pillow = "^10.3.0"
 requests = "^2.31.0"
 hypercorn = "^0.16.0"
