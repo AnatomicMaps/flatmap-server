@@ -72,6 +72,8 @@ settings['MAPMAKER_LOGS'] = normalise_path(MAPMAKER_LOGS)
 # Bearer tokens for service authentication
 
 settings['ANNOTATOR_TOKENS'] = os.environ.get('ANNOTATOR_TOKENS', '').split()
+settings['ANNOTATOR_UPDATE'] = os.environ.get('ANNOTATOR_UPDATE', '').split()
+
 settings['MAPMAKER_TOKENS'] = os.environ.get('MAPMAKER_TOKENS', '').split()
 
 #===============================================================================
