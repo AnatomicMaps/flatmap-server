@@ -32,7 +32,8 @@ import uvloop
 
 #===============================================================================
 
-from .server import app, initialise, map_maker
+from .server import app, initialise
+from .server.maker import map_maker
 from .settings import config, settings
 
 SERVER_INTERFACE = os.environ.get('SERVER_INTERFACE', '127.0.0.1')
