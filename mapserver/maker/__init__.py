@@ -26,11 +26,13 @@ import os
 import queue
 import sys
 import threading
+import typing
 from typing import Optional
 import uuid
 
 #===============================================================================
 
+import structlog
 import uvloop
 
 #===============================================================================
@@ -141,6 +143,8 @@ class Manager(threading.Thread):
     """A thread to manage flatmap generation"""
     def __init__(self):
         super().__init__(name='maker-thread')
+        logger = structlog.get_logger()
+        self.__log = typing.cast(structlog.BoundLogger, logger.bind(type='maker'))
         self.__map_dir = None
         self.__processes_by_id: dict[str, MakerProcess] = {}
         self.__running_processes: list[str] = []
@@ -169,7 +173,7 @@ class Manager(threading.Thread):
             process = self.__processes_by_id[id]
             log_lines = process.get_log(start_line)
             if process.completed and process.last_log_lines:
-                await settings['LOGGER'].info('\n'.join(process.last_log_lines))
+                self.__log.info('\n'.join(process.last_log_lines))
             return log_lines
         return ''
 
@@ -182,7 +186,7 @@ class Manager(threading.Thread):
             'backgroundTiles': True,
             'silent': True,
             'noPathLayout': True,
-            'logPath': settings['MAPMAKER_LOGS']  # Logfile name is `PROCESS_ID.log`
+            'logPath': settings['MAPMAKER_LOGS']  # Logfile name is `PROCESS_ID.json.log`
         })
         process = MakerProcess(params)
         async with self.__process_lock:
@@ -208,7 +212,7 @@ class Manager(threading.Thread):
                         still_running.append(id)
                     else:
                         process.close()
-                        await settings['LOGGER'].info(f'Finished mapmaker process: {process.name}')
+                        self.__log.info(f'Finished mapmaker process: {process.name}')
                 self.__running_processes = still_running
             if len(self.__running_processes) == 0:
                 try:
@@ -241,7 +245,7 @@ class Manager(threading.Thread):
         process.start()
         async with self.__process_lock:
             self.__running_processes.append(process.id)
-        await settings['LOGGER'].info(f'Started mapmaker process: {process.name}, PID: {process.process_id}')
+        self.__log.info(f'Started mapmaker process: {process.name}, PID: {process.process_id}')
 
 #===============================================================================
 

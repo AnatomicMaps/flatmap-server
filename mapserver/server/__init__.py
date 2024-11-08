@@ -32,6 +32,9 @@ from typing import Optional
 
 from litestar import Litestar
 from litestar.config.cors import CORSConfig
+from litestar.datastructures import State
+from litestar.logging import LoggingConfig, StructLoggingConfig
+from litestar.plugins.structlog import StructlogConfig, StructlogPlugin
 from litestar.openapi.config import OpenAPIConfig
 from litestar.openapi.plugins import RapidocRenderPlugin
 
@@ -51,6 +54,46 @@ from .viewer import viewer_router
 
 #===============================================================================
 
+logging_config = StructLoggingConfig(
+    standard_lib_logging_config=LoggingConfig(
+        root={"level": "INFO", "handlers": ["queue_listener"]},
+        formatters={
+            "standard": {"format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"}
+        },
+        log_exceptions="always",
+        propagate=False,
+        disable_existing_loggers=True
+    )
+)
+
+structlog_plugin = StructlogPlugin(StructlogConfig(logging_config))
+
+#===============================================================================
+
+def initialise(app: Litestar):
+    if app.state.viewer and not os.path.exists(settings['FLATMAP_VIEWER']):
+        exit(f'Missing {settings["FLATMAP_VIEWER"]} directory -- set FLATMAP_VIEWER environment variable to the full path')
+    settings['MAP_VIEWER'] = app.state.viewer
+    logger = logging_config.configure()()
+    settings['LOGGER'] = logger
+
+    logger.info(f'Starting flatmap server version {__version__}')
+    print(f'Starting flatmap server version {__version__}')
+
+    if not settings['MAPMAKER_TOKENS']:
+        # Only warn once...
+        logger.warning('No bearer tokens defined')
+
+    # Try opening our knowledge base
+    knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=True)
+    if knowledge_store.error is not None:
+        logger.error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
+    knowledge_store.close()
+
+    init_maker()
+
+#===============================================================================
+
 app = Litestar(
     route_handlers=[
         dashboard_router,
@@ -67,28 +110,13 @@ app = Litestar(
         version=__version__,
         render_plugins=[RapidocRenderPlugin()],
     ),
+    plugins=[structlog_plugin],
+    on_startup=[initialise],
+    state=State({'viewer': False})
 )
 
 #===============================================================================
-#===============================================================================
 
-def initialise(viewer=False):
-    if viewer and not os.path.exists(settings['FLATMAP_VIEWER']):
-        exit(f'Missing {settings["FLATMAP_VIEWER"]} directory -- set FLATMAP_VIEWER environment variable to the full path')
-    settings['MAP_VIEWER'] = viewer
-    app.logger.info(f'Starting flatmap server version {__version__}')
-    print(f'Starting flatmap server version {__version__}')
-    if not settings['MAPMAKER_TOKENS']:
-        # Only warn once...
-        app.logger.warning('No bearer tokens defined')
-
-    # Try opening our knowledge base
-    knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=True)
-    if knowledge_store.error is not None:
-        app.logger.error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
-    knowledge_store.close()
-
-    init_maker()
 
 #===============================================================================
 #===============================================================================

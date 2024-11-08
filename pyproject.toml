@@ -17,6 +17,8 @@ tqdm = "^4.66.5"
 setuptools = "^75.1.0"
 litestar = "^2.12.1"
 uvloop = "^0.21.0"
+structlog = "^24.4.0"
+rich = "^13.9.4"
 
 [tool.poetry.dev-dependencies]
 sphinx = "^8.1"
@@ -26,6 +28,9 @@ sphinxcontrib-httpdomain = "*"
 [tool.poetry.scripts]
 mapserver = 'mapserver.__main__:mapserver'
 mapviewer = 'mapserver.__main__:mapviewer'
+
+[tool.poetry.group.dev.dependencies]
+uvicorn = "^0.32.0"
 
 [build-system]
 # See https://github.com/chrahunt/rtd-poetry/issues/3
