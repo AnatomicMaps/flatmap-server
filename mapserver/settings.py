@@ -22,16 +22,6 @@ import os
 
 #===============================================================================
 
-from hypercorn.config import Config
-
-#===============================================================================
-
-# Global server settings
-
-config = Config()
-
-#===============================================================================
-
 # Needed to read JPEG 2000 files with OpenCV2 under Linux
 
 os.environ['OPENCV_IO_ENABLE_JASPER'] = '1'

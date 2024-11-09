@@ -38,6 +38,7 @@ map_maker = None
 #===============================================================================
 
 def initialise():
+#================
     if settings['MAPMAKER_TOKENS'] and 'sphinx' not in sys.modules:
         # Having a Manager prevents Sphinx from exiting and hangs a ``readthedocs`` build
         from ..maker import Manager
