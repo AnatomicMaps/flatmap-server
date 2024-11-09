@@ -233,7 +233,7 @@ class SparcHierarchy:
         try:
             with open(hierarchy_file) as fp:
                 graph_json = json.load(fp)
-                self.__graph = nx.node_link_graph(graph_json, directed=True)
+                self.__graph = nx.node_link_graph(graph_json, edges='links', directed=True)  # type: ignore
                 return
         except Exception:
             pass
