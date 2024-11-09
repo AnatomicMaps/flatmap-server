@@ -238,7 +238,7 @@ async def map_background(map_uuid: str, image:str) -> Response:
     path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'images' / image
     if not path.exists():
         raise exceptions.NotFoundException(detail=f'Missing image: {image}')
-    return File(path=path, filename=image)
+    return File(path=path, filename=image, content_disposition_type='inline')
 
 #===============================================================================
 
