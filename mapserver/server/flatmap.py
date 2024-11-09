@@ -168,11 +168,11 @@ async def map_index(request: Request, map_uuid: str) -> dict|Response:
         return Response(content={'detail': 'Missing map index'}, status_code=404)
     with open(index_file) as fp:
         index = json.load(fp)
-    if request.accept.accepts('image/svg+xml'):
+    if 'json' not in request.headers.get('accept', '*/*'):
         svg_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / f'{index["id"]}.svg'
         if not svg_file.exists():
             svg_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'images' / f'{index["id"]}.svg'
-        if not svg_file.exists():
+        if svg_file.exists():
             with open(svg_file) as fp:
                 return Response(content=fp.read(), media_type='image/svg+xml')
     return index
