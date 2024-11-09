@@ -18,25 +18,18 @@
 #
 #===============================================================================
 
-import gzip
-import io
-import json
+import logging
 import os
-import os.path
-import pathlib
-import sqlite3
-import sys
-from typing import Optional
+import typing
 
 #===============================================================================
 
 from litestar import Litestar
 from litestar.config.cors import CORSConfig
-from litestar.datastructures import State
-from litestar.logging import LoggingConfig, StructLoggingConfig
-from litestar.plugins.structlog import StructlogConfig, StructlogPlugin
+from litestar.logging import BaseLoggingConfig
 from litestar.openapi.config import OpenAPIConfig
 from litestar.openapi.plugins import RapidocRenderPlugin
+from litestar.types import GetLogger, Logger
 
 #===============================================================================
 
@@ -49,39 +42,32 @@ from .connectivity import connectivity_router
 from .dashboard import dashboard_router
 from .flatmap import flatmap_router
 from .knowledge import knowledge_router
-from .maker import maker_router, initialise as init_maker
+from .maker import maker_router, initialise as init_maker, terminate as end_maker
 from .viewer import viewer_router
 
 #===============================================================================
 
-logging_config = StructLoggingConfig(
-    standard_lib_logging_config=LoggingConfig(
-        root={"level": "INFO", "handlers": ["queue_listener"]},
-        formatters={
-            "standard": {"format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"}
-        },
-        log_exceptions="always",
-        propagate=False,
-        disable_existing_loggers=True
-    )
-)
+# A simple logging configuration class so that Litestar will use the Python
+# logger (called ``litestar``) that was configured in ``__main__.py``.
 
-structlog_plugin = StructlogPlugin(StructlogConfig(logging_config))
+class LoggingConfig(BaseLoggingConfig):
+    def configure(self) -> GetLogger:
+        return typing.cast(GetLogger, logging.getLogger)
+
+    @staticmethod
+    def set_level(logger: Logger, level: int) -> None:
+        logger.setLevel(level)
 
 #===============================================================================
 
 def initialise(app: Litestar):
-    if app.state.viewer and not os.path.exists(settings['FLATMAP_VIEWER']):
+    if settings['MAP_VIEWER'] and not os.path.exists(settings['FLATMAP_VIEWER']):
         exit(f'Missing {settings["FLATMAP_VIEWER"]} directory -- set FLATMAP_VIEWER environment variable to the full path')
-    settings['MAP_VIEWER'] = app.state.viewer
-    logger = logging_config.configure()()
-    settings['LOGGER'] = logger
 
+    settings['LOGGER'] = logger = logging.getLogger('litestar')
     logger.info(f'Starting flatmap server version {__version__}')
-    print(f'Starting flatmap server version {__version__}')
 
     if not settings['MAPMAKER_TOKENS']:
-        # Only warn once...
         logger.warning('No bearer tokens defined')
 
     # Try opening our knowledge base
@@ -94,29 +80,36 @@ def initialise(app: Litestar):
 
 #===============================================================================
 
+def terminate(app: Litestar):
+    end_maker()
+    settings['LOGGER'].info(f'Shutdown flatmap server...')
+
+#===============================================================================
+
+route_handlers = [
+    dashboard_router,
+    annotator_router,
+    connectivity_router,
+    flatmap_router,
+    knowledge_router,
+    maker_router,
+]
+
+if settings['MAP_VIEWER']:
+    route_handlers.append(viewer_router)
+
 app = Litestar(
-    route_handlers=[
-        dashboard_router,
-        annotator_router,
-        connectivity_router,
-        flatmap_router,
-        knowledge_router,
-        maker_router,
-        viewer_router
-    ],
-    cors_config=CORSConfig(allow_origins=["*"]),  ## Only for annotator, flatmap and knowledge endpoints (need updated Router)
+    route_handlers=route_handlers,
+    cors_config=CORSConfig(allow_origins=["*"]),
     openapi_config=OpenAPIConfig(
         title="Flatmap Server Web API",
         version=__version__,
         render_plugins=[RapidocRenderPlugin()],
     ),
-    plugins=[structlog_plugin],
     on_startup=[initialise],
-    state=State({'viewer': False})
+    on_shutdown=[terminate],
+    logging_config=LoggingConfig()
 )
-
-#===============================================================================
-
 
 #===============================================================================
 #===============================================================================

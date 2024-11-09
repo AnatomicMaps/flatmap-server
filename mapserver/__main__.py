@@ -19,92 +19,109 @@
 #===============================================================================
 
 import asyncio
+import logging.config
 import os
-import signal
 import sys
-from typing import Any
 
 #===============================================================================
 
 from hypercorn.asyncio import serve
-
-import uvloop
+from hypercorn.config import Config
+import yaml
 
 #===============================================================================
 
-from .server import app, initialise
-from .server.maker import map_maker
-from .settings import config, settings
+from .server import app  ## , initialise
+from .settings import settings
+
+#===============================================================================
 
 SERVER_INTERFACE = os.environ.get('SERVER_INTERFACE', '127.0.0.1')
 SERVER_PORT      = os.environ.get('SERVER_PORT', '8000')
 
 #===============================================================================
 
-class SyncLogger:
-    def __init__(self, logger):
-        self.__logger = logger
-
-    def critical(self, msg, *args, **kwds):
-        asyncio.run(self.__logger.critical(msg, *args, **kwds))
-
-    def debug(self, msg, *args, **kwds):
-        asyncio.run(self.__logger.debug(msg, *args, **kwds))
-
-    def error(self, msg, *args, **kwds):
-        asyncio.run(self.__logger.error(msg, *args, **kwds))
-
-    def exception(self, msg, *args, **kwds):
-        asyncio.run(self.__logger.exception(msg, *args, **kwds))
-
-    def info(self, msg, *args, **kwds):
-        asyncio.run(self.__logger.info(msg, *args, **kwds))
-
-    def log(self, msg, *args, **kwds):
-        asyncio.run(self.__logger.log(msg, *args, **kwds))
-
-    def warning(self, msg, *args, **kwds):
-        asyncio.run(self.__logger.warning(msg, *args, **kwds))
+LOGGING_CONFIG = '''
+version: 1
+disable_existing_loggers: False
+formatters:
+  standard:
+    format: '%(asctime)s %(levelname)s: %(message)s'
+  simple:
+    format: '%(message)s'
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: standard
+    stream: 'ext://sys.stdout'
+  rotatingAccessHandler:
+    class: logging.handlers.RotatingFileHandler
+    formatter: simple
+    filename: {ACCESS_LOG}
+    maxBytes: 1048576       # 1 MB
+    backupCount: 9
+  rotatingErrorHandler:
+    class: logging.handlers.RotatingFileHandler
+    formatter: standard
+    filename: {ERROR_LOG}
+    maxBytes: 1048576       # 1 MB
+    backupCount: 9
+  rotatingLitestarHandler:
+    class: logging.handlers.RotatingFileHandler
+    formatter: standard
+    filename: {LITESTAR_LOG}
+    maxBytes: 1048576       # 1 MB
+    backupCount: 9
+root:
+  handlers:
+  - console
+  level: INFO
+  propagate: False
+loggers:
+  hypercorn.access:
+    handlers:
+    - rotatingAccessHandler
+    level: INFO
+    propagate: False
+  hypercorn.error:
+    handlers:
+    - rotatingErrorHandler
+    - console
+    level: INFO
+    propagate: False
+  litestar:
+    handlers:
+    - rotatingLitestarHandler
+    - console
+    level: INFO
+    propagate: False
+'''
 
 #===============================================================================
 
-__shutdown_event = asyncio.Event()
+def configure_logging(access_log: str, error_log: str, litestar_log: str):
+    config = LOGGING_CONFIG.format(ACCESS_LOG=access_log, ERROR_LOG=error_log, LITESTAR_LOG=litestar_log)
+    logging.config.dictConfig(yaml.safe_load(config))
 
-def __signal_handler(*_: Any) -> None:
-#=====================================
-    print('Shutting down...')
-    __shutdown_event.set()
-    if map_maker is not None:
-        map_maker.terminate()
+#===============================================================================
 
-## NB. We initialise logging and run the event log this particular way in order
-##     to catch exceptions and capture all log messages
+async def run_server(viewer=False):
+#==================================
+    # Save viewer state for server initialisation
+    settings['MAP_VIEWER'] = viewer
 
-async def runserver(viewer=False):
-#=================================
-    config.accesslog = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'access_log')
-    config.errorlog = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'error_log')
-    settings['LOGGER'] = config.log
+    ACCESS_LOG_FILE = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'access_log')
+    ERROR_LOG_FILE = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'error_log')
+    LITESTAR_LOG_FILE = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'maker_log')
+    configure_logging(ACCESS_LOG_FILE, ERROR_LOG_FILE, LITESTAR_LOG_FILE)
 
-    ## NB. This currently works but might break with a ``quart`` upgrade
-    ##
-    ## We need to better initialise logging, using ``logging.config.dictConfig``
-    ##
-    app.logger = SyncLogger(config.log)
-
-    initialise(viewer)
-
-    uvloop.install()
-    config.worker_class = 'uvloop'
-    loop = asyncio.get_event_loop()
-    loop.add_signal_handler(signal.SIGINT, __signal_handler)
-    loop.add_signal_handler(signal.SIGTERM, __signal_handler)
+    config = Config()
+    config.accesslog = logging.getLogger('hypercorn.access')
+    config.errorlog = logging.getLogger('hypercorn.error')
 
     config.bind = [f'{SERVER_INTERFACE}:{SERVER_PORT}']
-    print(f'Running on {config.bind[0]} (CTRL + C to quit)')
-
-    loop.run_until_complete(
-        serve(app, config, shutdown_trigger=__shutdown_event.wait)
+    asyncio.run(
+        serve(app, config)
     )
 
 #===============================================================================
@@ -112,17 +129,9 @@ async def runserver(viewer=False):
 def main(viewer=False):
 #======================
     try:
-        asyncio.run(runserver(viewer))
+        asyncio.run(run_server(viewer))
     except KeyboardInterrupt:
         pass
-
-def mapserver():
-#===============
-    main()
-
-def mapviewer():
-#===============
-    main(True)
 
 #===============================================================================
 

@@ -66,6 +66,12 @@ class MakerResponse(MakerStatus):
 class MakerLogResponse(MakerStatus):
     log: str
     stamp: Optional[str] = None
+def terminate():
+#===============
+    global map_maker
+    if map_maker is not None:
+        map_maker.terminate()
+        map_maker = None
 
 #===============================================================================
 #===============================================================================

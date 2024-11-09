@@ -32,7 +32,6 @@ import uuid
 
 #===============================================================================
 
-import structlog
 import uvloop
 
 #===============================================================================
@@ -143,8 +142,7 @@ class Manager(threading.Thread):
     """A thread to manage flatmap generation"""
     def __init__(self):
         super().__init__(name='maker-thread')
-        logger = structlog.get_logger()
-        self.__log = typing.cast(structlog.BoundLogger, logger.bind(type='maker'))
+        self.__log = settings['LOGGER']
         self.__map_dir = None
         self.__processes_by_id: dict[str, MakerProcess] = {}
         self.__running_processes: list[str] = []
