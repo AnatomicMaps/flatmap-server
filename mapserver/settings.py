@@ -59,6 +59,9 @@ if not os.path.exists(settings['FLATMAP_ROOT']):
 FLATMAP_VIEWER = os.environ.get('FLATMAP_VIEWER', './viewer')
 settings['FLATMAP_VIEWER'] = normalise_path(FLATMAP_VIEWER)
 
+# Set True when run as ``python -m mapserver viewer``
+settings['MAP_VIEWER'] = False
+
 FLATMAP_SERVER_LOGS = os.environ.get('FLATMAP_SERVER_LOGS', './logs')
 settings['FLATMAP_SERVER_LOGS'] = normalise_path(FLATMAP_SERVER_LOGS)
 if not os.path.exists(settings['FLATMAP_SERVER_LOGS']):
