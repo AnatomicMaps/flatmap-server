@@ -239,7 +239,7 @@ class SparcHierarchy:
             pass
         self.__graph = UberonGraph(uberon_source)
         self.__add_ilx_terms(interlex_source)
-        graph_json = nx.node_link_data(self.__graph)
+        graph_json = nx.node_link_data(self.__graph, edges='links')     # type: ignore
         with open(hierarchy_file, 'w') as fp:
             json.dump(graph_json, fp)
 
@@ -364,7 +364,7 @@ class AnatomicalHierarchy:
 
         hierarchy_tree = Arborescence(hierarchy_graph, ANATOMICAL_ROOT, BODY_PROPER).tree
         hierarchy_tree.graph['version'] = TREE_VERSION  # type: ignore
-        hierarchy = nx.node_link_data(hierarchy_tree)
+        hierarchy = nx.node_link_data(hierarchy_tree, edges='links')    # type: ignore
         with open(hierarchy_file, 'w') as fp:
             json.dump(hierarchy, fp)
         return hierarchy
