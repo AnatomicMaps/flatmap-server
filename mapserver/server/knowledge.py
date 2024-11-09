@@ -41,6 +41,10 @@ class QueryData:
     sql: str
     params: Optional[list[str]]
 
+@dataclass
+class KnowledgeSourcesResponse:
+    sources: list[str]
+
 #===============================================================================
 #===============================================================================
 
@@ -82,8 +86,8 @@ async def knowledge_query(data: QueryData, request: Request) -> dict:
     return result
 
 @get('sources')
-async def knowledge_sources() -> dict:
-#=====================================
+async def knowledge_sources() -> KnowledgeSourcesResponse:
+#=========================================================
     """
     Return the knowledge sources available in the server's knowledge store.
 
@@ -92,7 +96,7 @@ async def knowledge_sources() -> dict:
                                   source at the beginning
     """
     sources = get_knowledge_sources()
-    return {'sources': sources}
+    return KnowledgeSourcesResponse(sources)
 
 @get('sparcterms')
 async def sparcterms() -> File:
