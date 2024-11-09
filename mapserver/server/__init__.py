@@ -18,6 +18,7 @@
 #
 #===============================================================================
 
+from dataclasses import dataclass
 import logging
 import os
 import typing
@@ -26,10 +27,10 @@ import typing
 
 from litestar import Litestar
 from litestar.config.cors import CORSConfig
-from litestar.logging import BaseLoggingConfig
+from litestar.logging import LoggingConfig as LitestarLoggingConfig
 from litestar.openapi.config import OpenAPIConfig
 from litestar.openapi.plugins import RapidocRenderPlugin
-from litestar.types import GetLogger, Logger
+from litestar.types import GetLogger
 
 #===============================================================================
 
@@ -50,13 +51,10 @@ from .viewer import viewer_router
 # A simple logging configuration class so that Litestar will use the Python
 # logger (called ``litestar``) that was configured in ``__main__.py``.
 
-class LoggingConfig(BaseLoggingConfig):
+@dataclass
+class LoggingConfig(LitestarLoggingConfig):
     def configure(self) -> GetLogger:
         return typing.cast(GetLogger, logging.getLogger)
-
-    @staticmethod
-    def set_level(logger: Logger, level: int) -> None:
-        logger.setLevel(level)
 
 #===============================================================================
 
@@ -108,7 +106,7 @@ app = Litestar(
     ),
     on_startup=[initialise],
     on_shutdown=[terminate],
-    logging_config=LoggingConfig()
+    logging_config=LoggingConfig(log_exceptions="debug")
 )
 
 #===============================================================================
