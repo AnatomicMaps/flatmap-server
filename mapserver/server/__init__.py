@@ -74,6 +74,10 @@ def initialise(app: Litestar):
         logger.error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
     knowledge_store.close()
 
+    # If in viewer mode then add the viewer's routes
+    if settings['MAP_VIEWER']:
+        app.register(viewer_router)
+
     init_maker()
 
 #===============================================================================
@@ -92,9 +96,6 @@ route_handlers = [
     knowledge_router,
     maker_router,
 ]
-
-if settings['MAP_VIEWER']:
-    route_handlers.append(viewer_router)
 
 app = Litestar(
     route_handlers=route_handlers,
