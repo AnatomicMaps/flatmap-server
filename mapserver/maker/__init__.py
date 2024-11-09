@@ -189,8 +189,6 @@ class Manager(threading.Thread):
         if id in self.__processes_by_id:
             process = self.__processes_by_id[id]
             log_lines = process.get_log(start_line)
-            if process.completed and process.last_log_lines:
-                self.__log.info('\n'.join(process.last_log_lines))
             return log_lines
         return ''
 
