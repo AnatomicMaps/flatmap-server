@@ -18,10 +18,8 @@
 #
 #===============================================================================
 
-from dataclasses import dataclass
 from datetime import datetime
 import sys
-from typing import Optional
 
 #===============================================================================
 
@@ -29,7 +27,7 @@ from litestar import exceptions, get, post, Request, Response, Router
 
 #===============================================================================
 
-from ..maker import MakerStatus
+from ..maker import MakerData, MakerResponse, MakerLogResponse, MakerStatus
 from ..settings import settings
 
 #===============================================================================
@@ -47,25 +45,6 @@ def initialise():
         global map_maker
         map_maker = Manager()
 
-#===============================================================================
-#===============================================================================
-
-@dataclass
-class MakerData:
-    source: str
-    manifest: str
-    commit: Optional[str] = None
-    force: Optional[bool] = None
-
-@dataclass
-class MakerResponse(MakerStatus):
-    source: str
-    commit: Optional[str] = None
-
-@dataclass
-class MakerLogResponse(MakerStatus):
-    log: str
-    stamp: Optional[str] = None
 def terminate():
 #===============
     global map_maker

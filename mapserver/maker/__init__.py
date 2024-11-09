@@ -18,6 +18,7 @@
 #
 #===============================================================================
 
+import dataclasses
 from dataclasses import dataclass
 import asyncio
 import multiprocessing
@@ -42,13 +43,31 @@ from mapmaker import MapMaker
 import mapmaker.utils as utils
 
 #===============================================================================
-#===============================================================================
+
+@dataclass
+class MakerData:
+    source: str
+    manifest: str
+    commit: Optional[str] = None
+    force: Optional[bool] = None
 
 @dataclass
 class MakerStatus:
     id: int
     status: str
     pid: Optional[int]
+
+@dataclass
+class MakerResponse(MakerStatus):
+    source: str
+    commit: Optional[str] = None
+
+@dataclass
+class MakerLogResponse(MakerStatus):
+    log: str
+    stamp: Optional[str] = None
+
+#===============================================================================
 
 #===============================================================================
 #===============================================================================
@@ -175,9 +194,9 @@ class Manager(threading.Thread):
             return log_lines
         return ''
 
-    async def make(self, params) -> MakerStatus:
-    #===========================================
-        params = {key: value for (key, value) in params.items()
+    async def make(self, data: MakerData) -> MakerStatus:
+    #====================================================
+        params = {key: value for (key, value) in dataclasses.asdict(data).items()
                                 if key in ['source', 'manifest', 'commit', 'force']}
         params.update({
             'output': self.__map_dir,
