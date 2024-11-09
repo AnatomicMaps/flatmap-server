@@ -54,7 +54,7 @@ class MakerStatus:
 #===============================================================================
 
 def log_file(pid):
-    return os.path.join(settings['MAPMAKER_LOGS'], '{}.log'.format(pid))
+    return os.path.join(settings['MAPMAKER_LOGS'], f'{pid}.log.json')
 
 #===============================================================================
 
