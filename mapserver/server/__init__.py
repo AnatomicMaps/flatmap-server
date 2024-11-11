@@ -29,12 +29,13 @@ from litestar import Litestar
 from litestar.config.cors import CORSConfig
 from litestar.logging import LoggingConfig as LitestarLoggingConfig
 from litestar.openapi.config import OpenAPIConfig
-from litestar.openapi.plugins import RapidocRenderPlugin
+from litestar.openapi.spec import Server as OpenAPIServer
 from litestar.types import GetLogger
 
 #===============================================================================
 
 from ..knowledge import KnowledgeStore
+from ..openapi import RapidocRenderPlugin
 from ..settings import settings
 from .. import __version__
 
@@ -103,6 +104,7 @@ app = Litestar(
     openapi_config=OpenAPIConfig(
         title="Flatmap Server Web API",
         version=__version__,
+        servers=[OpenAPIServer(settings['FLATMAP_SERVER_URL'])],
         render_plugins=[RapidocRenderPlugin()],
     ),
     on_startup=[initialise],
