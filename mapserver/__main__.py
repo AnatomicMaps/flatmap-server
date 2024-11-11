@@ -31,7 +31,7 @@ import yaml
 
 #===============================================================================
 
-from .server import app  ## , initialise
+from .server import app
 from .settings import settings
 
 #===============================================================================
