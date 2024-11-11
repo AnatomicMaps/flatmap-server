@@ -82,8 +82,8 @@ async def make_map(data: MakerData) -> MakerResponse|Response:
     return MakerResponse(result.id, result.status, result.pid, data.source,  data.commit)
 
 @get('/process-log/{pid:int}')
-async def process_log(pid: int) -> dict|Response:
-#================================================
+async def make_process_log(pid: int) -> dict|Response:
+#=====================================================
     if map_maker is None:
         return Response(content={'error': 'unauthorized'}, status_code=403)
     log = await map_maker.full_log(pid)
@@ -93,8 +93,8 @@ async def process_log(pid: int) -> dict|Response:
     }
 
 @get(['/log/{id:str}', '/log/{id:str}/{start_line:int}'])
-async def maker_log(id: str, start_line: int=1) -> MakerLogResponse|Response:
-#============================================================================
+async def make_status_log(id: str, start_line: int=1) -> MakerLogResponse|Response:
+#==================================================================================
     """
     Return the status of a map generation process along with log records
 
@@ -111,8 +111,8 @@ async def maker_log(id: str, start_line: int=1) -> MakerLogResponse|Response:
     return MakerLogResponse(status.id, status.status, status.pid, log_data,  str(datetime.now()))
 
 @get('/status/{id:str}')
-async def maker_status(id: str) -> MakerStatus|Response:
-#=======================================================
+async def make_status(id: str) -> MakerStatus|Response:
+#======================================================
     """
     Get the status of a map generation process.
 
@@ -148,9 +148,9 @@ maker_router = Router(
     before_request=check_authorised,
     route_handlers=[
         make_map,
-        maker_log,
-        maker_status,
-        process_log
+        make_process_log,
+        make_status,
+        make_status_log
         ],
     include_in_schema=False
     )

@@ -99,7 +99,7 @@ async def knowledge_sources() -> KnowledgeSourcesResponse:
     return KnowledgeSourcesResponse(sources)
 
 @get('sparcterms')
-async def sparcterms() -> File:
+async def knowledge_sparcterms() -> File:
 #==============================
     filename = os.path.join(settings['FLATMAP_ROOT'], CACHED_SPARC_HIERARCHY)
     return File(path=filename, media_type=MediaType.JSON)
@@ -124,7 +124,7 @@ knowledge_router = Router(
         knowledge_query,
         knowledge_schema_version,
         knowledge_sources,
-        sparcterms
+        knowledge_sparcterms
     ]
 )
 

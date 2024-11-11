@@ -75,7 +75,7 @@ def blank_tile():
 #===============================================================================
 
 @get('/')
-async def maps(request: Request) -> list:
+async def flatmap_maps(request: Request) -> list:
     """
     Get a list of available flatmaps.
 
@@ -150,7 +150,7 @@ async def maps(request: Request) -> list:
 #===============================================================================
 
 @get('flatmap/{map_uuid:str}/')
-async def map_index(request: Request, map_uuid: str) -> dict|Response:
+async def flatmap_index(request: Request, map_uuid: str) -> dict|Response:
     """
     Return a representation of a flatmap.
 
@@ -180,7 +180,7 @@ async def map_index(request: Request, map_uuid: str) -> dict|Response:
 #===============================================================================
 
 @get('flatmap/{map_uuid:str}/log')
-async def mapmaker_log(map_uuid: str) -> File:
+async def flatmap_maker_log(map_uuid: str) -> File:
     path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / MAKER_LOG
     if not path.exists():
         path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / OLD_MAKER_LOG
@@ -192,7 +192,7 @@ async def mapmaker_log(map_uuid: str) -> File:
 #===============================================================================
 
 @get('flatmap/{map_uuid:str}/style')
-async def map_style(map_uuid: str) -> File:
+async def flatmap_style(map_uuid: str) -> File:
     path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'style.json'
     return File(path=path, media_type=MediaType.JSON)
 
@@ -200,14 +200,14 @@ async def map_style(map_uuid: str) -> File:
 
 ## DEPRECATED
 @get('flatmap/{map_uuid:str}/markers', include_in_schema=False)
-async def map_markers(map_uuid: str) -> File:
+async def flatmap_markers(map_uuid: str) -> File:
     path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'markers.json'
     return File(path=path, media_type=MediaType.JSON)
 
 #===============================================================================
 
 @get('flatmap/{map_uuid:str}/layers')
-async def map_layers(map_uuid: str) -> dict:
+async def flatmap_layers(map_uuid: str) -> dict:
     try:
         return json_map_metadata(map_uuid, 'layers')
     except IOError as err:
@@ -216,7 +216,7 @@ async def map_layers(map_uuid: str) -> dict:
 #===============================================================================
 
 @get('flatmap/{map_uuid:str}/metadata')
-async def map_metadata(map_uuid: str) -> dict:
+async def flatmap_metadata(map_uuid: str) -> dict:
     try:
         return json_map_metadata(map_uuid, 'metadata')
     except IOError as err:
@@ -225,7 +225,7 @@ async def map_metadata(map_uuid: str) -> dict:
 #===============================================================================
 
 @get('flatmap/{map_uuid:str}/pathways')
-async def map_pathways(map_uuid: str) -> dict:
+async def flatmap_pathways(map_uuid: str) -> dict:
     try:
         return json_map_metadata(map_uuid, 'pathways')
     except IOError as err:
@@ -234,7 +234,7 @@ async def map_pathways(map_uuid: str) -> dict:
 #===============================================================================
 
 @get('flatmap/{map_uuid:str}/images/{image:str}')
-async def map_background(map_uuid: str, image:str) -> Response:
+async def flatmap_image(map_uuid: str, image:str) -> Response:
     path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'images' / image
     if not path.exists():
         raise exceptions.NotFoundException(detail=f'Missing image: {image}')
@@ -243,7 +243,7 @@ async def map_background(map_uuid: str, image:str) -> Response:
 #===============================================================================
 
 @get('flatmap/{map_uuid:str}/mvtiles/{z:int}/{x:int}/{y:int}')
-async def vector_tiles(map_uuid: str, z: int, y:int, x: int) -> Response:
+async def flatmap_vector_tiles(map_uuid: str, z: int, y:int, x: int) -> Response:
     try:
         mbtiles = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'index.mbtiles'
         tile_reader = MBTilesReader(mbtiles)
@@ -260,7 +260,7 @@ async def vector_tiles(map_uuid: str, z: int, y:int, x: int) -> Response:
 #===============================================================================
 
 @get('flatmap/{map_uuid:str}/tiles/{layer:str}/{z:int}/{x:int}/{y:int}')
-async def image_tiles(map_uuid: str, layer: str, z: int, y:int, x: int) -> Response:
+async def flatmap_image_tiles(map_uuid: str, layer: str, z: int, y:int, x: int) -> Response:
     try:
         mbtiles = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / f'{layer}.mbtiles'
         reader = MBTilesReader(mbtiles)
@@ -274,7 +274,7 @@ async def image_tiles(map_uuid: str, layer: str, z: int, y:int, x: int) -> Respo
 #===============================================================================
 
 @get('flatmap/{map_uuid:str}/annotations')
-async def map_annotation(map_uuid: str) -> dict:
+async def flatmap_annotation(map_uuid: str) -> dict:
     try:
         return json_map_metadata(map_uuid, 'annotations')
     except IOError as err:
@@ -283,7 +283,7 @@ async def map_annotation(map_uuid: str) -> dict:
 #===============================================================================
 
 @get('flatmap/{map_uuid:str}/termgraph')
-async def map_termgraph(map_uuid: str) -> dict:
+async def flatmap_termgraph(map_uuid: str) -> dict:
     try:
         return anatomical_hierarchy.get_hierachy(map_uuid)
     except IOError as err:
@@ -295,19 +295,19 @@ async def map_termgraph(map_uuid: str) -> dict:
 flatmap_router = Router(
     path="/",
     route_handlers=[
-        image_tiles,
-        mapmaker_log,
-        maps,
-        map_annotation,
-        map_background,
-        map_index,
-        map_layers,
-        map_markers,    ## DEPRECATED
-        map_metadata,
-        map_pathways,
-        map_style,
-        map_termgraph,
-        vector_tiles
+        flatmap_annotation,
+        flatmap_image,
+        flatmap_image_tiles,
+        flatmap_index,
+        flatmap_layers,
+        flatmap_maker_log,
+        flatmap_maps,
+        flatmap_markers,    ## DEPRECATED
+        flatmap_metadata,
+        flatmap_pathways,
+        flatmap_style,
+        flatmap_termgraph,
+        flatmap_vector_tiles
     ]
 )
 
