@@ -1168,12 +1168,12 @@ url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.20.1/m
 
 [[package]]
 name = "mapmaker"
-version = "1.14.1"
+version = "1.14.4"
 description = ""
 optional = false
 python-versions = ">=3.12,<4.0"
 files = [
-    {file = "mapmaker-1.14.1-py3-none-any.whl", hash = "sha256:49e4af4dc21d7cbe287d4955b2364c20e634b60cae57575eb415d965d3fb3156"},
+    {file = "mapmaker-1.14.4-py3-none-any.whl", hash = "sha256:fc181aba2e4d734c013033e0d20e47d766e3201cc8697a55cebe9e3aa8d80f0a"},
 ]
 
 [package.dependencies]
@@ -1216,7 +1216,7 @@ xmltodict = ">=0.12.0,<0.13.0"
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.14.1/mapmaker-1.14.1-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.14.4/mapmaker-1.14.4-py3-none-any.whl"
 
 [[package]]
 name = "markdown-it-py"
@@ -1720,13 +1720,13 @@ yaml = ["pyyaml"]
 
 [[package]]
 name = "packaging"
-version = "24.1"
+version = "24.2"
 description = "Core utilities for Python packages"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "packaging-24.1-py3-none-any.whl", hash = "sha256:5b8f2217dbdbd2f7f384c41c628544e6d52f2d0f53c6d0c3ea61aa5d1d7ff124"},
-    {file = "packaging-24.1.tar.gz", hash = "sha256:026ed72c8ed3fcce5bf8950572258698927fd1dbda10a5e981cdf0ac37f4f002"},
+    {file = "packaging-24.2-py3-none-any.whl", hash = "sha256:09abb1bccd265c01f4a3aa3f7a7db064b36514d2cba19a2f694fe6150451a759"},
+    {file = "packaging-24.2.tar.gz", hash = "sha256:c228a6dc5e932d346bc5739379109d49e8853dd8223571c7c5b55260edc0b97f"},
 ]
 
 [[package]]
@@ -3349,4 +3349,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<4.0"
-content-hash = "0db2f4e2be96bb7b80391210eec8c95c82dcc2b6e8468021f7a251c76dbf7ec4"
+content-hash = "d6978f77502846829b3edc18a3552130308e26fe8affe2efff688ed4662ddd2c"
