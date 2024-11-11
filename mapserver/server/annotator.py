@@ -363,7 +363,7 @@ def __authenticated_bearer(request: Request) -> bool:
 #===============================================================================
 
 @get('authenticate')
-async def authenticate(query: dict[str, Any]) -> dict|Response:
+async def annotator_authenticate(query: dict[str, Any]) -> dict|Response:
     if (key := query.get('key')) is not None:
         user_data = get_pennsieve_user(key)     # type: ignore
         if 'error' not in user_data:
@@ -381,7 +381,7 @@ async def authenticate(query: dict[str, Any]) -> dict|Response:
 #===============================================================================
 
 @get('unauthenticate')
-async def unauthenticate(query: dict[str, Any], request: Request) -> dict:
+async def annotator_unauthenticate(query: dict[str, Any], request: Request) -> dict:
     if (session := query.get('session')) is not None:
         __del_session(session)
         request.session['update'] = False
@@ -390,7 +390,7 @@ async def unauthenticate(query: dict[str, Any], request: Request) -> dict:
 #===============================================================================
 
 @get('items/')
-async def annotated_items(query: dict[str, Any], request: Request) -> dict:
+async def annotator_annotated_items(query: dict[str, Any], request: Request) -> dict:
     if __authenticated_session(query, request):
         if (resource_id := query.get('resource')) is not None:
             user_id = query.get('user')
@@ -408,7 +408,7 @@ async def annotated_items(query: dict[str, Any], request: Request) -> dict:
 #===============================================================================
 
 @get('features/')
-async def features(query: dict[str, Any], request: Request) -> dict:
+async def annotator_features(query: dict[str, Any], request: Request) -> dict:
     if __authenticated_session(query, request):
         if (resource_id := query.get('resource')) is not None:
             annotation_store = AnnotationStore()
@@ -426,7 +426,7 @@ async def features(query: dict[str, Any], request: Request) -> dict:
 #===============================================================================
 
 @get('annotations/')
-async def annotations(query: dict[str, Any], request: Request) -> list[dict]:
+async def annotator_annotations(query: dict[str, Any], request: Request) -> list[dict]:
     if __authenticated_session(query, request):
         if ((resource_id := query.get('resource')) is not None
         and (item_id := query.get('item')) is not None):
@@ -440,7 +440,7 @@ async def annotations(query: dict[str, Any], request: Request) -> list[dict]:
 #===============================================================================
 
 @get(['annotation/', 'annotation/<str:id>'])
-async def annotation(query: dict[str, Any], request: Request, id: Optional[str]=None) -> dict:
+async def annotator_annotation(query: dict[str, Any], request: Request, id: Optional[str]=None) -> dict:
     if __authenticated_session(query, request):
         annotation_id = query.get('annotation', '') if id is None else id
         annotation_store = AnnotationStore()
@@ -460,7 +460,7 @@ class AnnotationUpdateRequest:
 #===============================================================================
 
 @post('annotation/')
-async def add_annotation(data: AnnotationUpdateRequest, request: Request) -> dict|Response:
+async def annotator_add_annotation(data: AnnotationUpdateRequest, request: Request) -> dict|Response:
     if __authenticated_session(dataclasses.asdict(data), request):
         if request.session['update']:
             annotation_store = AnnotationStore()
@@ -474,7 +474,7 @@ async def add_annotation(data: AnnotationUpdateRequest, request: Request) -> dic
 #===============================================================================
 
 @post('update/')
-async def update_status(data: AnnotationUpdateRequest, request: Request) -> dict|Response:
+async def annotator_update_status(data: AnnotationUpdateRequest, request: Request) -> dict|Response:
     if __authenticated_session(dataclasses.asdict(data), request) or __authenticated_bearer(request):
         if request.session['update']:
             annotation_store = AnnotationStore()
@@ -493,7 +493,7 @@ async def update_status(data: AnnotationUpdateRequest, request: Request) -> dict
 #===============================================================================
 
 @get('download/')
-async def download(request: Request)  -> list[dict]:
+async def annotator_download(request: Request)  -> list[dict]:
     if __authenticated_bearer(request):
         annotation_store = AnnotationStore()
         annotations = annotation_store.annotations()
@@ -507,14 +507,15 @@ async def download(request: Request)  -> list[dict]:
 annotator_router = Router(
     path="/annotator",
     route_handlers=[
-        add_annotation,
-        annotated_items,
-        annotations,
-        annotation,
-        authenticate,
-        download,
-        features,
-        unauthenticate
+        annotator_add_annotation,
+        annotator_annotated_items,
+        annotator_annotations,
+        annotator_annotation,
+        annotator_authenticate,
+        annotator_download,
+        annotator_features,
+        annotator_update_status,
+        annotator_unauthenticate
         ],
         middleware=[ServerSideSessionConfig().middleware]
     )
