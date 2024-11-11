@@ -152,7 +152,6 @@ maker_router = Router(
         make_status,
         make_status_log
         ],
-    include_in_schema=False
     )
 
 #===============================================================================
