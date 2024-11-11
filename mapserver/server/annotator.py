@@ -537,7 +537,7 @@ if __name__ == '__main__':
             while schema_version != SCHEMA_VERSION:
                 if (upgrade := SCHEMA_UPGRADES.get(schema_version)) is None:
                     raise ValueError(f'Unable to upgrade annotation schema from version {schema_version}')
-                logging.warn(f'Upgrading annotation schema from version {schema_version} to {upgrade[0]}')
+                logging.warning(f'Upgrading annotation schema from version {schema_version} to {upgrade[0]}')
                 schema_version = upgrade[0]
                 try:
                     store.db.executescript(upgrade[1])
