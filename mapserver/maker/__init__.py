@@ -21,13 +21,13 @@
 import dataclasses
 from dataclasses import dataclass
 import asyncio
+import json
 import multiprocessing
 import multiprocessing.connection
 import os
 import queue
 import sys
 import threading
-import typing
 from typing import Optional
 import uuid
 
@@ -135,18 +135,42 @@ class MakerProcess(multiprocessing.Process):
 
     def close(self):
     #===============
-        self.__status = 'terminated' if self.exitcode == 0 else 'aborted'
+        map_uuid = None
+        if self.exitcode == 0:
+            self.__status = 'terminated'
+            map_uuid = self.__clean_up()
+        else:
+            self.__status = 'aborted'
         super().join()
         super().close()
+        return map_uuid
 
     def get_log(self, start_line=1) -> str:
     #======================================
-        if (filename := self.log_file) is not None and os.path.exists(filename):
+        if (filename := self.__log_file) is not None and os.path.exists(filename):
             with open(filename) as fp:
                 log_lines = fp.read().split('\n')
-                self.__last_log_lines = log_lines[-50:]
+                self.__last_log_lines = log_lines[-10:]
                 return '\n'.join(log_lines[start_line-1:])
         return ''
+
+    def __clean_up(self):
+    #====================
+        map_uuid = None
+        self.get_log()
+        for log_json in self.__last_log_lines:
+            if len(log_json):
+                log_line = json.loads(log_json)
+                if log_line['msg'] == 'Generated map':
+                    map_uuid = log_line.get('uuid')
+                    break
+        if map_uuid is not None:
+            # Remove the log file when we've succesfully built a map
+            # (it's already been copied into the map's directory)
+            if self.__log_file is not None:
+                os.remove(self.__log_file)
+                self.__log_file = None
+        return map_uuid
 
     def start(self):
     #===============
@@ -226,8 +250,8 @@ class Manager(threading.Thread):
                     if process.is_alive():
                         still_running.append(id)
                     else:
-                        process.close()
-                        self.__log.info(f'Finished mapmaker process: {process.name}')
+                        map_uuid = process.close()
+                        self.__log.info(f'Finished mapmaker process: {process.name}, Map UUID: {map_uuid}')
                 self.__running_processes = still_running
             if len(self.__running_processes) == 0:
                 try:
