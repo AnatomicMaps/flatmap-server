@@ -79,6 +79,7 @@ def initialise(app: Litestar):
     if settings['MAP_VIEWER']:
         app.register(viewer_router)
 
+    # Initialise the manager for remote map making
     init_maker()
 
 #===============================================================================
@@ -90,9 +91,9 @@ def terminate(app: Litestar):
 #===============================================================================
 
 route_handlers = [
-    dashboard_router,
     annotator_router,
     connectivity_router,
+    dashboard_router,
     flatmap_router,
     knowledge_router,
     maker_router,
