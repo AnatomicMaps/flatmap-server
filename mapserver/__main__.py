@@ -58,7 +58,7 @@ handlers:
     class: logging.handlers.RotatingFileHandler
     formatter: simple
     filename: {ACCESS_LOG}
-    maxBytes: 1048576       # 1 MB
+    maxBytes: 4194304       # 4 MB
     backupCount: 9
   rotatingErrorHandler:
     class: logging.handlers.RotatingFileHandler
