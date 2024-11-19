@@ -64,8 +64,6 @@ def query(url) -> Any:
 
 #===============================================================================
 
-annotation_team = None
-
 def get_annotation_team(key: str) -> Optional[list[str]]:
     if SPARC_ORGANISATION_ID is None or SPARC_ANNOTATION_TEAM_ID is None:
         settings['LOGGER'].warning('Pennsieve IDs of SPARC and MAP Annotation Team are not defined')
@@ -76,9 +74,7 @@ def get_annotation_team(key: str) -> Optional[list[str]]:
 #===============================================================================
 
 def get_user(key: str) -> dict:
-    global annotation_team
-    if annotation_team is None:
-        annotation_team = get_annotation_team(key)
+    annotation_team = get_annotation_team(key)
     user_query = query(f'{PENNSIEVE_API_ENDPOINT}/user/?api_key={key}')
     if 'error' in user_query:
         return user_query
