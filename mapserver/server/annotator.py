@@ -509,8 +509,8 @@ annotator_router = Router(
     route_handlers=[
         annotator_add_annotation,
         annotator_annotated_items,
-        annotator_annotations,
         annotator_annotation,
+        annotator_annotations,
         annotator_authenticate,
         annotator_download,
         annotator_features,
