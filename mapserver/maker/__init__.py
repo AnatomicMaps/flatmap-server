@@ -44,6 +44,9 @@ import mapmaker.utils as utils
 
 #===============================================================================
 
+MAKER_RESULT_KEYS = ['id', 'models', 'uuid']
+
+#===============================================================================
 @dataclass
 class MakerData:
     source: str
@@ -101,6 +104,7 @@ class MakerProcess(multiprocessing.Process):
         self.__log_file = None
         self.__status = 'queued'
         self.__last_log_lines = []
+        self.__result = {}
 
     @property
     def completed(self):
@@ -127,6 +131,10 @@ class MakerProcess(multiprocessing.Process):
         return self.__process_id
 
     @property
+    def result(self):
+        return self.__result
+
+    @property
     def status(self) -> str:
         return self.__status
     @status.setter
@@ -135,15 +143,13 @@ class MakerProcess(multiprocessing.Process):
 
     def close(self):
     #===============
-        map_uuid = None
         if self.exitcode == 0:
             self.__status = 'terminated'
-            map_uuid = self.__clean_up()
+            self.__result = self.__clean_up()
         else:
             self.__status = 'aborted'
         super().join()
         super().close()
-        return map_uuid
 
     def get_log(self, start_line=1) -> str:
     #======================================
@@ -154,23 +160,24 @@ class MakerProcess(multiprocessing.Process):
                 return '\n'.join(log_lines[start_line-1:])
         return ''
 
-    def __clean_up(self):
+    def __clean_up(self) -> dict[str, str]:
     #====================
-        map_uuid = None
+        result = {}
         self.get_log()
         for log_json in self.__last_log_lines:
             if len(log_json):
                 log_line = json.loads(log_json)
                 if log_line['msg'] == 'Generated map':
-                    map_uuid = log_line.get('uuid')
+                    result = { key: value for key in MAKER_RESULT_KEYS
+                                    if (value := log_line.get(key)) is not None }
                     break
-        if map_uuid is not None:
+        if 'uuid' in result:
             # Remove the log file when we've succesfully built a map
             # (it's already been copied into the map's directory)
             if self.__log_file is not None:
                 os.remove(self.__log_file)
                 self.__log_file = None
-        return map_uuid
+        return result
 
     def start(self):
     #===============
@@ -250,8 +257,12 @@ class Manager(threading.Thread):
                     if process.is_alive():
                         still_running.append(id)
                     else:
-                        map_uuid = process.close()
-                        self.__log.info(f'Finished mapmaker process: {process.name}, Map UUID: {map_uuid}')
+                        process.close()
+                        maker_result = process.result
+                        status = 'Finished' if process.status == 'terminated' else 'FAILED'
+                        info = ', '.join([ f'{key}: {value}' for key in MAKER_RESULT_KEYS
+                                            if (value := maker_result.get(key)) is not None ])
+                        self.__log.info(f'{status} mapmaker process: {process.name}, Map {info}')
                 self.__running_processes = still_running
             if len(self.__running_processes) == 0:
                 try:
