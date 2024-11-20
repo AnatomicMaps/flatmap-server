@@ -25,7 +25,7 @@ import typing
 
 #===============================================================================
 
-from litestar import Litestar
+from litestar import Litestar, get
 from litestar.config.cors import CORSConfig
 from litestar.logging import LoggingConfig as LitestarLoggingConfig
 from litestar.openapi.config import OpenAPIConfig
@@ -90,6 +90,12 @@ def terminate(app: Litestar):
 
 #===============================================================================
 
+@get('/version')
+async def version() -> dict:
+    return {'name': 'Flatmap server', 'version': __version__}
+
+#===============================================================================
+
 route_handlers = [
     annotator_router,
     connectivity_router,
@@ -97,6 +103,7 @@ route_handlers = [
     flatmap_router,
     knowledge_router,
     maker_router,
+    version
 ]
 
 app = Litestar(
