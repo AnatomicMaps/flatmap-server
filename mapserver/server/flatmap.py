@@ -116,6 +116,7 @@ async def flatmap_maps(request: Request) -> list:
                     flatmap['uri'] = f'{request.base_url}{FLATMAP_PATH_PREFIX}/{id}/'
                     if 'created' in metadata:
                         flatmap['created'] = metadata['created']
+                        flatmap['creator'] = metadata['creator']
                     if 'taxon' in metadata:
                         flatmap['taxon'] = metadata['taxon']
                         flatmap['describes'] = metadata['describes'] if 'describes' in metadata else flatmap['taxon']
@@ -126,6 +127,8 @@ async def flatmap_maps(request: Request) -> list:
                         flatmap['biologicalSex'] = metadata['biological-sex']
                     if 'name' in metadata:
                         flatmap['name'] = metadata['name']
+                    if 'connectivity' in metadata:
+                        flatmap['sckan'] = metadata['connectivity']
                 else:
                     source_row = None
                     try:
