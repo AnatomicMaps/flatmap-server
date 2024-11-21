@@ -1186,12 +1186,12 @@ url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.20.2/m
 
 [[package]]
 name = "mapmaker"
-version = "1.15.0"
+version = "1.15.1"
 description = ""
 optional = false
 python-versions = ">=3.12,<4.0"
 files = [
-    {file = "mapmaker-1.15.0-py3-none-any.whl", hash = "sha256:2fa8bbe1417834124f3194e4a846ecec2a69bc5da11bd5f907d019b58bb0f0d9"},
+    {file = "mapmaker-1.15.1-py3-none-any.whl", hash = "sha256:6f92c3eef591d1bcc0127717109ee05bd9fb8a13b5e9252a1c1d6e6e4461b254"},
 ]
 
 [package.dependencies]
@@ -1234,7 +1234,7 @@ xmltodict = ">=0.12.0,<0.13.0"
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.15.0/mapmaker-1.15.0-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.15.1/mapmaker-1.15.1-py3-none-any.whl"
 
 [[package]]
 name = "markdown-it-py"
@@ -3354,4 +3354,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<4.0"
-content-hash = "e8d31052cbd7e6357ac36d72bfa78892de041da2ed0fa864109183bc6880ca1e"
+content-hash = "b71b5607d43e8f305107d350043785af657f93b9e07f75e77234e6e028265fbf"
