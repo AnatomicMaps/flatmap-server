@@ -431,20 +431,20 @@ files = [
 
 [[package]]
 name = "flatmapknowledge"
-version = "2.0.2"
+version = "2.0.3"
 description = ""
 optional = false
 python-versions = ">=3.12,<4.0"
 files = [
-    {file = "flatmapknowledge-2.0.2-py3-none-any.whl", hash = "sha256:365ad9aa15db0ccb61d0cc70e3b338e39aec32551a6dbc5d9d2c8f07f0f1bb7d"},
+    {file = "flatmapknowledge-2.0.3-py3-none-any.whl", hash = "sha256:4e9a16003ee1a653866dac86640849abd3aec17be8be5c9a287166fa748c4d50"},
 ]
 
 [package.dependencies]
-mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.20.2/mapknowledge-0.20.2-py3-none-any.whl"}
+mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.20.3/mapknowledge-0.20.3-py3-none-any.whl"}
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.2/flatmapknowledge-2.0.2-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.3/flatmapknowledge-2.0.3-py3-none-any.whl"
 
 [[package]]
 name = "frozendict"
@@ -1163,12 +1163,12 @@ source = ["Cython (>=3.0.11)"]
 
 [[package]]
 name = "mapknowledge"
-version = "0.20.2"
+version = "0.20.3"
 description = ""
 optional = false
 python-versions = ">=3.12,<4.0"
 files = [
-    {file = "mapknowledge-0.20.2-py3-none-any.whl", hash = "sha256:6cb3ea87ea5858858e18ed4071ec293616315cace4f7f8d954c335a60d17d23a"},
+    {file = "mapknowledge-0.20.3-py3-none-any.whl", hash = "sha256:5604f3c7526adbd09c678e126d1ea006ad1c7be05d27e543130779e96708b598"},
 ]
 
 [package.dependencies]
@@ -1182,23 +1182,23 @@ structlog = ">=24.4.0,<25.0.0"
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.20.2/mapknowledge-0.20.2-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.20.3/mapknowledge-0.20.3-py3-none-any.whl"
 
 [[package]]
 name = "mapmaker"
-version = "1.15.2"
+version = "1.15.3"
 description = ""
 optional = false
 python-versions = ">=3.12,<4.0"
 files = [
-    {file = "mapmaker-1.15.2-py3-none-any.whl", hash = "sha256:a5f7f884c7273bef940c3c257b11859f5a670b4288177fe471cbcafa943c9b80"},
+    {file = "mapmaker-1.15.3-py3-none-any.whl", hash = "sha256:3133cd4aa40ab1eeed7df56786c0e8372a29d0780ed5c805f0ee808ec2116946"},
 ]
 
 [package.dependencies]
 beziers = ">=0.5.0,<0.6.0"
 colormath = ">=3.0.0,<4.0.0"
 cssselect2 = ">=0.6.0,<0.7.0"
-flatmapknowledge = {url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.2/flatmapknowledge-2.0.2-py3-none-any.whl"}
+flatmapknowledge = {url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.3/flatmapknowledge-2.0.3-py3-none-any.whl"}
 gitpython = ">=3.1.41,<4.0.0"
 giturlparse = ">=0.12.0,<0.13.0"
 lxml = ">=5.2.2,<6.0.0"
@@ -1234,7 +1234,7 @@ xmltodict = ">=0.12.0,<0.13.0"
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.15.2/mapmaker-1.15.2-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.15.3/mapmaker-1.15.3-py3-none-any.whl"
 
 [[package]]
 name = "markdown-it-py"
@@ -3354,4 +3354,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<4.0"
-content-hash = "961ab5bddeb0cefbbdd83daa82b88b6a1de67536c30cad071b2a2a8c24e78f97"
+content-hash = "994bf626921ae2d10c189e85ed9ed949e0001f0888374039acf48f3c9720c81a"
