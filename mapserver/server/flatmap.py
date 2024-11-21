@@ -23,6 +23,7 @@ import io
 import json
 import pathlib
 import sqlite3
+from typing import Any
 
 #===============================================================================
 
@@ -98,7 +99,7 @@ async def flatmap_maps(request: Request) -> list:
                 version = index.get('version', 1.0)
                 reader = MBTilesReader(mbtiles)
                 if version >= 1.3:
-                    metadata: dict[str, str] = json_metadata(reader, 'metadata')
+                    metadata: dict[str, Any] = json_metadata(reader, 'metadata')
                     if (('id' not in metadata or flatmap_dir.name != metadata['id'])
                      and ('uuid' not in metadata or flatmap_dir.name != metadata['uuid'].split(':')[-1])):
                         request.logger.error(f'Flatmap id mismatch: {flatmap_dir}')
@@ -117,6 +118,8 @@ async def flatmap_maps(request: Request) -> list:
                     if 'created' in metadata:
                         flatmap['created'] = metadata['created']
                         flatmap['creator'] = metadata['creator']
+                    if 'git-status' in metadata:
+                        flatmap['git-status'] = metadata['git-status']
                     if 'taxon' in metadata:
                         flatmap['taxon'] = metadata['taxon']
                         flatmap['describes'] = metadata['describes'] if 'describes' in metadata else flatmap['taxon']
