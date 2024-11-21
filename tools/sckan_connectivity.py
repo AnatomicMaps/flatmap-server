@@ -158,14 +158,6 @@ def restore(args):
         entity = knowledge['id']
         store.db.execute('replace into knowledge (source, entity, knowledge) values (?, ?, ?)',
                                              (knowledge_source, entity, json.dumps(knowledge)))
-        # Save label and references in their own tables
-        if 'label' in knowledge:
-            store.db.execute('replace into labels values (?, ?)', (entity, knowledge['label']))
-        if 'references' in knowledge:
-            references = knowledge.get('references', [])
-            store.db.execute('delete from publications where source=? and entity=?', (knowledge_source, entity, ))
-            store.db.executemany('insert into publications(source, entity, publication) values (?, ?, ?)',
-                ((knowledge_source, entity, reference) for reference in references))
         if 'connectivity' in knowledge:
             seen_nodes = set()
             for edge in knowledge['connectivity']:
