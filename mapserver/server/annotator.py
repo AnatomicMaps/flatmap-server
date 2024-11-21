@@ -281,7 +281,7 @@ class AnnotationStore:
                 try:
                     feature = annotation.pop('feature', None)
                     status = annotation.pop('status', None)
-                    annotation_id = str(uuid.uuid4)
+                    annotation_id = str(uuid.uuid4())
                     result['annotationId'] = annotation_id
                     cursor = self.__db.cursor()
                     cursor.execute('''insert into annotations
