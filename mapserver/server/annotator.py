@@ -285,7 +285,7 @@ class AnnotationStore:
                     result['annotationId'] = annotation_id
                     cursor = self.__db.cursor()
                     cursor.execute('''insert into annotations
-                        (id, resource, itemid, item, created, orcid, creator, annotation, status) values (?, ?, ?, ?, ?, ?, ?, ?)''',
+                        (id, resource, itemid, item, created, orcid, creator, annotation, status) values (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
                         (annotation_id, resource_id, item_id, json.dumps(item), created, orcid,
                          json.dumps(creator), json.dumps(annotation), status))
                     # Flag as deleted any non-deleted entries for the feature
