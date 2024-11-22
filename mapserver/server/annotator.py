@@ -337,6 +337,15 @@ def __del_session(session_key: str) -> bool:
     return __sessions.pop(session_key, None) is not None
 
 #===============================================================================
+
+def __get_json_parameter(query: dict[str, Any], key: str, default: Any=None) -> Any:
+    if (parameter := query.get(key, default)) is not None:
+        try:
+            return json.loads(parameter)
+        except json.decoder.JSONDecodeError:
+            pass
+
+#===============================================================================
 #===============================================================================
 
 def __authenticated_session(query: dict[str, Any], request: Request) -> bool:
@@ -392,11 +401,11 @@ async def annotator_unauthenticate(query: dict[str, Any], request: Request) -> d
 @get('items/')
 async def annotator_annotated_items(query: dict[str, Any], request: Request) -> dict:
     if __authenticated_session(query, request):
-        if (resource_id := query.get('resource')) is not None:
-            user_id = query.get('user')
+        if (resource_id := __get_json_parameter(query, 'resource')) is not None:
+            user_id = __get_json_parameter(query, 'user')
             annotation_store = AnnotationStore()
             if user_id is not None:
-                participated = query.get('participated', True)
+                participated = __get_json_parameter(query, 'participated', True)
                 item_ids = annotation_store.user_item_ids(resource_id, user_id, participated)
             else:
                 item_ids = annotation_store.annotated_item_ids(resource_id)
@@ -410,9 +419,9 @@ async def annotator_annotated_items(query: dict[str, Any], request: Request) -> 
 @get('features/')
 async def annotator_features(query: dict[str, Any], request: Request) -> dict:
     if __authenticated_session(query, request):
-        if (resource_id := query.get('resource')) is not None:
+        if (resource_id := __get_json_parameter(query, 'resource')) is not None:
             annotation_store = AnnotationStore()
-            if (item_ids := query.get('items')) is not None:
+            if (item_ids := __get_json_parameter(query, 'items')) is not None:
                 if isinstance(item_ids, str):
                     item_ids = [item_ids]
                 features = annotation_store.item_features(resource_id, item_ids)
@@ -428,8 +437,8 @@ async def annotator_features(query: dict[str, Any], request: Request) -> dict:
 @get('annotations/')
 async def annotator_annotations(query: dict[str, Any], request: Request) -> list[dict]:
     if __authenticated_session(query, request):
-        if ((resource_id := query.get('resource')) is not None
-        and (item_id := query.get('item')) is not None):
+        if ((resource_id := __get_json_parameter(query, 'resource')) is not None
+        and (item_id := __get_json_parameter(query, 'item')) is not None):
             annotation_store = AnnotationStore()
             annotations = annotation_store.annotations(resource_id, item_id)
             annotation_store.close()
@@ -442,7 +451,7 @@ async def annotator_annotations(query: dict[str, Any], request: Request) -> list
 @get(['annotation/', 'annotation/<str:id>'])
 async def annotator_annotation(query: dict[str, Any], request: Request, id: Optional[str]=None) -> dict:
     if __authenticated_session(query, request):
-        annotation_id = query.get('annotation', '') if id is None else id
+        annotation_id = __get_json_parameter(query, 'annotation', '') if id is None else id
         annotation_store = AnnotationStore()
         annotation = annotation_store.annotation(annotation_id)
         annotation_store.close()
