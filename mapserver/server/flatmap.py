@@ -298,7 +298,7 @@ async def flatmap_termgraph(map_uuid: str) -> dict:
 #===============================================================================
 
 @get('flatmap/{map_uuid:str}/proxies')
-async def flatmap_proxie(map_uuid: str) -> dict:
+async def flatmap_proxies(map_uuid: str) -> dict:
     try:
         return json_map_metadata(map_uuid, 'proxies')
     except IOError as err:
@@ -323,7 +323,7 @@ flatmap_router = Router(
         flatmap_style,
         flatmap_termgraph,
         flatmap_vector_tiles,
-        flatmap_proxie
+        flatmap_proxies
     ]
 )
 
