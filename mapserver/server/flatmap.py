@@ -296,6 +296,15 @@ async def flatmap_termgraph(map_uuid: str) -> dict:
         raise exceptions.NotFoundException(detail=str(err))
 
 #===============================================================================
+
+@get('flatmap/{map_uuid:str}/proxies')
+async def flatmap_proxie(map_uuid: str) -> dict:
+    try:
+        return json_map_metadata(map_uuid, 'proxies')
+    except IOError as err:
+        raise exceptions.NotFoundException(detail=str(err))
+
+#===============================================================================
 #===============================================================================
 
 flatmap_router = Router(
@@ -313,7 +322,8 @@ flatmap_router = Router(
         flatmap_pathways,
         flatmap_style,
         flatmap_termgraph,
-        flatmap_vector_tiles
+        flatmap_vector_tiles,
+        flatmap_proxie
     ]
 )
 
