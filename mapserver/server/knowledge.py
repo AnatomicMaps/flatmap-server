@@ -39,7 +39,7 @@ from ..settings import settings
 @dataclass
 class QueryData:
     sql: str
-    params: Optional[list[str]]
+    params: Optional[list[str]] = None
 
 @dataclass
 class KnowledgeSourcesResponse:
