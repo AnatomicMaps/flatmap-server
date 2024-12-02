@@ -112,8 +112,9 @@ def main():
         for sckan_models in term_index:
             term = sckan_models['sckan_term']
             for model in sckan_models['cellmls']:
-                db.execute('insert or replace into pmr_models (term, model, workspace, exposure, score) values (?, ?, ?, ?, ?)',
-                                                              (term, model['cellml'], model['workspace'], model.get('exposure'), model['score']))
+                db.execute('delete from pmr_models where term=?', (term, ))
+                db.execute('insert into pmr_models (term, model, workspace, exposure, score) values (?, ?, ?, ?, ?)',
+                                                   (term, model['cellml'], model['workspace'], model.get('exposure'), model['score']))
     if args.exposures is not None:
         if (args.clean):
             db.execute('delete from pmr_metadata')
@@ -130,11 +131,13 @@ def main():
                 documentation = clean_text(metadata, 'documentation')
 
                 # Update metadata table
-                db.execute('insert or replace into pmr_metadata (entity, metadata) values (?, ?)',
-                                                                (exposure, json.dumps(metadata)))
+                db.execute('delete from pmr_metadata where entity=?', (exposure, ))
+                db.execute('insert into pmr_metadata (entity, metadata) values (?, ?)',
+                                                     (exposure, json.dumps(metadata)))
                 # Update FTS table
-                db.execute('insert or replace into pmr_text (entity, title, description, documentation) values (?, ?, ?, ?)',
-                                                                (exposure, title, description, documentation))
+                db.execute('delete from pmr_text where entity=?', (exposure, ))
+                db.execute('insert into pmr_text (entity, title, description, documentation) values (?, ?, ?, ?)',
+                                                 (exposure, title, description, documentation))
     # All done, commit transaction and close knowledge store
     db.commit()
 
