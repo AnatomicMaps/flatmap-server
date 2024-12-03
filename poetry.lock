@@ -405,13 +405,13 @@ files = [
 
 [[package]]
 name = "faker"
-version = "33.0.0"
+version = "33.1.0"
 description = "Faker is a Python package that generates fake data for you."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "Faker-33.0.0-py3-none-any.whl", hash = "sha256:68e5580cb6b4226710886e595eabc13127149d6e71e9d1db65506a7fbe2c7fce"},
-    {file = "faker-33.0.0.tar.gz", hash = "sha256:9b01019c1ddaf2253ca2308c0472116e993f4ad8fc9905f82fa965e0c6f932e9"},
+    {file = "Faker-33.1.0-py3-none-any.whl", hash = "sha256:d30c5f0e2796b8970de68978365247657486eb0311c5abe88d0b895b68dff05d"},
+    {file = "faker-33.1.0.tar.gz", hash = "sha256:1c925fc0e86a51fc46648b504078c88d0cd48da1da2595c4e712841cab43a1e4"},
 ]
 
 [package.dependencies]
@@ -431,20 +431,20 @@ files = [
 
 [[package]]
 name = "flatmapknowledge"
-version = "2.0.4"
+version = "2.0.5"
 description = ""
 optional = false
 python-versions = ">=3.12,<4.0"
 files = [
-    {file = "flatmapknowledge-2.0.4-py3-none-any.whl", hash = "sha256:21c921c31f97f7889e1783494faabb10bd1a80a794e0bf71e171b5db121b7218"},
+    {file = "flatmapknowledge-2.0.5-py3-none-any.whl", hash = "sha256:a4ed43de0626f8bb3db35223ad386ca5e3cc5d5cb59412a05b66a86912db00d9"},
 ]
 
 [package.dependencies]
-mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.20.4/mapknowledge-0.20.4-py3-none-any.whl"}
+mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.20.5/mapknowledge-0.20.5-py3-none-any.whl"}
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.4/flatmapknowledge-2.0.4-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.5/flatmapknowledge-2.0.5-py3-none-any.whl"
 
 [[package]]
 name = "frozendict"
@@ -763,13 +763,13 @@ pyparsing = {version = ">=2.4.2,<3.0.0 || >3.0.0,<3.0.1 || >3.0.1,<3.0.2 || >3.0
 
 [[package]]
 name = "httpx"
-version = "0.27.2"
+version = "0.28.0"
 description = "The next generation HTTP client."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "httpx-0.27.2-py3-none-any.whl", hash = "sha256:7bb2708e112d8fdd7829cd4243970f0c223274051cb35ee80c03301ee29a3df0"},
-    {file = "httpx-0.27.2.tar.gz", hash = "sha256:f7c2be1d2f3c3c3160d441802406b206c2b76f5947b11115e6df10c6c65e66c2"},
+    {file = "httpx-0.28.0-py3-none-any.whl", hash = "sha256:dc0b419a0cfeb6e8b34e85167c0da2671206f5095f1baa9663d23bcfd6b535fc"},
+    {file = "httpx-0.28.0.tar.gz", hash = "sha256:0858d3bab51ba7e386637f22a61d8ccddaeec5f3fe4209da3a6168dbb91573e0"},
 ]
 
 [package.dependencies]
@@ -777,7 +777,6 @@ anyio = "*"
 certifi = "*"
 httpcore = "==1.*"
 idna = "*"
-sniffio = "*"
 
 [package.extras]
 brotli = ["brotli", "brotlicffi"]
@@ -995,17 +994,14 @@ structlog = ["structlog"]
 
 [[package]]
 name = "litestar-htmx"
-version = "0.3.0"
+version = "0.4.1"
 description = "HTMX Integration for Litesstar"
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "litestar_htmx-0.3.0-py3-none-any.whl", hash = "sha256:3cca09314470483c867faffa77b642fba5f39531e105d6ba9c74866a1e8ab0d8"},
-    {file = "litestar_htmx-0.3.0.tar.gz", hash = "sha256:dbdf7b64d7ad71ac5ca1af5663d5fba78a2742bb1056b9c49a82d0e23827b6a7"},
+    {file = "litestar_htmx-0.4.1-py3-none-any.whl", hash = "sha256:ba2a8ff1e210f21980735b9cde13d239a2b7c3627cb4aeb425d66f4a314d1a59"},
+    {file = "litestar_htmx-0.4.1.tar.gz", hash = "sha256:ba2537008eb8cc18bfc8bee5cecb280924c7818bb1c066d79eae4b221696ca08"},
 ]
-
-[package.dependencies]
-litestar = "*"
 
 [[package]]
 name = "lxml"
@@ -1163,12 +1159,12 @@ source = ["Cython (>=3.0.11)"]
 
 [[package]]
 name = "mapknowledge"
-version = "0.20.4"
+version = "0.20.5"
 description = ""
 optional = false
 python-versions = ">=3.12,<4.0"
 files = [
-    {file = "mapknowledge-0.20.4-py3-none-any.whl", hash = "sha256:af141f6f8b74b93436fa2c9b1c9632745ffcad508b8a43a96e479fe0a7228233"},
+    {file = "mapknowledge-0.20.5-py3-none-any.whl", hash = "sha256:edb04550dc341b3001fec1c518d0c53a83020a8006cf81dcfdd6b760ba85e562"},
 ]
 
 [package.dependencies]
@@ -1182,23 +1178,23 @@ structlog = ">=24.4.0,<25.0.0"
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.20.4/mapknowledge-0.20.4-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.20.5/mapknowledge-0.20.5-py3-none-any.whl"
 
 [[package]]
 name = "mapmaker"
-version = "1.15.4"
+version = "1.15.5"
 description = ""
 optional = false
 python-versions = ">=3.12,<4.0"
 files = [
-    {file = "mapmaker-1.15.4-py3-none-any.whl", hash = "sha256:f0ac0c015ec76d540185036eac9139285a7518ca39571680991b7a53d165c15b"},
+    {file = "mapmaker-1.15.5-py3-none-any.whl", hash = "sha256:67df309193fdbbe39c8454a447a52556565d1aac2d729f865894a899c1b244e5"},
 ]
 
 [package.dependencies]
 beziers = ">=0.5.0,<0.6.0"
 colormath = ">=3.0.0,<4.0.0"
 cssselect2 = ">=0.6.0,<0.7.0"
-flatmapknowledge = {url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.4/flatmapknowledge-2.0.4-py3-none-any.whl"}
+flatmapknowledge = {url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.5/flatmapknowledge-2.0.5-py3-none-any.whl"}
 gitpython = ">=3.1.41,<4.0.0"
 giturlparse = ">=0.12.0,<0.13.0"
 lxml = ">=5.2.2,<6.0.0"
@@ -1234,7 +1230,7 @@ xmltodict = ">=0.12.0,<0.13.0"
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.15.4/mapmaker-1.15.4-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.15.5/mapmaker-1.15.5-py3-none-any.whl"
 
 [[package]]
 name = "markdown-it-py"
@@ -1871,13 +1867,13 @@ files = [
 
 [[package]]
 name = "polyfactory"
-version = "2.18.0"
+version = "2.18.1"
 description = "Mock data generation factories"
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "polyfactory-2.18.0-py3-none-any.whl", hash = "sha256:2d9163e5e3971a4e82fac5d37048b09ae26cfc4173ebcf0047370c288e339307"},
-    {file = "polyfactory-2.18.0.tar.gz", hash = "sha256:04d8b4d4986e406cd4c16cc01e8bb747083842d57a5c0dba63a21ee5ef75ba66"},
+    {file = "polyfactory-2.18.1-py3-none-any.whl", hash = "sha256:1a2b0715e08bfe9f14abc838fc013ab8772cb90e66f2e601e15e1127f0bc1b18"},
+    {file = "polyfactory-2.18.1.tar.gz", hash = "sha256:17c9db18afe4fb8d7dd8e5ba296e69da0fcf7d0f3b63d1840eb10d135aed5aad"},
 ]
 
 [package.dependencies]
@@ -1923,22 +1919,22 @@ testing = ["google-api-core (>=1.31.5)"]
 
 [[package]]
 name = "protobuf"
-version = "5.28.3"
+version = "5.29.0"
 description = ""
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "protobuf-5.28.3-cp310-abi3-win32.whl", hash = "sha256:0c4eec6f987338617072592b97943fdbe30d019c56126493111cf24344c1cc24"},
-    {file = "protobuf-5.28.3-cp310-abi3-win_amd64.whl", hash = "sha256:91fba8f445723fcf400fdbe9ca796b19d3b1242cd873907979b9ed71e4afe868"},
-    {file = "protobuf-5.28.3-cp38-abi3-macosx_10_9_universal2.whl", hash = "sha256:a3f6857551e53ce35e60b403b8a27b0295f7d6eb63d10484f12bc6879c715687"},
-    {file = "protobuf-5.28.3-cp38-abi3-manylinux2014_aarch64.whl", hash = "sha256:3fa2de6b8b29d12c61911505d893afe7320ce7ccba4df913e2971461fa36d584"},
-    {file = "protobuf-5.28.3-cp38-abi3-manylinux2014_x86_64.whl", hash = "sha256:712319fbdddb46f21abb66cd33cb9e491a5763b2febd8f228251add221981135"},
-    {file = "protobuf-5.28.3-cp38-cp38-win32.whl", hash = "sha256:3e6101d095dfd119513cde7259aa703d16c6bbdfae2554dfe5cfdbe94e32d548"},
-    {file = "protobuf-5.28.3-cp38-cp38-win_amd64.whl", hash = "sha256:27b246b3723692bf1068d5734ddaf2fccc2cdd6e0c9b47fe099244d80200593b"},
-    {file = "protobuf-5.28.3-cp39-cp39-win32.whl", hash = "sha256:135658402f71bbd49500322c0f736145731b16fc79dc8f367ab544a17eab4535"},
-    {file = "protobuf-5.28.3-cp39-cp39-win_amd64.whl", hash = "sha256:70585a70fc2dd4818c51287ceef5bdba6387f88a578c86d47bb34669b5552c36"},
-    {file = "protobuf-5.28.3-py3-none-any.whl", hash = "sha256:cee1757663fa32a1ee673434fcf3bf24dd54763c79690201208bafec62f19eed"},
-    {file = "protobuf-5.28.3.tar.gz", hash = "sha256:64badbc49180a5e401f373f9ce7ab1d18b63f7dd4a9cdc43c92b9f0b481cef7b"},
+    {file = "protobuf-5.29.0-cp310-abi3-win32.whl", hash = "sha256:ea7fb379b257911c8c020688d455e8f74efd2f734b72dc1ea4b4d7e9fd1326f2"},
+    {file = "protobuf-5.29.0-cp310-abi3-win_amd64.whl", hash = "sha256:34a90cf30c908f47f40ebea7811f743d360e202b6f10d40c02529ebd84afc069"},
+    {file = "protobuf-5.29.0-cp38-abi3-macosx_10_9_universal2.whl", hash = "sha256:c931c61d0cc143a2e756b1e7f8197a508de5365efd40f83c907a9febf36e6b43"},
+    {file = "protobuf-5.29.0-cp38-abi3-manylinux2014_aarch64.whl", hash = "sha256:85286a47caf63b34fa92fdc1fd98b649a8895db595cfa746c5286eeae890a0b1"},
+    {file = "protobuf-5.29.0-cp38-abi3-manylinux2014_x86_64.whl", hash = "sha256:0d10091d6d03537c3f902279fcf11e95372bdd36a79556311da0487455791b20"},
+    {file = "protobuf-5.29.0-cp38-cp38-win32.whl", hash = "sha256:0cd67a1e5c2d88930aa767f702773b2d054e29957432d7c6a18f8be02a07719a"},
+    {file = "protobuf-5.29.0-cp38-cp38-win_amd64.whl", hash = "sha256:e467f81fdd12ded9655cea3e9b83dc319d93b394ce810b556fb0f421d8613e86"},
+    {file = "protobuf-5.29.0-cp39-cp39-win32.whl", hash = "sha256:17d128eebbd5d8aee80300aed7a43a48a25170af3337f6f1333d1fac2c6839ac"},
+    {file = "protobuf-5.29.0-cp39-cp39-win_amd64.whl", hash = "sha256:6c3009e22717c6cc9e6594bb11ef9f15f669b19957ad4087214d69e08a213368"},
+    {file = "protobuf-5.29.0-py3-none-any.whl", hash = "sha256:88c4af76a73183e21061881360240c0cdd3c39d263b4e8fb570aaf83348d608f"},
+    {file = "protobuf-5.29.0.tar.gz", hash = "sha256:445a0c02483869ed8513a585d80020d012c6dc60075f96fa0563a724987b1001"},
 ]
 
 [[package]]
@@ -2510,23 +2506,23 @@ jupyter = ["ipywidgets (>=7.5.1,<9)"]
 
 [[package]]
 name = "rich-click"
-version = "1.8.4"
+version = "1.8.5"
 description = "Format click help output nicely with rich"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "rich_click-1.8.4-py3-none-any.whl", hash = "sha256:2d2841b3cebe610d5682baa1194beaf78ab00c4fa31931533261b5eba2ee80b7"},
-    {file = "rich_click-1.8.4.tar.gz", hash = "sha256:0f49471f04439269d0e66a6f43120f52d11d594869a2a0be600cfb12eb0616b9"},
+    {file = "rich_click-1.8.5-py3-none-any.whl", hash = "sha256:0fab7bb5b66c15da17c210b4104277cd45f3653a7322e0098820a169880baee0"},
+    {file = "rich_click-1.8.5.tar.gz", hash = "sha256:a3eebe81da1c9da3c32f3810017c79bd687ff1b3fa35bfc9d8a3338797f1d1a1"},
 ]
 
 [package.dependencies]
 click = ">=7"
 rich = ">=10.7"
-typing-extensions = ">=4"
+typing_extensions = ">=4"
 
 [package.extras]
 dev = ["mypy", "packaging", "pre-commit", "pytest", "pytest-cov", "rich-codex", "ruff", "types-setuptools"]
-docs = ["markdown-include", "mkdocs", "mkdocs-glightbox", "mkdocs-material-extensions", "mkdocs-material[imaging] (>=9.5.18,<9.6.0)", "mkdocs-rss-plugin", "mkdocstrings[python]", "rich-codex"]
+docs = ["markdown_include", "mkdocs", "mkdocs-glightbox", "mkdocs-material-extensions", "mkdocs-material[imaging] (>=9.5.18,<9.6.0)", "mkdocs-rss-plugin", "mkdocstrings[python]", "rich-codex"]
 
 [[package]]
 name = "rsa"
@@ -3354,4 +3350,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.12,<4.0"
-content-hash = "2ab30e485529175db5a167bfa35e8c6a879fbd50a366a2a721fcf006f6b2698b"
+content-hash = "2a8e8ba6cd0dbda5a33b5810c1ae73dd41e25bd2c5f06e94da563167e707b225"
