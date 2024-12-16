@@ -68,7 +68,7 @@ class Archiver:
                         shutil.rmtree(archive_dir)
                 else:
                     raise ValueError(f'Cannot remove existing flatmap archive: {str(archive_dir)}')
-            print(f'mv {str(flatmap_dir)} {str(archive_dir)}')
+            print(f'mv {str(flatmap_dir)} {str(self.__archive_dir)}')
             if self.__execute:
                 flatmap_dir.rename(archive_dir)
 
