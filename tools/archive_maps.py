@@ -55,7 +55,7 @@ class Archiver:
 
     def archive(self, flatmap_uuid: str):
         flatmap_dir = self.__flatmap_dir / flatmap_uuid
-        if flatmap_dir.exists() and flatmap_dir.is_dir():
+        if self.__execute or flatmap_dir.exists() and flatmap_dir.is_dir():
             archive_dir = self.__archive_dir / flatmap_uuid
             if archive_dir.exists():
                 if archive_dir.is_file() or archive_dir.is_symlink():
@@ -75,6 +75,9 @@ class Archiver:
 #===============================================================================
 
 def process_export(server: str, export_file: str, execute: bool=False):
+    # Script or shell option...
+    print('#!/bin/sh')
+    print()
     archiver = Archiver(server, execute=execute)
     with open(export_file) as fp:
         records = json.load(fp)
