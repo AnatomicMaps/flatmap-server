@@ -1,6 +1,6 @@
 #===============================================================================
 #
-#  Flatmap server
+#  Flatmap server tools
 #
 #  Copyright (c) 2019-2024  David Brooks
 #
@@ -87,7 +87,13 @@ def process_export(server: str, export_file: str, execute: bool=False):
 def main():
     import argparse
 
-    process_export('curation', 'flatmap-export.json', execute=False)
+    parser = argparse.ArgumentParser(description='Create a script to archive flatmaps from a dashboard export')
+    parser.add_argument('server', metavar='SERVER', help='The server containing flatmaps to be archived',
+        choices=list(SERVER_HOME_DIRECTORIES.keys()))
+    parser.add_argument('flatmap_export', metavar='FLATMAP_EXPORT', help='A flatmap dashboard export file')
+    args = parser.parse_args()
+
+    process_export(args.server, args.flatmap_export, execute=False)
 
 #===============================================================================
 
