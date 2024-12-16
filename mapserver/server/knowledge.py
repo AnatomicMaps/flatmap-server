@@ -100,7 +100,7 @@ async def knowledge_sources() -> KnowledgeSourcesResponse:
 
 @get('sparcterms')
 async def knowledge_sparcterms() -> File:
-#==============================
+#========================================
     filename = os.path.join(settings['FLATMAP_ROOT'], CACHED_SPARC_HIERARCHY)
     return File(path=filename, media_type=MediaType.JSON)
 
