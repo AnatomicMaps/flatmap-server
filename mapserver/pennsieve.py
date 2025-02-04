@@ -41,11 +41,13 @@ PENNSIEVE_API_PRODUCTION = 'https://api.pennsieve.io'
 ## Environment...
 # export LOGIN_API_URL="https://api.pennsieve.io"
 # export SPARC_ORGANISATION_ID=N:organization:618e8dd9-f8d2-4dc4-9abb-c6aaab2e78a0
+# export SPARC_ORGANISATION_INT_ID=367
 # export SPARC_ANNOTATION_TEAM_ID=N:team:031b434c-41ab-4ecf-92a9-050fc1b3211a
 
 PENNSIEVE_API_ENDPOINT = os.environ.get('PENNSIEVE_API_ENDPOINT', PENNSIEVE_API_PRODUCTION)
 
 SPARC_ORGANISATION_ID = os.environ.get('SPARC_ORGANISATION_ID')
+SPARC_ORGANISATION_INT_ID = os.environ.get('SPARC_ORGANISATION_INT_ID')
 SPARC_ANNOTATION_TEAM_ID = os.environ.get('SPARC_ANNOTATION_TEAM_ID')
 
 #===============================================================================
@@ -65,8 +67,12 @@ def query(url) -> Any:
 #===============================================================================
 
 def get_annotation_team(key: str) -> Optional[list[str]]:
-    if SPARC_ORGANISATION_ID is None or SPARC_ANNOTATION_TEAM_ID is None:
+    if SPARC_ORGANISATION_ID is None or SPARC_ORGANISATION_INT_ID is None or SPARC_ANNOTATION_TEAM_ID is None:
         settings['LOGGER'].warning('Pennsieve IDs of SPARC and MAP Annotation Team are not defined')
+    try:
+        switch_organization = query(f'{PENNSIEVE_API_ENDPOINT}/session/switch-organization?organization_id=${SPARC_ORGANISATION_INT_ID}&api_key=${key}')
+    except Exception as e:
+        settings['LOGGER'].warning(f"Failed to switch organization: {e}")
     team_query = query(f'{PENNSIEVE_API_ENDPOINT}/organizations/{SPARC_ORGANISATION_ID}/teams/{SPARC_ANNOTATION_TEAM_ID}/members?api_key={key}')
     if 'error' not in team_query:
         return [id for member in team_query if (id := member.get('id')) is not None]
