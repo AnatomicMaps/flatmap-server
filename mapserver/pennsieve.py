@@ -52,7 +52,7 @@ SPARC_ANNOTATION_TEAM_ID = os.environ.get('SPARC_ANNOTATION_TEAM_ID')
 
 #===============================================================================
 
-def query(url, method: Optional[str]='GET') -> Any:
+def query(url, method: str='GET') -> Any:
     headers = {"accept": "*/*"}
     response = requests.request(method, url, headers=headers)
     if response.status_code == 200:
@@ -70,7 +70,7 @@ def get_annotation_team(key: str) -> Optional[list[str]]:
     if SPARC_ORGANISATION_ID is None or SPARC_ORGANISATION_INT_ID is None or SPARC_ANNOTATION_TEAM_ID is None:
         settings['LOGGER'].warning('Pennsieve IDs of SPARC and MAP Annotation Team are not defined')
     try:
-        switch_organization = query(f'{PENNSIEVE_API_ENDPOINT}/session/switch-organization?organization_id={SPARC_ORGANISATION_INT_ID}&api_key={key}', 'PUT')
+        organization = query(f'{PENNSIEVE_API_ENDPOINT}/session/switch-organization?organization_id={SPARC_ORGANISATION_INT_ID}&api_key={key}', 'PUT')
     except Exception as e:
         settings['LOGGER'].warning(f"Failed to switch organization: {e}")
     team_query = query(f'{PENNSIEVE_API_ENDPOINT}/organizations/{SPARC_ORGANISATION_ID}/teams/{SPARC_ANNOTATION_TEAM_ID}/members?api_key={key}')
