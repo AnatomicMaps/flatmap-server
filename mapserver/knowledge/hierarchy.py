@@ -327,8 +327,9 @@ class AnatomicalHierarchy:
         # Nodes on the graph are SPARC terms, with attributes of the term's label and its distance to
         # a common ``anatomical root``
         map_terms = set(Uri(term) for term in
-                        [ann.get('models') for ann in json_map_metadata(flatmap, 'annotations').values()]
-                            if self.__sparc_hierarchy.has(term))
+                        [ann.get('models') for ann in json_map_metadata(flatmap, 'annotations').values()
+                            if ann.get('kind') != 'centreline']
+                                if self.__sparc_hierarchy.has(term))
         for term in map_terms:
             distance = self.__sparc_hierarchy.distance_to_root(term)
             if distance > 0:
