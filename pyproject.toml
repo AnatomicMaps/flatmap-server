@@ -20,22 +20,19 @@ structlog = "^24.4.0"
 rich = "^13.9.4"
 pyyaml = "^6.0.2"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 sphinx = "^8.1"
 sphinx-rtd-theme = "^3.0.1"
 sphinxcontrib-httpdomain = "*"
+uvicorn = "^0.32.0"
 
 [tool.poetry.scripts]
 mapserver = 'mapserver.__main__:mapserver'
 mapviewer = 'mapserver.__main__:mapviewer'
 
-[tool.poetry.group.dev.dependencies]
-uvicorn = "^0.32.0"
-
 [build-system]
-# See https://github.com/chrahunt/rtd-poetry/issues/3
-requires = ["poetry_core>=1.0.0", "rtd-poetry @ https://github.com/dbrnz/rtd-poetry/archive/refs/tags/v0.1.2.tar.gz"]
-build-backend = "rtd_poetry"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.pyright]
 pythonVersion = "3.12"
