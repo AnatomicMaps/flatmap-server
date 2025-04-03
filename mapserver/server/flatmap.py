@@ -66,6 +66,24 @@ anatomical_hierarchy = AnatomicalHierarchy()
 #===============================================================================
 #===============================================================================
 
+PATHWAYS_CACHE = 'pathways.json'
+
+def pathways_metadata(map_uuid: str) -> dict[str, Any]:
+#======================================================
+    pathways_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / PATHWAYS_CACHE
+    try:
+        with open(pathways_file) as fp:
+            return json.load(fp)
+    except Exception:
+        pass
+    metadata = json_map_metadata(map_uuid, 'pathways')
+    with open(pathways_file, 'w') as fp:
+        json.dump(metadata, fp)
+    return metadata
+
+#===============================================================================
+#===============================================================================
+
 def blank_tile():
     tile = Image.new('RGBA', (1, 1), color=(255, 255, 255, 0))
     file = io.BytesIO()
@@ -229,14 +247,37 @@ async def flatmap_metadata(map_uuid: str) -> dict:
         raise exceptions.NotFoundException(detail=str(err))
 
 #===============================================================================
+#===============================================================================
 
 @get('flatmap/{map_uuid:str}/pathways')
 async def flatmap_pathways(map_uuid: str) -> dict:
     try:
-        return json_map_metadata(map_uuid, 'pathways')
+        return pathways_metadata(map_uuid)
     except IOError as err:
         raise exceptions.NotFoundException(detail=str(err))
 
+#===============================================================================
+
+@get('flatmap/{map_uuid:str}/connectivity/{path_id:path}')
+async def flatmap_connectivity(map_uuid: str, path_id: str) -> dict:
+    path_id = path_id[1:]       # Remove leading '/''
+    try:
+        pathways = pathways_metadata(map_uuid)
+    except IOError as err:
+        raise exceptions.NotFoundException(detail=str(err))
+    paths = pathways.get('paths', {})
+    if not path_id.startswith('ilxtr:') or path_id not in paths:
+        raise exceptions.NotFoundException(detail=f'Unknown path: {path_id}')
+    path = paths[path_id]
+    return {
+        'path': path_id,
+        'connectivity': path.get('connectivity', []),
+        'axons': path.get('axons', []),
+        'dendrites': path.get('dendrites', []),
+        'somas': path.get('somas', [])
+    }
+
+#===============================================================================
 #===============================================================================
 
 @get('flatmap/{map_uuid:str}/images/{image:str}')
@@ -311,6 +352,7 @@ flatmap_router = Router(
         flatmap_markers,    ## DEPRECATED
         flatmap_metadata,
         flatmap_pathways,
+        flatmap_connectivity,
         flatmap_style,
         flatmap_termgraph,
         flatmap_vector_tiles
