@@ -68,18 +68,18 @@ anatomical_hierarchy = AnatomicalHierarchy()
 
 PATHWAYS_CACHE = 'pathways.json'
 
-def pathways_metadata(map_uuid: str) -> dict[str, Any]:
-#======================================================
+def pathways(map_uuid: str) -> dict[str, Any]:
+#=============================================
     pathways_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / PATHWAYS_CACHE
     try:
         with open(pathways_file) as fp:
             return json.load(fp)
     except Exception:
         pass
-    metadata = json_map_metadata(map_uuid, 'pathways')
+    pathways = json_map_metadata(map_uuid, 'pathways')
     with open(pathways_file, 'w') as fp:
-        json.dump(metadata, fp)
-    return metadata
+        json.dump(pathways, fp)
+    return pathways
 
 #===============================================================================
 #===============================================================================
@@ -252,7 +252,7 @@ async def flatmap_metadata(map_uuid: str) -> dict:
 @get('flatmap/{map_uuid:str}/pathways')
 async def flatmap_pathways(map_uuid: str) -> dict:
     try:
-        return pathways_metadata(map_uuid)
+        return pathways(map_uuid)
     except IOError as err:
         raise exceptions.NotFoundException(detail=str(err))
 
@@ -262,10 +262,10 @@ async def flatmap_pathways(map_uuid: str) -> dict:
 async def flatmap_connectivity(map_uuid: str, path_id: str) -> dict:
     path_id = path_id[1:]       # Remove leading '/''
     try:
-        pathways = pathways_metadata(map_uuid)
+        path_data = pathways(map_uuid)
     except IOError as err:
         raise exceptions.NotFoundException(detail=str(err))
-    paths = pathways.get('paths', {})
+    paths = path_data.get('paths', {})
     if not path_id.startswith('ilxtr:') or path_id not in paths:
         raise exceptions.NotFoundException(detail=f'Unknown path: {path_id}')
     path = paths[path_id]
