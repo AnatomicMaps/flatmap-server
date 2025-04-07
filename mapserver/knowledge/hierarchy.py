@@ -311,7 +311,7 @@ class AnatomicalHierarchy:
         hierarchy_file = os.path.join(settings['FLATMAP_ROOT'], flatmap, CACHED_MAP_HIERARCHY)
         try:
             with open(hierarchy_file) as fp:
-                hierarchy= json.load(fp)
+                hierarchy = json.load(fp)
                 if hierarchy.get('graph', {}).get('version', '') >= TREE_VERSION:
                     return hierarchy
         except Exception:
