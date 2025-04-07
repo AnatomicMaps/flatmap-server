@@ -40,6 +40,8 @@ from ..knowledge.hierarchy import AnatomicalHierarchy
 from ..settings import settings
 from ..utils import get_metadata, json_metadata, json_map_metadata
 
+from .knowledge import query_knowledge
+
 #===============================================================================
 """
 If a file with this name exists in the map's output directory then the map
@@ -258,6 +260,17 @@ async def flatmap_pathways(map_uuid: str) -> dict:
 
 #===============================================================================
 
+CONNECTIVITY_PROPERTIES = [
+    'label',
+    'biologicalSex',
+    'long-label',
+    'pathDisconnected',
+    'phenotypes',
+    'references',
+    'source',
+    'taxons',
+]
+
 @get('flatmap/{map_uuid:str}/connectivity/{path_id:path}')
 async def flatmap_connectivity(map_uuid: str, path_id: str) -> dict:
     path_id = path_id[1:]       # Remove leading '/''
@@ -269,13 +282,25 @@ async def flatmap_connectivity(map_uuid: str, path_id: str) -> dict:
     if not path_id.startswith('ilxtr:') or path_id not in paths:
         raise exceptions.NotFoundException(detail=f'Unknown path: {path_id}')
     path = paths[path_id]
-    return {
-        'path': path_id,
+    connectivity = {
+        'id': path_id,
         'connectivity': path.get('connectivity', []),
         'axons': path.get('axons', []),
         'dendrites': path.get('dendrites', []),
-        'somas': path.get('somas', [])
+        'somas': path.get('somas', []),
     }
+    metadata = json_map_metadata(map_uuid, 'metadata')
+    source = metadata.get('connectivity', {}).get('knowledge-source')
+    if source is not None:
+        result = query_knowledge('select knowledge from knowledge where source=? and entity=?', [source, path_id])
+        if 'error' in result:
+            connectivity['error'] = result['error']
+        else:
+            knowledge = json.loads(result['values'][0][0])
+            for key in CONNECTIVITY_PROPERTIES:
+                if key in knowledge:
+                    connectivity[key] = knowledge[key]
+    return connectivity
 
 #===============================================================================
 #===============================================================================
