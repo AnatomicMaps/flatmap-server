@@ -1,20 +1,13 @@
-Competency Queries
-==================
-
-Flatmap rendered connectivity
------------------------------
-
-1.  All connectivity related Postgres tables have a ``source`` column.
-2.  This column could hold a map UUID instead of a SCKAN release tag.
-3.  Then rendered connectivity can be easily held in Postgres for published maps.
-4.  Need a utility to load knowledge from published maps.
-5.  This could also update a new ``published-flatmaps`` table with the map’s knowledge source, taxon, and biological sex.
-
+Competency Queries via a Flatmap Server
+=======================================
 
 Query descriptions
 ------------------
 
-A JSON file, ``competency.json``::
+A server's configuration will include a file that specifies what queries are available, along with
+information to assist a frontend UI in obtaining user input and to present result sets back to the user.
+
+::
 
     {
         "queries": [
@@ -22,7 +15,7 @@ A JSON file, ``competency.json``::
                 "id": "QUERY_ID",
                 "label": "A short label",
                 "description": "What this query is all about...",
-                "sql": "SQL query with placeholders for parameters",
+                "sql": "SQL query with named placeholders for parameters, e.g. ... WHERE col=%(PARAM_ID)s",
                 "parameters": [
                     {
                         "id": "PARAM_ID",
@@ -59,12 +52,16 @@ A JSON file, ``competency.json``::
         ]
     }
 
+
+
 Server endpoints
 ----------------
 
-*   ``GET competency/queries`` will return the above JSON.
+There will be two new server endpoints:
 
-*   ``POST competency/query/`` with JSON data in the form::
+1.  ``GET competency/queries`` will return the above JSON.
+
+2.  ``POST competency/query/`` will expect JSON data in the form::
 
         {
             "id": "QUERY_ID",
@@ -81,18 +78,18 @@ Server endpoints
         }
 
 
-will return as JSON::
+    and returns::
 
         {
             "id": "QUERY_ID",
-            "results": [
-                {
-                    "id": "RESULT_ID",
-                    "value": "Result value"
-                },
-                {
-                    .
-                    .
-                }
-            ]
+            "results": {
+                "keys": ["RESULT_ID", ...],
+                "values": [
+                    ["First result row, RESULT_ID value", ...],
+                    ["Second result row, RESULT_ID value", ...],
+                        .
+                        .
+                        .
+                ]
+            }
         }
