@@ -224,14 +224,6 @@ async def flatmap_style(map_uuid: str) -> File:
 
 #===============================================================================
 
-## DEPRECATED
-@get('flatmap/{map_uuid:str}/markers', include_in_schema=False)
-async def flatmap_markers(map_uuid: str) -> File:
-    path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'markers.json'
-    return File(path=path, media_type=MediaType.JSON)
-
-#===============================================================================
-
 @get('flatmap/{map_uuid:str}/layers')
 async def flatmap_layers(map_uuid: str) -> dict:
     try:
@@ -374,7 +366,6 @@ flatmap_router = Router(
         flatmap_layers,
         flatmap_maker_log,
         flatmap_maps,
-        flatmap_markers,    ## DEPRECATED
         flatmap_metadata,
         flatmap_pathways,
         flatmap_connectivity,
