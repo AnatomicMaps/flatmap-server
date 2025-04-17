@@ -36,6 +36,7 @@ from litestar.types import GetLogger
 
 #===============================================================================
 
+from ..competency import competency_connection_context
 from ..knowledge import KnowledgeStore
 from ..openapi import RapidocRenderPlugin
 from ..settings import settings
@@ -133,7 +134,8 @@ app = Litestar(
     ),
     on_startup=[initialise],
     on_shutdown=[terminate],
-    logging_config=LoggingConfig(log_exceptions="debug")
+    logging_config=LoggingConfig(log_exceptions="debug"),
+    lifespan=[competency_connection_context]
 )
 
 #===============================================================================

@@ -19,6 +19,7 @@ uvloop = "^0.21.0"
 structlog = "^24.4.0"
 rich = "^13.9.4"
 pyyaml = "^6.0.2"
+asyncpg = "^0.30.0"
 
 [tool.poetry.group.dev.dependencies]
 sphinx = "^8.1"
