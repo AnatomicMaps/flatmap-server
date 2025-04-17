@@ -90,3 +90,33 @@ def get_competency_pool(app: Litestar) -> Optional[asyncpg.Pool]:
     return getattr(app.state, 'competency-pool', None)
 
 #===============================================================================
+#===============================================================================
+
+async def query(data: QueryRequest, request: Request) -> dict:
+#=============================================================
+
+    if (pool := get_competency_pool(request.app)) is None:
+        ## 40X error
+        ## log??
+        ## or just return 'error' in response...
+        return {}
+
+    if (defn := get_query_definitions(request.app).get(data.query_id)) is None:
+        pass
+        # 403 ?
+        # log/print
+        ## or just return 'error' in response...
+        return {}
+
+    (sql, params) = defn.make_sql(data)
+
+    async with pool.acquire() as connection:
+        # Open a transaction.
+        ## Is a transaction needed ??
+        #
+        async with connection.transaction():
+            result = await connection.execute(sql, params)
+
+    return {}
+
+#===============================================================================

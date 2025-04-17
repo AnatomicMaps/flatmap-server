@@ -106,6 +106,27 @@ class QueryDefinition:
         else:
             self.__parameters = {}
 
+    def make_sql(self, request: QueryRequest) -> tuple[str, list[str]]:
+    #==================================================================
+
+        conditions = []
+
+        for param_def in self.__parameters:
+            pass
+
+        if request.parameters is not None:
+            for parameter in request.parameters:
+                if (param_def := self.__parameters.get(parameter.column)) is not None:
+                    pass
+
+        # append ' AND '.join(conditions)
+
+        # add any ``order``
+
+        # add any ``limit``
+
+        return ('', [])
+
 #===============================================================================
 
 def load_query_definitions(yaml_file: str) -> dict[str, QueryDefinition]:

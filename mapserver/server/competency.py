@@ -23,5 +23,40 @@
 See ../docs/competency.rst
 
 """
+#===============================================================================
+
+from litestar import post, Request, Router
+
+#===============================================================================
+
+from ..competency import query as competency_query
+from ..competency.definition import QueryRequest
+
+#===============================================================================
+
+@post('query/')
+async def query(data: QueryRequest, request: Request) -> dict:
+#=============================================================
+    """
+    Query the flatmap server's knowledge base.
+
+    :<json string sql: SQL code to execute
+    :<jsonarr string params: any parameters for the query
+
+    :>json array(string) keys: column names of result values
+    :>json array(array(string)) values: result data rows
+    :>json string error: any error message
+    """
+    return await competency_query(data, request)
+
+#===============================================================================
+#===============================================================================
+
+competency_router = Router(
+    path="/competency",
+    route_handlers=[
+        query,
+    ]
+)
 
 #===============================================================================
