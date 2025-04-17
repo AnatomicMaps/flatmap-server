@@ -19,7 +19,7 @@
 #===============================================================================
 
 from contextlib import asynccontextmanager
-from dataclasses import dataclass
+import importlib.resources
 import os
 from typing import AsyncGenerator, Optional
 
@@ -27,6 +27,10 @@ from typing import AsyncGenerator, Optional
 
 import asyncpg
 from litestar import Litestar, Request
+
+#===============================================================================
+
+from .definition import load_query_definitions, QueryRequest
 
 #===============================================================================
 
@@ -39,6 +43,24 @@ COMPETENCY_HOST = os.environ.get('COMPETENCY_HOST', 'localhost:5432')
 if not COMPETENCY_USER:
     print('Competency queries are unavailable because COMPETENCY_USER is not set')
 
+#===============================================================================
+#===============================================================================
+
+QUERY_DEFINITIONS = str(importlib.resources.files() / 'data' / 'queries.yaml')
+
+def get_query_definitions(app: Litestar):
+#========================================
+    query_definitions = getattr(app.state, 'competency-definitions', None)
+    if query_definitions is None:
+        query_definitions = load_query_definitions(QUERY_DEFINITIONS)
+        app.state['competency-definitions'] = query_definitions
+    return query_definitions
+
+def initialise_query_definitions(app: Litestar):
+#===============================================
+    get_query_definitions(app)
+
+#===============================================================================
 #===============================================================================
 
 @asynccontextmanager
@@ -63,8 +85,8 @@ async def competency_connection_context(app: Litestar) -> AsyncGenerator[None, N
         if competency_pool is not None:
             await competency_pool.close()
 
-def get_competency_pool(request: Request) -> Optional[asyncpg.Pool]:
-#===================================================================
-    return getattr(request.app.state, 'competency-pool', None)
+def get_competency_pool(app: Litestar) -> Optional[asyncpg.Pool]:
+#================================================================
+    return getattr(app.state, 'competency-pool', None)
 
 #===============================================================================

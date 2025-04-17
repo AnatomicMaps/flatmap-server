@@ -36,7 +36,7 @@ from litestar.types import GetLogger
 
 #===============================================================================
 
-from ..competency import competency_connection_context
+from ..competency import competency_connection_context, initialise_query_definitions
 from ..knowledge import KnowledgeStore
 from ..openapi import RapidocRenderPlugin
 from ..settings import settings
@@ -88,6 +88,9 @@ def initialise(app: Litestar):
     # If in viewer mode then add the viewer's routes
     if settings['MAP_VIEWER']:
         app.register(viewer_router)
+
+    # Load definitions of competency queries into the application state
+    initialise_query_definitions(app)
 
     # Initialise the manager for remote map making
     init_maker()
