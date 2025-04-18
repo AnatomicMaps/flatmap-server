@@ -18,31 +18,31 @@
 #
 #===============================================================================
 
-from dataclasses import dataclass
 import re
-from typing import Optional
+from typing import NotRequired, Optional, TypedDict
 import yaml
 
 #===============================================================================
 
-@dataclass
-class QueryParameter:
+class QueryParameter(TypedDict):
     column: str
     value: str | list[str]
-    negate: Optional[bool] = False
+    negate: NotRequired[bool]
 
 #===============================================================================
 
-@dataclass
-class QueryRequest:
+class QueryRequest(TypedDict):
     query_id: str
-    parameters: Optional[list[QueryParameter]] = None
-    order: Optional[list[str]] = None
-    limit: Optional[int] = None
+    parameters: NotRequired[list[QueryParameter]]
+    order: NotRequired[list[str]]
+    limit: NotRequired[int]
 
 #===============================================================================
 
 CONDITION_MATCH = re.compile(r'%(CONDITION_[A-Z,a-z,0-9,_]*)%')
+class ParameterChoiceDict(TypedDict):
+    label: str
+    value: str
 
 class SqlDefinition:
     def __init__(self, sql: str):
@@ -59,10 +59,6 @@ class SqlDefinition:
 
 #===============================================================================
 
-@dataclass
-class ParameterChoice:
-    label: str
-    value: str
 
 #===============================================================================
 
@@ -86,10 +82,12 @@ class ParameterDefinition:
         if not self.__type in PARAMETER_TYPES:
             raise ValueError(f'Invalid type of query parameter: {self.__type}')
         if 'choice' in self.__type:
-            self.__choices = [ParameterChoice(choice['label'], choice['value'])
-                                for choice in defn['choices']]
+            self.__choices: Optional[list[ParameterChoiceDict]] = [{
+                'label': choice['label'],
+                'value': choice['value']
+            } for choice in defn['choices']]
         else:
-            self.__choices = []
+            self.__choices = None
         self.__optional = defn.get('optional', False)
 
 #===============================================================================
