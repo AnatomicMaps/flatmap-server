@@ -1,7 +1,7 @@
 [project]
 name = "mapserver"
 version = "0.27.1"
-description = ""
+description = "An server for anatomical flatmaps."
 authors = [
     { name = "David Brooks", email = "<d.brooks@auckland.ac.nz>"}
 ]
