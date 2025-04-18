@@ -14,11 +14,11 @@ queries:
         optional: true
     order: ''
     results:
-      - key: path_id
-        label: Neuron population
-        type: string
       - key: source_id
         label: Knowledge source
+        type: string
+      - key: path_id
+        label: Neuron population
         type: string
 
   - id: 2
@@ -32,7 +32,7 @@ queries:
     parameters:
       - column: feature_id
         label: Location
-        description: Anatomical term(s) of location(s)
+        description: Anatomical term of a location
         type: string
         multiple: true
       - column: source_id
@@ -41,12 +41,12 @@ queries:
         optional: true
     order: ''
     results:
+      - key: source_id
+        label: Knowledge source
+        type: string
       - key: path_id
         label: Neuron population
         type: string
       - key: axon_terminal
         label: Axon terminal
-        type: string
-      - key: source_id
-        label: Knowledge source
         type: string
