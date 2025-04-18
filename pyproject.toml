@@ -1,31 +1,34 @@
-[tool.poetry]
+[project]
 name = "mapserver"
 version = "0.27.1"
 description = ""
-authors = ["David Brooks <d.brooks@auckland.ac.nz>"]
-
-[tool.poetry.dependencies]
-python = ">=3.12,<4.0"
-landez = "^2.5.0"
-flatmapknowledge = {url="https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.6/flatmapknowledge-2.0.6-py3-none-any.whl"}
-mapmaker = {url="https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.16.1/mapmaker-1.16.1-py3-none-any.whl"}
-Pillow = "^10.3.0"
-requests = "^2.31.0"
-hypercorn = "^0.16.0"
-rdflib = ">=7.0.0"
-setuptools = "^75.1.0"
-litestar = "^2.13.0"
-uvloop = "^0.21.0"
-structlog = "^24.4.0"
-rich = "^13.9.4"
-pyyaml = "^6.0.2"
-asyncpg = "^0.30.0"
+authors = [
+    { name = "David Brooks", email = "<d.brooks@auckland.ac.nz>"}
+]
+readme = "README.rst"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "landez>=2.5.0",
+    "Pillow>=11.2.0",
+    "requests>=2.31.0",
+    "hypercorn>=0.17.0",
+    "rdflib>=7.0.0",
+    "setuptools>=78.1.0",
+    "litestar>=2.15.2",
+    "uvloop>=0.21.0",
+    "structlog>=24.4.0",
+    "rich>=13.9.4",
+    "pyyaml>=6.0.2",
+    "asyncpg>=0.30.0",
+    "uvicorn>=0.34.0",
+    "flatmapknowledge @ https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.6/flatmapknowledge-2.0.6-py3-none-any.whl",
+    "mapmaker @ https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.16.1/mapmaker-1.16.1-py3-none-any.whl"
+]
 
 [tool.poetry.group.dev.dependencies]
 sphinx = "^8.1"
 sphinx-rtd-theme = "^3.0.1"
 sphinxcontrib-httpdomain = "*"
-uvicorn = "^0.32.0"
 
 [tool.poetry.scripts]
 mapserver = 'mapserver.__main__:mapserver'
