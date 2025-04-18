@@ -38,8 +38,8 @@ class QueryRequest(TypedDict):
     limit: NotRequired[int]
 
 #===============================================================================
+#===============================================================================
 
-CONDITION_MATCH = re.compile(r'%(CONDITION_[A-Z,a-z,0-9,_]*)%')
 class ParameterChoiceDict(TypedDict):
     label: str
     value: str
@@ -68,6 +68,10 @@ class QueryDefinitionDict(QueryDefinitionSummary):
     results: list[ResultDefinitionDict]
 
 #===============================================================================
+#===============================================================================
+
+CONDITION_MATCH = re.compile(r'%(CONDITION[A-Z,a-z,0-9,_]*)%')
+
 class SqlDefinition:
     def __init__(self, sql: str):
         self.__sql = sql
@@ -80,9 +84,6 @@ class SqlDefinition:
     @property
     def has_conditions(self):
         return len(self.__conditions) > 0
-
-#===============================================================================
-
 
 #===============================================================================
 

@@ -17,7 +17,6 @@
 #  limitations under the License.
 #
 #===============================================================================
-
 """
 
 See ../docs/competency.rst
