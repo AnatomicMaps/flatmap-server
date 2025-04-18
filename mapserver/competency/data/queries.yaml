@@ -7,6 +7,7 @@ queries:
         label: Location
         description: Anatomical term(s) of location(s)
         type: string
+        multiple: true
       - column: source_id
         label: Knowledge source
         type: string

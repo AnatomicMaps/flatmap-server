@@ -27,15 +27,14 @@ information to assist a frontend UI in obtaining user input and to present resul
             choices:                    # Required when type is `choice` or `multichoice`
               - label: Human readable label     # Required
                 value: Value when selected      # Required
-            optional: true              # Optional, defaults to `false`
+            multiple: false             # Optional, defaults to `false`
+            optional: false             # Optional, defaults to `false`
         #
         results:                # Required
           - key: RESULT_IDs             # Required
             label: Human readable label # Optional
             type: string                # Optional, defaults to `string`
         #
-        order: null         # Optional list of RESULT_IDs
-        limit: N            # Optional
 
 
 Server endpoints
@@ -66,6 +65,8 @@ There will be two new server endpoints:
                     .
                 }
             ],
+            "order": null         # Optional list of RESULT_IDs
+            "limit": N            # Optional
             "comment": "Above becomes `(PARAM_1 in ('multiple', 'terms') AND PARAM_1 != 'single value')"
         }
 
