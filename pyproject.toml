@@ -42,3 +42,8 @@ build-backend = "poetry.core.masonry.api"
 pythonVersion = "3.12"
 venvPath = "."
 venv = ".venv"
+
+[tool.uv.workspace]
+members = [
+    "tools",
+]
