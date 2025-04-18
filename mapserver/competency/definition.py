@@ -44,6 +44,30 @@ class ParameterChoiceDict(TypedDict):
     label: str
     value: str
 
+class ParameterDefinitionDict(TypedDict):
+    column: str
+    label: str
+    description: NotRequired[str]
+    type: NotRequired[str]
+    choices: NotRequired[list[ParameterChoiceDict]]
+    multiple: NotRequired[bool]
+    optional: NotRequired[bool]
+
+class ResultDefinitionDict(TypedDict):
+    key: str
+    label: NotRequired[str]
+    type: NotRequired[str]
+
+class QueryDefinitionSummary(TypedDict):
+    id: str
+    label: str
+    description: NotRequired[str]
+
+class QueryDefinitionDict(QueryDefinitionSummary):
+    parameters: NotRequired[list[ParameterDefinitionDict]]
+    results: list[ResultDefinitionDict]
+
+#===============================================================================
 class SqlDefinition:
     def __init__(self, sql: str):
         self.__sql = sql
@@ -89,6 +113,26 @@ class ParameterDefinition:
         else:
             self.__choices = None
         self.__optional = defn.get('optional', False)
+        self.__multiple = defn.get('multiple')
+
+    @property
+    def as_dict(self) -> ParameterDefinitionDict:
+    #============================================
+        defn: ParameterDefinitionDict = {
+            'column': self.__column,
+            'label': self.__label
+        }
+        if self.__description is not None:
+            defn['label'] = self.__description
+        if self.__type is not None:
+            defn['type'] = self.__type
+        if self.__choices is not None:
+            defn['choices'] = self.__choices
+        if self.__multiple is not None:
+            defn['multiple'] = self.__multiple
+        if self.__optional is not None:
+            defn['optional'] = self.__optional
+        return defn
 
 #===============================================================================
 
@@ -103,6 +147,32 @@ class QueryDefinition:
                                     for param_def in defn['parameters'] }
         else:
             self.__parameters = {}
+        self.__results: dict[str, ResultDefinitionDict] = { rdef['key']: rdef for rdef in defn['results'] }
+
+    @property
+    def as_dict(self) -> QueryDefinitionDict:
+    #========================================
+        defn: QueryDefinitionDict = {
+            'id': self.__id,
+            'label': self.__label,
+            'results': list(self.__results.values())
+        }
+        if self.__description is not None:
+            defn['label'] = self.__description
+        if len(self.__parameters):
+            defn['parameters'] = [param_def.as_dict for param_def in self.__parameters.values()]
+        return defn
+
+    @property
+    def summary(self) -> QueryDefinitionSummary:
+    #===========================================
+        summary: QueryDefinitionSummary = {
+            'id': self.__id,
+            'label': self.__label
+        }
+        if self.__description is not None:
+            summary['label'] = self.__description
+        return summary
 
     def make_sql(self, request: QueryRequest) -> tuple[str, list[str]]:
     #==================================================================
@@ -137,7 +207,7 @@ def load_query_definitions(yaml_file: str) -> dict[str, QueryDefinition]:
                 raise ValueError(f'No queries block in {yaml_file}...')
             for defn in definitions['queries']:
                 if 'id' in defn:
-                    result[defn['id']] = QueryDefinition(defn)
+                    result[str(defn['id'])] = QueryDefinition(defn)
                 else:
                     raise ValueError(f'Query definitions must have `id`s')
         except yaml.YAMLError as err:

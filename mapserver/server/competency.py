@@ -25,29 +25,29 @@ See ../docs/competency.rst
 """
 #===============================================================================
 
-from litestar import post, Request, Router
+from litestar import get, post, Request, Router
 
 #===============================================================================
 
-from ..competency import query as competency_query
-from ..competency.definition import QueryRequest
+from ..competency import query, query_definition, query_definitions
+from ..competency.definition import QueryDefinitionDict, QueryDefinitionSummary, QueryRequest
 
 #===============================================================================
+
+@get('queries')
+async def competency_query_definitions(request: Request) -> list[QueryDefinitionSummary]:
+#=======================================================================================
+    return await query_definitions(request)
+
+@get('queries/{query_id:str}')
+async def competency_query_definition(query_id: str, request: Request) -> QueryDefinitionDict:
+#=============================================================================================
+    return await query_definition(query_id, request)
 
 @post('query/')
-async def query(data: QueryRequest, request: Request) -> dict:
-#=============================================================
-    """
-    Query the flatmap server's knowledge base.
-
-    :<json string sql: SQL code to execute
-    :<jsonarr string params: any parameters for the query
-
-    :>json array(string) keys: column names of result values
-    :>json array(array(string)) values: result data rows
-    :>json string error: any error message
-    """
-    return await competency_query(data, request)
+async def competency_query(data: QueryRequest, request: Request) -> dict:
+#=======================================================================
+    return await query(data, request)
 
 #===============================================================================
 #===============================================================================
@@ -55,7 +55,9 @@ async def query(data: QueryRequest, request: Request) -> dict:
 competency_router = Router(
     path="/competency",
     route_handlers=[
-        query,
+        competency_query,
+        competency_query_definition,
+        competency_query_definitions,
     ]
 )
 

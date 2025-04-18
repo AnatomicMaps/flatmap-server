@@ -26,11 +26,12 @@ from typing import AsyncGenerator, Optional
 #===============================================================================
 
 import asyncpg
-from litestar import Litestar, Request
+from litestar import exceptions, Litestar, Request
 
 #===============================================================================
 
-from .definition import load_query_definitions, QueryRequest
+from .definition import load_query_definitions
+from .definition import QueryDefinitionDict, QueryDefinitionSummary, QueryRequest
 
 #===============================================================================
 
@@ -92,6 +93,20 @@ def get_competency_pool(app: Litestar) -> Optional[asyncpg.Pool]:
 #===============================================================================
 #===============================================================================
 
+async def query_definition(query_id: str, request: Request) -> QueryDefinitionDict:
+#==================================================================================
+    definition = get_query_definitions(request.app).get(query_id)
+    if definition is None:
+        raise exceptions.NotFoundException(detail=f'Unknown competency query: {query_id}')
+    return definition.as_dict
+
+
+async def query_definitions(request: Request) -> list[QueryDefinitionSummary]:
+#=============================================================================
+    definitions = get_query_definitions(request.app)
+    return [defn.summary for defn in definitions.values()]
+
+
 async def query(data: QueryRequest, request: Request) -> dict:
 #=============================================================
 
@@ -101,7 +116,7 @@ async def query(data: QueryRequest, request: Request) -> dict:
         ## or just return 'error' in response...
         return {}
 
-    if (defn := get_query_definitions(request.app).get(data.query_id)) is None:
+    if (defn := get_query_definitions(request.app).get(data['query_id'])) is None:
         pass
         # 403 ?
         # log/print
