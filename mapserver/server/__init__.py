@@ -43,6 +43,7 @@ from ..settings import settings
 from .. import __version__
 
 from .annotator import annotator_router
+from .competency import competency_router
 from .connectivity import connectivity_router
 from .dashboard import dashboard_router
 from .flatmap import flatmap_router
@@ -118,6 +119,7 @@ async def version() -> list[dict]:
 
 route_handlers = [
     annotator_router,
+    competency_router,
     connectivity_router,
     dashboard_router,
     flatmap_router,
