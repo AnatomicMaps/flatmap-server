@@ -112,8 +112,8 @@ class ParameterDefinition:
             } for choice in defn['choices']]
         else:
             self.__choices = None
-        self.__optional = defn.get('optional', False)
         self.__multiple = defn.get('multiple')
+        self.__optional = defn.get('optional')
 
     @property
     def as_dict(self) -> ParameterDefinitionDict:
