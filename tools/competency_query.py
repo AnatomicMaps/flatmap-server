@@ -85,14 +85,19 @@ class CompetencyQueryService:
                                     **kwds)
             if response.ok:
                 try:
-                    return response.json()
+                    query_response = response.json()
+                    if 'error' in query_response:
+                        error = query_response['error']
+                    else:
+                        return query_response
                 except json.JSONDecodeError:
                     error = 'Invalid JSON returned for request'
             else:
                 error = f'HTTP error for request: {response.status_code} {response.reason}'
         except requests.exceptions.RequestException as exception:
             error = f'Exception: {exception}'
-        print(error)
+        print_formatted_text(FormattedText([('class:error', error),]),
+                                           style=Style.from_dict({'error': '#ff0000 bold'}))
         return []
 
     def get_json(self, endpoint: str, param: Optional[str]=None) -> dict|list:
