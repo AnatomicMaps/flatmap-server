@@ -47,7 +47,6 @@ class ParameterChoiceDict(TypedDict):
 class ParameterDefinitionDict(TypedDict):
     column: str
     label: str
-    description: NotRequired[str]
     type: NotRequired[str]
     choices: NotRequired[list[ParameterChoiceDict]]
     multiple: NotRequired[bool]
@@ -102,7 +101,6 @@ class ParameterDefinition:
         if self.__condition not in sql_conditions:
             raise ValueError(f'Query parameter has unknown condition: {self.__condition}')
         self.__label = defn['label']
-        self.__description = defn.get('description')
         self.__type = defn.get('type', 'string')
         if not self.__type in PARAMETER_TYPES:
             raise ValueError(f'Invalid type of query parameter: {self.__type}')
@@ -123,8 +121,6 @@ class ParameterDefinition:
             'column': self.__column,
             'label': self.__label
         }
-        if self.__description is not None:
-            defn['label'] = self.__description
         if self.__type is not None:
             defn['type'] = self.__type
         if self.__choices is not None:
@@ -159,7 +155,7 @@ class QueryDefinition:
             'results': list(self.__results.values())
         }
         if self.__description is not None:
-            defn['label'] = self.__description
+            defn['description'] = self.__description
         if len(self.__parameters):
             defn['parameters'] = [param_def.as_dict for param_def in self.__parameters.values()]
         return defn
@@ -172,7 +168,7 @@ class QueryDefinition:
             'label': self.__label
         }
         if self.__description is not None:
-            summary['label'] = self.__description
+            summary['description'] = self.__description
         return summary
 
     def make_sql(self, request: QueryRequest) -> tuple[str, list[str]]:

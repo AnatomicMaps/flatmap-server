@@ -4,8 +4,7 @@ queries:
     sql: SELECT DISTINCT path_id, source_id FROM path_node_features WHERE %CONDITIONS%
     parameters:
       - column: feature_id
-        label: Location
-        description: Anatomical term(s) of location(s)
+        label: Anatomical terms for locations
         type: string
         multiple: true
       - column: source_id
@@ -31,8 +30,7 @@ queries:
       AND %CONDITIONS%
     parameters:
       - column: feature_id
-        label: Location
-        description: Anatomical term of a location
+        label: Anatomical terms for locations
         type: string
         multiple: true
       - column: source_id
