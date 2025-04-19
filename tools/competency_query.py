@@ -26,7 +26,7 @@ from pprint import pprint
 
 #===============================================================================
 
-from prompt_toolkit import PromptSession
+from prompt_toolkit import prompt as get_input, PromptSession
 from prompt_toolkit import print_formatted_text, HTML
 from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit.styles import Style
@@ -156,9 +156,9 @@ class CompetencyQueryShell:
                 values: list[str] = []
                 print_bold_prefix('IN> ', f"Please enter one or more {parameter['label']} or ? for help:")
                 if default_msg is not None:
-                    print_bold_prefix('IN> ', f'If none are given {default_msg}')
+                    print('    ', f'If none are given {default_msg}')
                 while True:
-                    input = self.__get_input('IN> ')
+                    input = self.__get_input('')
                     if input is None or input == '':
                         break
                     elif input[0] == '?':
@@ -173,23 +173,49 @@ class CompetencyQueryShell:
                 else:
                     query_parameter = {'column': column, 'value': values}
             else:
-                print_bold_prefix('IN> ', f"Please enter {parameter['label']}:")
+                message = [f"Please enter {parameter['label']}"]
                 if default_msg is not None:
-                    print_bold_prefix('IN> ', f'If none is given {default_msg}')
-                input = self.__get_input('IN> ')
+                    message.append(f' -- if none is given {default_msg}')
+                message.append(':')
+                print_bold_prefix('IN> ', ''.join(message))
+                input = self.__get_input('')
                 if input is None or input == '':
                     if default_msg is None:
                         print('No value entered for a required parameter -- aborting query')
                         return
                 else:
                     query_parameter = {'column': column, 'value': input.strip()}
-
             if query_parameter is not None:
-                # negate prompt...
-                # can we negate a default?? Yes! Need to set value as an empty list
+                input = self.__get_input('Optionally negate the input condition: N/y? ', False)
+                if input  in ['Y', 'y']:
+                    query_parameter['negate'] = True
                 query_parameters.append(query_parameter)
-
+        print('')
         results = query['results']
+        result_columns = [result['key'] for result in results]
+        ordering = []
+        input = self.__get_input('Optionally specify the order of result rows: N/y? ', False)
+        if input in ['Y', 'y']:
+            while True:
+                print_bold_prefix('IN> ', f'Please enter one or more result columns or ? for help:')
+                while True:
+                    input = self.__get_input('IN> ')
+                    if input is None or input == '':
+                        break
+                    elif input[0] == '?':
+                        print(f'Result columns are: {result_columns}')
+                        print('Input can be space or comma separated, or over multiple lines.')
+                        print('An empty line terminates input.')
+                    else:
+                        for column in input.replace(',', ' ').split():
+                            if column not in result_columns:
+                                print(f'{column} is not a result column')
+                            else:
+                                ordering.append(column)
+
+
+        #limit: NotRequired[int]
+
 
     def __get_command(self) -> Optional[str]:
     #========================================
@@ -200,10 +226,13 @@ class CompetencyQueryShell:
         except EOFError:
             return None
 
-    def __get_input(self, prompt: str) -> Optional[str]:
-    #===================================================
+    def __get_input(self, prompt: str, bold=True) -> Optional[str]:
+    #==============================================================
         try:
-            return self.__input_session.prompt(HTML(f'<b>{prompt}</b>')).strip()
+            if bold:
+                return self.__input_session.prompt(HTML(f'<b>{prompt}</b>')).strip()
+            else:
+                return get_input(prompt).strip()
         except KeyboardInterrupt:
             return ''
         except EOFError:
