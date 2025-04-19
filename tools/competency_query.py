@@ -89,7 +89,7 @@ class CompetencyQueryService:
                 except json.JSONDecodeError:
                     error = 'Invalid JSON returned for request'
             else:
-                error = f'Request error: {response.reason}'
+                error = f'HTTP error for request: {response.status_code} {response.reason}'
         except requests.exceptions.RequestException as exception:
             error = f'Exception: {exception}'
         print(error)
@@ -103,8 +103,7 @@ class CompetencyQueryService:
 
     def post_query(self, request: QueryRequest) -> dict|list:
     #========================================================
-        # also need to set content-type header??
-        return self.request_json('POST', QUERY_ENDPOINT, data=request)
+        return self.request_json('POST', QUERY_ENDPOINT, json=request)
 
 #===============================================================================
 
@@ -143,12 +142,10 @@ class CompetencyQueryShell:
             else:
                 self.__run_query(query)
 
-    def __run_query(self, query: dict):
-    #==================================
-        pprint(query)
-        print_bold_prefix(f"Query \"{query['label']}\"")
+    def __get_query_parameters(self, parameter_definitions: list) -> Optional[list[QueryParameter]]:
+    #===============================================================================================
         query_parameters: list[QueryParameter] = []
-        for parameter in query['parameters']:
+        for parameter in parameter_definitions:
             column = parameter['column']
             default_msg = parameter.get('default')
             query_parameter: Optional[QueryParameter] = None
@@ -169,7 +166,7 @@ class CompetencyQueryShell:
                 if len(values) == 0:
                     if default_msg is None:
                         print('No values entered for a required parameter -- aborting query')
-                        return
+                        return None
                 else:
                     query_parameter = {'column': column, 'value': values}
             else:
@@ -182,7 +179,7 @@ class CompetencyQueryShell:
                 if input is None or input == '':
                     if default_msg is None:
                         print('No value entered for a required parameter -- aborting query')
-                        return
+                        return None
                 else:
                     query_parameter = {'column': column, 'value': input.strip()}
             if query_parameter is not None:
@@ -190,16 +187,17 @@ class CompetencyQueryShell:
                 if input  in ['Y', 'y']:
                     query_parameter['negate'] = True
                 query_parameters.append(query_parameter)
-        print('')
-        results = query['results']
-        result_columns = [result['key'] for result in results]
-        ordering = []
+        return query_parameters
+
+    def __get_query_order(self, result_columns: list[str]) -> list[str]:
+    #===================================================================
+        ordering: list[str] = []
         input = self.__get_input('Optionally specify the order of result rows: N/y? ', False)
         if input in ['Y', 'y']:
             while True:
                 print_bold_prefix('IN> ', f'Please enter one or more result columns or ? for help:')
                 while True:
-                    input = self.__get_input('IN> ')
+                    input = self.__get_input('')
                     if input is None or input == '':
                         break
                     elif input[0] == '?':
@@ -212,9 +210,42 @@ class CompetencyQueryShell:
                                 print(f'{column} is not a result column')
                             else:
                                 ordering.append(column)
+        return ordering
 
+    def __get_query_limit(self) -> Optional[int]:
+    #============================================
+        input = self.__get_input('Optionally limit the number of result rows: N/y? ', False)
+        if input in ['Y', 'y']:
+            input = self.__get_input(f'Please enter a number (0 or an invalid number means no limit): ', False)
+            if input is not None:
+                try:
+                    return int(input.split()[0])
+                except ValueError:
+                    pass
+        return None
 
-        #limit: NotRequired[int]
+    def __run_query(self, query: dict):
+    #==================================
+        print_bold_prefix(f"Query \"{query['label']}\"")
+        query_request: QueryRequest = {'query_id': str(query['id'])}
+        query_parameters = self.__get_query_parameters(query['parameters'])
+        if query_parameters is None:
+            return
+        if len(query_parameters):
+            query_request['parameters'] = query_parameters
+        print('')
+        result_definitions = query['results']
+        ordering = self.__get_query_order([definition['key']
+                                            for definition in result_definitions])
+        if len(ordering):
+            query_request['order'] = ordering
+        limit = self.__get_query_limit()
+        if limit is not None and limit > 0:
+            query_request['limit'] = limit
+
+        result_set = self.__query_service.post_query(query_request)
+
+        pprint(result_set)
 
 
     def __get_command(self) -> Optional[str]:
