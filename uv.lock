@@ -9,8 +9,8 @@ resolution-markers = [
 
 [manifest]
 members = [
+    "competency-query",
     "mapserver",
-    "tools",
 ]
 
 [[package]]
@@ -197,6 +197,21 @@ dependencies = [
     { name = "numpy" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/ce/cf/70ea34103a76cc6fb1892289bda321cd0cc73b1a5500ee7fe9ef9f64acef/colormath-3.0.0.tar.gz", hash = "sha256:3d4605af344527da0e4f9f504fad7ddbebda35322c566a6c72e28edb1ff31217", size = 39761 }
+
+[[package]]
+name = "competency-query"
+version = "0.1.0"
+source = { editable = "tools/competency-query" }
+dependencies = [
+    { name = "prompt-toolkit" },
+    { name = "requests" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "prompt-toolkit", specifier = ">=3.0.51" },
+    { name = "requests", specifier = ">=2.32.3" },
+]
 
 [[package]]
 name = "cssselect2"
@@ -1675,21 +1690,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/7a/fd/7a5ee21fd08ff70d3d33a5781c255cbe779659bd03278feb98b19ee550f4/tinycss2-1.4.0.tar.gz", hash = "sha256:10c0972f6fc0fbee87c3edb76549357415e94548c1ae10ebccdea16fb404a9b7", size = 87085 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e6/34/ebdc18bae6aa14fbee1a08b63c015c72b64868ff7dae68808ab500c492e2/tinycss2-1.4.0-py3-none-any.whl", hash = "sha256:3a49cf47b7675da0b15d0c6e1df8df4ebd96e9394bb905a5775adb0d884c5289", size = 26610 },
-]
-
-[[package]]
-name = "tools"
-version = "0.1.0"
-source = { virtual = "tools" }
-dependencies = [
-    { name = "prompt-toolkit" },
-    { name = "requests" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "prompt-toolkit", specifier = ">=3.0.51" },
-    { name = "requests", specifier = ">=2.32.3" },
 ]
 
 [[package]]

@@ -1,0 +1,19 @@
+[project]
+name = "competency-query"
+version = "0.1.0"
+description = "Competency query CLI tool."
+authors = [
+    { name = "David Brooks", email = "d.brooks@auckland.ac.nz"}
+]
+requires-python = "==3.12.*"
+dependencies = [
+    "prompt-toolkit>=3.0.51",
+    "requests>=2.32.3",
+]
+
+[project.scripts]
+competency-query = "competency_query:main"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"

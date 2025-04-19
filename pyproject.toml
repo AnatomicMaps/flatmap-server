@@ -3,7 +3,7 @@ name = "mapserver"
 version = "0.27.1"
 description = "An server for anatomical flatmaps."
 authors = [
-    { name = "David Brooks", email = "<d.brooks@auckland.ac.nz>"}
+    { name = "David Brooks", email = "d.brooks@auckland.ac.nz"}
 ]
 readme = "README.rst"
 requires-python = ">=3.12,<3.13"
@@ -45,5 +45,5 @@ venv = ".venv"
 
 [tool.uv.workspace]
 members = [
-    "tools",
+    "tools/competency-query",
 ]
