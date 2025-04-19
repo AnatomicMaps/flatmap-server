@@ -198,27 +198,27 @@ class CompetencyQueryShell:
                 query_parameters.append(query_parameter)
         return query_parameters
 
-    def __get_query_order(self, result_columns: list[str]) -> list[str]:
-    #===================================================================
+    def __get_query_order(self, result_definitions: dict[str, str]) -> list[str]:
+    #============================================================================
         ordering: list[str] = []
         input = self.__get_input('Optionally specify the order of result rows: N/y? ', False)
         if input in ['Y', 'y']:
+            print_bold_prefix('IN> ', f'Please enter one or more result columns or ? for help:')
             while True:
-                print_bold_prefix('IN> ', f'Please enter one or more result columns or ? for help:')
-                while True:
-                    input = self.__get_input('')
-                    if input is None or input == '':
-                        break
-                    elif input[0] == '?':
-                        print(f'Result columns are: {result_columns}')
-                        print('Input can be space or comma separated, or over multiple lines.')
-                        print('An empty line terminates input.')
-                    else:
-                        for column in input.replace(',', ' ').split():
-                            if column not in result_columns:
-                                print(f'{column} is not a result column')
-                            else:
-                                ordering.append(column)
+                input = self.__get_input('')
+                if input is None or input == '':
+                    break
+                elif input[0] == '?':
+                    columns = [f'<b>{col}</b> ({label})' for col, label in result_definitions.items()]
+                    print_formatted_text(HTML((f'Result columns are: {", ".join(columns)}')))
+                    print('Input can be space or comma separated, or over multiple lines.')
+                    print('An empty line terminates input.')
+                else:
+                    for column in input.replace(',', ' ').split():
+                        if column not in result_definitions:
+                            print(f'{column} is not a result column')
+                        else:
+                            ordering.append(column)
         return ordering
 
     def __get_query_limit(self) -> Optional[int]:
@@ -242,9 +242,9 @@ class CompetencyQueryShell:
             return
         if len(query_parameters):
             query_request['parameters'] = query_parameters
-        result_definitions = { definition['key']: definition
+        result_definitions = { definition['key']: definition['label']
                                 for definition in query['results'] }
-        ordering = self.__get_query_order(list(result_definitions.keys()))
+        ordering = self.__get_query_order(result_definitions)
         if len(ordering):
             query_request['order'] = ordering
         limit = self.__get_query_limit()
@@ -253,8 +253,9 @@ class CompetencyQueryShell:
         result_set = self.__query_service.post_query(query_request)
         if isinstance(result_set, dict):
             results = result_set['results']
-            print_table([result_definitions[key]['label'] for key in results['keys']],
+            print_table([result_definitions[key] for key in results['keys']],
                         results['values'])
+        print()
 
     def __get_command(self) -> Optional[str]:
     #========================================
