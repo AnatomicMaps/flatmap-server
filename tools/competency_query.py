@@ -181,7 +181,7 @@ class CompetencyQueryShell:
                         print('No value entered for a required parameter -- aborting query')
                         return None
                 else:
-                    query_parameter = {'column': column, 'value': input.strip()}
+                    query_parameter = {'column': column, 'value': input}
             if query_parameter is not None:
                 input = self.__get_input('Optionally negate the input condition: N/y? ', False)
                 if input  in ['Y', 'y']:
