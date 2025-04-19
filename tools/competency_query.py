@@ -40,6 +40,10 @@ __version__ = '0.1.0'
 
 COMMAND_INPUT_STYLE = '#ff0066'
 
+def print_bold_prefix(prefix: str, text: str=''):
+#================================================
+    print_formatted_text(HTML(f'<b>{prefix}</b>{text}'))
+
 #===============================================================================
 
 REQUEST_TIMEOUT = 10
@@ -112,13 +116,18 @@ class CompetencyQueryShell:
         self.__queries = { str(query['id']): query['label']
                             for query in self.__query_service.get_json(QUERY_DEFINITIONS_ENDPOINT)
                                 if 'id' in query }
-        self.__cmd_session = PromptSession(message=FormattedText([('class:prompt', 'cq> ')]),
-                                           style=Style.from_dict({'prompt': '#eeeeee bold',
-                                                                  '': COMMAND_INPUT_STYLE}))
-        self.__input_session = PromptSession(style=Style.from_dict({'prompt': '#eeeeee bold'}))
+        self.__cmd_session = PromptSession(message=HTML('<p fg="ansiwhite"><b>cq> </b></p>'),
+                                           style=Style.from_dict({'': COMMAND_INPUT_STYLE}))
+        self.__input_session = PromptSession()
 
-    def __do_query(self, id_text: list[str]):
-    #========================================
+    def __list_queries(self):
+    #========================
+        print_bold_prefix('ID\tName')
+        for (id, label) in self.__queries.items():
+            print(f'{id}\t{label}')
+
+    def __query_command(self, id_text: list[str]):
+    #=============================================
         if len(id_text) == 0:
             query_id = self.__get_input('ID? ')
             if query_id is None or query_id == '':
@@ -129,16 +138,58 @@ class CompetencyQueryShell:
             print('Unknown query ID...')
         else:
             query = self.__query_service.get_json(QUERY_DEFINITIONS_ENDPOINT, query_id)
-            if len(query) == 0:
+            if len(query) == 0 or isinstance(query, list):
                 print('Error when getting query definition...')
             else:
-                pprint(query)
+                self.__run_query(query)
 
-    def __list_queries(self):
-    #========================
-        print_formatted_text(HTML('<b>ID\tName</b>'))
-        for (id, label) in self.__queries.items():
-            print(f'{id}\t{label}')
+    def __run_query(self, query: dict):
+    #==================================
+        pprint(query)
+        print_bold_prefix(f"Query \"{query['label']}\"")
+        query_parameters: list[QueryParameter] = []
+        for parameter in query['parameters']:
+            column = parameter['column']
+            default_msg = parameter.get('default')
+            query_parameter: Optional[QueryParameter] = None
+            if parameter.get('multiple', False):
+                values: list[str] = []
+                print_bold_prefix('IN> ', f"Please enter one or more {parameter['label']} or ? for help:")
+                if default_msg is not None:
+                    print_bold_prefix('IN> ', f'If none are given {default_msg}')
+                while True:
+                    input = self.__get_input('IN> ')
+                    if input is None or input == '':
+                        break
+                    elif input[0] == '?':
+                        print('Input can be space or comma separated, or over multiple lines.')
+                        print('An empty line terminates input.')
+                    else:
+                        values.extend(input.replace(',', ' ').split())
+                if len(values) == 0:
+                    if default_msg is None:
+                        print('No values entered for a required parameter -- aborting query')
+                        return
+                else:
+                    query_parameter = {'column': column, 'value': values}
+            else:
+                print_bold_prefix('IN> ', f"Please enter {parameter['label']}:")
+                if default_msg is not None:
+                    print_bold_prefix('IN> ', f'If none is given {default_msg}')
+                input = self.__get_input('IN> ')
+                if input is None or input == '':
+                    if default_msg is None:
+                        print('No value entered for a required parameter -- aborting query')
+                        return
+                else:
+                    query_parameter = {'column': column, 'value': input.strip()}
+
+            if query_parameter is not None:
+                # negate prompt...
+                # can we negate a default?? Yes! Need to set value as an empty list
+                query_parameters.append(query_parameter)
+
+        results = query['results']
 
     def __get_command(self) -> Optional[str]:
     #========================================
@@ -152,7 +203,7 @@ class CompetencyQueryShell:
     def __get_input(self, prompt: str) -> Optional[str]:
     #===================================================
         try:
-            return self.__input_session.prompt(FormattedText([("class:prompt", prompt)])).strip()
+            return self.__input_session.prompt(HTML(f'<b>{prompt}</b>')).strip()
         except KeyboardInterrupt:
             return ''
         except EOFError:
@@ -160,8 +211,8 @@ class CompetencyQueryShell:
 
     def help(self):
     #=============
-        print('queries       Show available queries.')  ## coloured...
-        print('query ID      Run query with ID.')  ## coloured...
+        print('queries       Show available queries.')
+        print('query ID      Run query with given ID.')
 
     def run(self):
     #=============
@@ -177,9 +228,9 @@ class CompetencyQueryShell:
             elif cmd == 'queries':
                 self.__list_queries()
             elif cmd == 'query' or cmd.startswith('query '):
-                self.__do_query(cmd.split()[1:])
+                self.__query_command(cmd.split()[1:])
             else:
-                print(f'Unknown command... `{cmd}`')
+                print('Unknown command...')
         print('GoodBye!')
 
 #===============================================================================
