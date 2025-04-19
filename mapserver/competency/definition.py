@@ -24,6 +24,7 @@ from typing import NotRequired, Optional, TypedDict
 import yaml
 
 #===============================================================================
+#===============================================================================
 
 class QueryParameter(TypedDict):
     column: str
@@ -64,10 +65,14 @@ class ParameterDefinitionDict(TypedDict):
     multiple: NotRequired[bool]
     default: NotRequired[str]
 
+#===============================================================================
+
 class ResultDefinitionDict(TypedDict):
     key: str
     label: NotRequired[str]
     type: NotRequired[str]
+
+#===============================================================================
 
 class QueryDefinitionSummary(TypedDict):
     id: str
@@ -256,7 +261,6 @@ class QueryDefinition:
                     where_condition = f'{column} {negate}= ({param_def.default_sql})'
                 conditions[param_def.condition].append(where_condition)
                 used_columns.append(column)
-
         # NB. req_params might/will not have entries for default params
         for column, param_def in self.__parameters.items():
             if column not in used_columns:
@@ -264,7 +268,6 @@ class QueryDefinition:
                     raise ValueError(f'Required parameter must have a value: {column}')
                 where_condition = f'{column} = ({param_def.default_sql})'
                 conditions[param_def.condition].append(where_condition)
-
         sql = self.__sql_defn.sql
         for condition, expressions in conditions.items():
             sql = sql.replace(f'%{condition}%', ' AND '.join(expressions))
@@ -272,7 +275,6 @@ class QueryDefinition:
             sql += f" ORDER BY {', '.join(ordering)}"
         if (limit := int(request.get('limit', 0))):
             sql += f' LIMIT {limit}'
-
         return (sql, sql_params.params)
 
 #===============================================================================
