@@ -34,7 +34,7 @@ import requests
 
 #===============================================================================
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
 #===============================================================================
 
@@ -305,8 +305,8 @@ class CompetencyQueryShell:
 #===============================================================================
 
 def main():
-    parser = argparse.ArgumentParser(description='xxxx')
-    # version
+    parser = argparse.ArgumentParser(description='Competency query CLI tool')
+    parser.add_argument('-v', '--version', action='version', version=__version__)
     parser.add_argument('server', metavar='MAP_SERVER', help='Map server URL')
     args = parser.parse_args()
 

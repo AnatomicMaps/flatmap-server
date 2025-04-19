@@ -1,6 +1,6 @@
 [project]
 name = "competency-query"
-version = "0.1.0"
+version = "0.2.0"
 description = "Competency query CLI tool."
 authors = [
     { name = "David Brooks", email = "d.brooks@auckland.ac.nz"}
