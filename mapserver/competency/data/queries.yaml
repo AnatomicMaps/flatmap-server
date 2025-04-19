@@ -10,7 +10,8 @@ queries:
       - column: source_id
         label: Knowledge source
         type: string
-        default: the latest source is used
+        default_msg: the latest source is used
+        default_sql: select source_id from knowledge_sources order by source_id desc limit 1
     order: ''
     results:
       - key: source_id
@@ -36,7 +37,8 @@ queries:
       - column: source_id
         label: Knowledge source
         type: string
-        default: the latest source is used
+        default_msg: the latest source is used
+        default_sql: select source_id from knowledge_sources order by source_id desc limit 1
     order: ''
     results:
       - key: source_id

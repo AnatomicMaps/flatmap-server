@@ -18,6 +18,7 @@
 #
 #===============================================================================
 
+from collections import defaultdict
 import re
 from typing import NotRequired, Optional, TypedDict
 import yaml
@@ -84,6 +85,29 @@ class SqlDefinition:
     def has_conditions(self):
         return len(self.__conditions) > 0
 
+    @property
+    def sql(self):
+        return self.__sql
+
+#===============================================================================
+
+class SqlParams:
+    def __init__(self):
+        self.__param_number = 1
+        self.__params: list[str] = []
+
+    @property
+    def params(self):
+        return self.__params
+
+    def add_params(self, params: list[str]) -> str:
+    #==============================================
+        placeholders = ', '.join([f'${n}' for n in range(self.__param_number,
+                                                         self.__param_number + len(params))])
+        self.__param_number += len(params)
+        self.__params.extend(params)
+        return placeholders
+
 #===============================================================================
 
 PARAMETER_TYPES = [
@@ -112,7 +136,11 @@ class ParameterDefinition:
         else:
             self.__choices = None
         self.__multiple = defn.get('multiple')
-        self.__default = defn.get('default')
+        self.__default_msg = defn.get('default_msg')
+        self.__default_sql = defn.get('default_sql')
+        if (self.__default_msg is not None and self.__default_sql is None
+         or self.__default_msg is not None and self.__default_sql is None):
+            raise ValueError(f'Optional parameter `{self.__column}` must have both a default message and SQL')
 
     @property
     def as_dict(self) -> ParameterDefinitionDict:
@@ -127,9 +155,21 @@ class ParameterDefinition:
             defn['choices'] = self.__choices
         if self.__multiple is not None:
             defn['multiple'] = self.__multiple
-        if self.__default is not None:
-            defn['default'] = self.__default
+        if self.__default_msg is not None:
+            defn['default'] = self.__default_msg
         return defn
+
+    @property
+    def condition(self):
+        return self.__condition
+
+    @property
+    def optional(self):
+        return self.__default_msg is not None
+
+    @property
+    def default_sql(self):
+        return self.__default_sql
 
 #===============================================================================
 
@@ -138,9 +178,9 @@ class QueryDefinition:
         self.__id = defn['id']
         self.__label = defn['label']
         self.__description = defn.get('description')
-        self.__sql = SqlDefinition(defn['sql'])
-        if self.__sql.has_conditions:
-            self.__parameters = { param_def['column']: ParameterDefinition(param_def, self.__sql.conditions)
+        self.__sql_defn = SqlDefinition(defn['sql'])
+        if self.__sql_defn.has_conditions:
+            self.__parameters = { param_def['column']: ParameterDefinition(param_def, self.__sql_defn.conditions)
                                     for param_def in defn['parameters'] }
         else:
             self.__parameters = {}
@@ -173,24 +213,51 @@ class QueryDefinition:
 
     def make_sql(self, request: QueryRequest) -> tuple[str, list[str]]:
     #==================================================================
+        conditions = defaultdict(list)
+        sql_params = SqlParams()
+        used_columns = []
+        if (req_params := request.get('parameters')) is not None:
+            for req_param in req_params:
+                column = req_param['column']
+                if (param_def := self.__parameters.get(column)) is None:
+                    raise ValueError(f'Unknown parameter in request: {column}')
+                req_values = req_param.get('value')
+                if isinstance(req_values, list):
+                    if len(req_values) == 0:
+                        req_values = None
+                    elif len(req_values) == 1:
+                        req_values = req_values[0]
+                if isinstance(req_values, list):
+                    negate = ' NOT' if req_param.get('negate', False) else ''
+                    where_condition = f'{column}{negate} IN ({sql_params.add_params(req_values)})'
+                elif req_values is not None:
+                    negate = '!' if req_param.get('negate', False) else ''
+                    where_condition = f'{column} {negate}= {sql_params.add_params([req_values])})'
+                elif not param_def.optional:
+                    raise ValueError(f'Required parameter must have a value: {column}')
+                else:
+                    negate = '!' if req_param.get('negate', False) else ''
+                    where_condition = f'{column} {negate}= ({param_def.default_sql})'
+                conditions[param_def.condition].append(where_condition)
+                used_columns.append(column)
 
-        conditions = []
+        # NB. req_params might/will not have entries for default params
+        for column, param_def in self.__parameters.items():
+            if column not in used_columns:
+                if not param_def.optional:
+                    raise ValueError(f'Required parameter must have a value: {column}')
+                where_condition = f'{column} = ({param_def.default_sql})'
+                conditions[param_def.condition].append(where_condition)
 
-        for param_def in self.__parameters:
-            pass
+        sql = self.__sql_defn.sql
+        for condition, expressions in conditions.items():
+            sql = sql.replace(f'%{condition}%', ' AND '.join(expressions))
+        if (ordering := request.get('order')) is not None and len(ordering):
+            sql += f" ORDER BY {', '.join(ordering)}"
+        if (limit := int(request.get('limit', 0))):
+            sql += f' LIMIT {limit}'
 
-        if request.parameters is not None:
-            for parameter in request.parameters:
-                if (param_def := self.__parameters.get(parameter.column)) is not None:
-                    pass
-
-        # append ' AND '.join(conditions)
-
-        # add any ``order``
-
-        # add any ``limit``
-
-        return ('', [])
+        return (sql, sql_params.params)
 
 #===============================================================================
 

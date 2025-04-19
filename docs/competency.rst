@@ -28,7 +28,8 @@ information to assist a frontend UI in obtaining user input and to present resul
               - label: Human readable label     # Required
                 value: Value when selected      # Required
             multiple: false             # Optional, defaults to `false`
-            optional: false             # Optional, defaults to `false`
+            default_msg: string         # Optional; if specified the parameter is optional
+            default_sql: string         # SQL query to get the default value if the parameter is optional
         #
         results:                # Required
           - key: RESULT_IDs             # Required
@@ -45,7 +46,7 @@ There will be two new server endpoints:
 1.  ``GET competency/queries`` will return a list of available
     queries giving their ``id``, ``label`` and ``description``.
 2.  ``GET competency/queries/QUERY_ID`` will return details
-    details of a specific query (as above, in JSON).
+    of a specific query (based on the above, in JSON).
 3.  ``POST competency/query/`` will expect JSON data in the form::
 
         {
