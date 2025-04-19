@@ -200,7 +200,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/ce/cf/70ea34103a76cc6fb
 
 [[package]]
 name = "competency-query"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "tools/competency-query" }
 dependencies = [
     { name = "prompt-toolkit" },
@@ -774,7 +774,7 @@ requires-dist = [
 
 [[package]]
 name = "mapserver"
-version = "0.27.1"
+version = "0.28.0.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "asyncpg" },
