@@ -20,7 +20,7 @@
 
 import argparse
 import json
-from typing import NotRequired, Optional, TypedDict
+from typing import Iterable, NotRequired, Optional, TypedDict
 
 from pprint import pprint
 
@@ -43,6 +43,12 @@ COMMAND_INPUT_STYLE = '#ff0066'
 def print_bold_prefix(prefix: str, text: str=''):
 #================================================
     print_formatted_text(HTML(f'<b>{prefix}</b>{text}'))
+
+def print_table(header: list[str], rows: Iterable[Iterable[str]]):
+#=================================================================
+    print_bold_prefix('\t'.join(header))
+    for row in rows:
+        print('\t'.join(row))
 
 #===============================================================================
 
@@ -117,18 +123,16 @@ class CompetencyQueryShell:
 
     def __init__(self, map_server: str):
         self.__query_service = CompetencyQueryService(map_server)
-        self.__queries = { str(query['id']): query['label']
-                            for query in self.__query_service.get_json(QUERY_DEFINITIONS_ENDPOINT)
-                                if 'id' in query }
+        self.__queries: dict[str, str] = { str(query['id']): str(query['label'])
+                                            for query in self.__query_service.get_json(QUERY_DEFINITIONS_ENDPOINT)
+                                                if 'id' in query }
         self.__cmd_session = PromptSession(message=HTML('<p fg="ansiwhite"><b>cq> </b></p>'),
                                            style=Style.from_dict({'': COMMAND_INPUT_STYLE}))
         self.__input_session = PromptSession()
 
     def __list_queries(self):
     #========================
-        print_bold_prefix('ID\tName')
-        for (id, label) in self.__queries.items():
-            print(f'{id}\t{label}')
+        print_table(['ID', 'Name'], list(self.__queries.items()))
 
     def __query_command(self, id_text: list[str]):
     #=============================================
@@ -238,20 +242,19 @@ class CompetencyQueryShell:
             return
         if len(query_parameters):
             query_request['parameters'] = query_parameters
-        print('')
-        result_definitions = query['results']
-        ordering = self.__get_query_order([definition['key']
-                                            for definition in result_definitions])
+        result_definitions = { definition['key']: definition
+                                for definition in query['results'] }
+        ordering = self.__get_query_order(list(result_definitions.keys()))
         if len(ordering):
             query_request['order'] = ordering
         limit = self.__get_query_limit()
         if limit is not None and limit > 0:
             query_request['limit'] = limit
-
         result_set = self.__query_service.post_query(query_request)
-
-        pprint(result_set)
-
+        if isinstance(result_set, dict):
+            results = result_set['results']
+            print_table([result_definitions[key]['label'] for key in results['keys']],
+                        results['values'])
 
     def __get_command(self) -> Optional[str]:
     #========================================
