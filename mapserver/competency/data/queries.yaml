@@ -11,7 +11,9 @@ queries:
         label: Knowledge source
         type: string
         default_msg: the latest source is used
-        default_sql: select source_id from knowledge_sources order by source_id desc limit 1
+        default_sql: >
+          select source_id from knowledge_sources where source_id like 'sckan%'
+          order by source_id desc limit 1
     order: ''
     results:
       - key: source_id
@@ -38,7 +40,9 @@ queries:
         label: Knowledge source
         type: string
         default_msg: the latest source is used
-        default_sql: select source_id from knowledge_sources order by source_id desc limit 1
+        default_sql: >
+          select source_id from knowledge_sources where source_id like 'sckan%'
+          order by source_id desc limit 1
     order: ''
     results:
       - key: source_id
