@@ -11,7 +11,7 @@ queries:
       - column: source_id
         label: Knowledge source
         type: string
-        optional: true
+        default: the latest source is used
     order: ''
     results:
       - key: source_id
@@ -38,7 +38,7 @@ queries:
       - column: source_id
         label: Knowledge source
         type: string
-        optional: true
+        default: the latest source is used
     order: ''
     results:
       - key: source_id

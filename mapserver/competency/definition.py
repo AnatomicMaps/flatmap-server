@@ -51,7 +51,7 @@ class ParameterDefinitionDict(TypedDict):
     type: NotRequired[str]
     choices: NotRequired[list[ParameterChoiceDict]]
     multiple: NotRequired[bool]
-    optional: NotRequired[bool]
+    default: NotRequired[str]
 
 class ResultDefinitionDict(TypedDict):
     key: str
@@ -114,7 +114,7 @@ class ParameterDefinition:
         else:
             self.__choices = None
         self.__multiple = defn.get('multiple')
-        self.__optional = defn.get('optional')
+        self.__default = defn.get('default')
 
     @property
     def as_dict(self) -> ParameterDefinitionDict:
@@ -131,8 +131,8 @@ class ParameterDefinition:
             defn['choices'] = self.__choices
         if self.__multiple is not None:
             defn['multiple'] = self.__multiple
-        if self.__optional is not None:
-            defn['optional'] = self.__optional
+        if self.__default is not None:
+            defn['default'] = self.__default
         return defn
 
 #===============================================================================
