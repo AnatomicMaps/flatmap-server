@@ -32,6 +32,7 @@ from litestar import exceptions, Litestar, Request
 
 from .definition import load_query_definitions
 from .definition import QueryDefinitionDict, QueryDefinitionSummary, QueryRequest
+from .definition import QueryError, QueryResults
 
 #===============================================================================
 
@@ -107,31 +108,31 @@ async def query_definitions(request: Request) -> list[QueryDefinitionSummary]:
     return [defn.summary for defn in definitions.values()]
 
 
-async def query(data: QueryRequest, request: Request) -> dict:
-#=============================================================
-
-    if (pool := get_competency_pool(request.app)) is None:
-        ## 40X error
-        ## log??
-        ## or just return 'error' in response...
-        return {}
-
+async def query(data: QueryRequest, request: Request) -> QueryResults|QueryError:
+#================================================================================
     if (defn := get_query_definitions(request.app).get(data['query_id'])) is None:
-        pass
-        # 403 ?
-        # log/print
-        ## or just return 'error' in response...
-        return {}
-
-    (sql, params) = defn.make_sql(data)
-
-    async with pool.acquire() as connection:
-        # Open a transaction.
-        ## Is a transaction needed ??
-        #
-        async with connection.transaction():
-            result = await connection.execute(sql, params)
-
-    return {}
+        return {'error': f"Unknown query ID: {data['query_id']}"}
+    try:
+        (sql, params) = defn.make_sql(data)
+    except ValueError as err:
+        return {'error': f'Error building query: {err}'}
+    if (pool := get_competency_pool(request.app)) is None:
+        return {'error': 'Backend cannot connect to Competency database'}
+    try:
+        async with pool.acquire() as connection:
+            records = await connection.fetch(sql, *params)
+            value_rows: list[list[str]] = []
+            for record in records:
+                value_rows.append([record.get(key)
+                                    for key in defn.result_keys])
+            return {
+                'query_id': data['query_id'],
+                'results': {
+                    'keys': defn.result_keys,
+                    'values': value_rows
+                }
+            }
+    except Exception as err:
+        return {'error': f'Error executing query: {err}'}
 
 #===============================================================================

@@ -83,7 +83,7 @@ class CompetencyQueryService:
                                     headers={'Accept': 'application/json'},
                                     timeout=REQUEST_TIMEOUT,
                                     **kwds)
-            if response.status_code == requests.codes.ok:
+            if response.ok:
                 try:
                     return response.json()
                 except json.JSONDecodeError:

@@ -32,11 +32,22 @@ class QueryParameter(TypedDict):
 
 #===============================================================================
 
+class QueryError(TypedDict):
+    error: str
+
 class QueryRequest(TypedDict):
     query_id: str
     parameters: NotRequired[list[QueryParameter]]
     order: NotRequired[list[str]]
     limit: NotRequired[int]
+
+class QueryResultRows(TypedDict):
+    keys: list[str]
+    values: list[list[str]]
+
+class QueryResults(TypedDict):
+    query_id: str
+    results: QueryResultRows
 
 #===============================================================================
 #===============================================================================
@@ -169,7 +180,7 @@ class ParameterDefinition:
 
     @property
     def default_sql(self):
-        return self.__default_sql
+        return self.__default_sql.strip() if self.__default_sql is not None else ''
 
 #===============================================================================
 
@@ -199,6 +210,11 @@ class QueryDefinition:
         if len(self.__parameters):
             defn['parameters'] = [param_def.as_dict for param_def in self.__parameters.values()]
         return defn
+
+    @property
+    def result_keys(self) -> list[str]:
+    #==================================
+        return list(self.__results.keys())
 
     @property
     def summary(self) -> QueryDefinitionSummary:
@@ -232,7 +248,7 @@ class QueryDefinition:
                     where_condition = f'{column}{negate} IN ({sql_params.add_params(req_values)})'
                 elif req_values is not None:
                     negate = '!' if req_param.get('negate', False) else ''
-                    where_condition = f'{column} {negate}= {sql_params.add_params([req_values])})'
+                    where_condition = f'{column} {negate}= {sql_params.add_params([req_values])}'
                 elif not param_def.optional:
                     raise ValueError(f'Required parameter must have a value: {column}')
                 else:

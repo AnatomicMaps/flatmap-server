@@ -29,7 +29,8 @@ from litestar import get, post, Request, Router
 #===============================================================================
 
 from ..competency import query, query_definition, query_definitions
-from ..competency.definition import QueryDefinitionDict, QueryDefinitionSummary, QueryRequest
+from ..competency.definition import QueryDefinitionDict, QueryDefinitionSummary
+from ..competency.definition import QueryRequest, QueryError, QueryResults
 
 #===============================================================================
 
@@ -44,9 +45,12 @@ async def competency_query_definition(query_id: str, request: Request) -> QueryD
     return await query_definition(query_id, request)
 
 @post('query/')
-async def competency_query(data: QueryRequest, request: Request) -> dict:
-#=======================================================================
-    return await query(data, request)
+async def competency_query(data: QueryRequest, request: Request) -> QueryResults|QueryError:
+#===========================================================================================
+    result = await query(data, request)
+    if 'error' in result:
+        request.logger.warning(result["error"])
+    return result
 
 #===============================================================================
 #===============================================================================
