@@ -50,7 +50,7 @@ There will be two new server endpoints:
 3.  ``POST competency/query/`` will expect JSON data in the form::
 
         {
-            "id": "QUERY_ID",
+            "query_id": "QUERY_ID",
             "parameters": [
                 {
                     "column": "PARAM_1",
@@ -75,7 +75,7 @@ There will be two new server endpoints:
     and returns::
 
         {
-            "id": "QUERY_ID",
+            "query_id": "QUERY_ID",
             "results": {
                 "keys": ["RESULT_ID", ...],
                 "values": [
