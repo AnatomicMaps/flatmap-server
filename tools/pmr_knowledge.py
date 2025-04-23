@@ -114,7 +114,8 @@ def main():
             for model in sckan_models['cellmls']:
                 db.execute('delete from pmr_models where term=?', (term, ))
                 db.execute('insert into pmr_models (term, model, workspace, exposure, score) values (?, ?, ?, ?, ?)',
-                                                   (term, model['cellml'], model['workspace'], model.get('exposure'), model['score']))
+                                                   (term, model.get('cellml'), model.get('workspace'),
+                                                          model['exposure'], model.get('score', 1.0)))
     if args.exposures is not None:
         if (args.clean):
             db.execute('delete from pmr_metadata')
