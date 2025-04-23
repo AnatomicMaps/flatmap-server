@@ -154,6 +154,21 @@ if __name__ == '__main__':
 #===============================================================================
 
 """
+# APS PMR knowledge
+$ python tools/pmr_knowledge.py  \
+           --clean  \
+           --knowledge flatmaps  \
+           --exposures pmr/lung_exposure.json  \
+           --index pmr/lung2pmr.json
+$ python tools/pmr_knowledge.py  \
+           --knowledge flatmaps  \
+           --exposures aps/pmr-exposures.json \
+           --index aps/models/BloodVolumeControl.map2pmr.json
+"""
+
+#===============================================================================
+
+"""
 
 [
     {
