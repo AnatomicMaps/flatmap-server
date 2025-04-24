@@ -92,7 +92,8 @@ def main():
     if args.knowledge is not None:
         if not os.path.isdir(args.knowledge) or not os.path.exists(args.knowledge):
             exit(f'Missing flatmap root directory: {args.knowledge}')
-        knowledge_store = KnowledgeStore(args.knowledge, create=False, read_only=False)
+        knowledge_store = KnowledgeStore(args.knowledge, create=False, read_only=False,
+                                         use_sckan=False, verbose=False)
         db = knowledge_store.db
         if db is None:
             exit('Unable to get knowledge database connection')
