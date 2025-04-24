@@ -112,8 +112,8 @@ def main():
         term_index = json.load(open(args.index))
         for sckan_models in term_index:
             term = sckan_models['sckan_term']
+            db.execute('delete from pmr_models where term=?', (term, ))
             for model in sckan_models['cellmls']:
-                db.execute('delete from pmr_models where term=?', (term, ))
                 db.execute('insert into pmr_models (term, model, workspace, exposure, score) values (?, ?, ?, ?, ?)',
                                                    (term, model.get('cellml'), model.get('workspace'),
                                                           model['exposure'], model.get('score', 1.0)))
