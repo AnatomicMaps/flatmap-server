@@ -65,12 +65,6 @@ def initialise(app: Litestar):
     if settings['MAP_VIEWER']:
         if not os.path.exists(settings['FLATMAP_VIEWER']):
             exit(f'Missing {settings["FLATMAP_VIEWER"]} directory -- set FLATMAP_VIEWER environment variable to the full path')
-        try:
-            with open(Path(settings['FLATMAP_VIEWER']) / 'package.json') as fp:
-                package_json = json.load(fp)
-        except:
-            exit(f'Cannot read `package.json` in of standalone viewer in {settings["FLATMAP_VIEWER"]}')
-        settings['VIEWER_VERSION'] = package_json['version']
 
     settings['LOGGER'] = logger = logging.getLogger('litestar')
     logger.info(f'Starting flatmap server version {__version__}')
@@ -104,10 +98,15 @@ async def version() -> list[dict]:
     versions = [
         {'id': 'server', 'version': __version__},
     ]
-    if (viewer_version := settings.get('VIEWER_VERSION')) is not None:
-        versions.append(
-            {'id': 'viewer', 'version': viewer_version},
-        )
+    if settings['MAP_VIEWER']:
+        try:
+            with open(Path(settings['FLATMAP_VIEWER']) / 'package.json') as fp:
+                package_json = json.load(fp)
+            versions.append(
+                {'id': 'viewer', 'version': package_json['version']},
+            )
+        except:
+            settings['LOGGER'].error(f'Cannot read `package.json` in of standalone viewer in {settings["FLATMAP_VIEWER"]}')
     return versions
 
 #===============================================================================
