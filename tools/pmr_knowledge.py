@@ -92,7 +92,8 @@ def main():
     if args.knowledge is not None:
         if not os.path.isdir(args.knowledge) or not os.path.exists(args.knowledge):
             exit(f'Missing flatmap root directory: {args.knowledge}')
-        knowledge_store = KnowledgeStore(args.knowledge, create=False, read_only=False)
+        knowledge_store = KnowledgeStore(args.knowledge, create=False, read_only=False,
+                                         use_sckan=False, verbose=False)
         db = knowledge_store.db
         if db is None:
             exit('Unable to get knowledge database connection')
@@ -111,10 +112,11 @@ def main():
         term_index = json.load(open(args.index))
         for sckan_models in term_index:
             term = sckan_models['sckan_term']
+            db.execute('delete from pmr_models where term=?', (term, ))
             for model in sckan_models['cellmls']:
-                db.execute('delete from pmr_models where term=?', (term, ))
                 db.execute('insert into pmr_models (term, model, workspace, exposure, score) values (?, ?, ?, ?, ?)',
-                                                   (term, model['cellml'], model['workspace'], model.get('exposure'), model['score']))
+                                                   (term, model.get('cellml'), model.get('workspace'),
+                                                          model['exposure'], model.get('score', 1.0)))
     if args.exposures is not None:
         if (args.clean):
             db.execute('delete from pmr_metadata')
@@ -149,6 +151,21 @@ def main():
 if __name__ == '__main__':
 #=========================
     main()
+
+#===============================================================================
+
+"""
+# APS PMR knowledge
+$ python tools/pmr_knowledge.py  \
+           --clean  \
+           --knowledge flatmaps  \
+           --exposures pmr/lung_exposure.json  \
+           --index pmr/lung2pmr.json
+$ python tools/pmr_knowledge.py  \
+           --knowledge flatmaps  \
+           --exposures aps/pmr-exposures.json \
+           --index aps/models/BloodVolumeControl.map2pmr.json
+"""
 
 #===============================================================================
 
