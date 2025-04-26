@@ -1,6 +1,6 @@
 [project]
 name = "mapserver"
-version = "0.28.0-dev"
+version = "0.28.0-dev.1"
 description = "An server for anatomical flatmaps."
 authors = [
     { name = "David Brooks", email = "d.brooks@auckland.ac.nz"}
@@ -12,6 +12,7 @@ dependencies = [
     "Pillow>=11.2.0",
     "requests>=2.31.0",
     "hypercorn==0.16.0",
+#    "hypercorn @ file:///Users/dbro078/build/hypercorn",
     "rdflib>=7.0.0",
     "setuptools>=78.1.0",
     "litestar>=2.15.2",
