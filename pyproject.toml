@@ -20,7 +20,6 @@ dependencies = [
     "rich>=13.9.4",
     "pyyaml>=6.0.2",
     "asyncpg>=0.30.0",
-    "uvicorn>=0.34.0",
     "flatmapknowledge @ https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.6/flatmapknowledge-2.0.6-py3-none-any.whl",
     "mapmaker @ https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.16.1/mapmaker-1.16.1-py3-none-any.whl"
 ]
