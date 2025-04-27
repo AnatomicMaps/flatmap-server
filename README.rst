@@ -13,7 +13,7 @@ Prerequisites
 -------------
 
 *   Python 3.12
-*   `poetry <https://python-poetry.org/docs/#installation>`_
+*   `uv <https://docs.astral.sh/uv/>`_ Python package manager
 *   Under Ubuntu, ``sudo apt-get install libgl-mesa-glx``
 
 
@@ -21,7 +21,7 @@ Installation
 ------------
 
 1)  Download the `latest release <https://github.com/AnatomicMaps/flatmap-server/releases/latest>`_ and extract it to a suitable directory.
-2)  Change to this directory and run ``poetry install``.
+2)  Change to this directory and run ``uv install``.
 
 
 Running
@@ -29,7 +29,7 @@ Running
 
 ::
 
-    $ poetry run python -m mapserver
+    $ uv run python -m mapserver
 
 *   By default, maps are stored in ``./flatmaps``. This can be overridden by setting the ``FLATMAP_ROOT`` environment variable to a directory path.
 *   By default, the server listens at ``http://127.0.0.1:8000``. This can be changed by setting the ``SERVER_INTERFACE`` and ``SERVER_PORT`` envirinment variables before starting the server.
@@ -60,7 +60,7 @@ Running
 
 To run the server with the integrated viewer::
 
-    $ poetry run python -m mapserver viewer
+    $ uv run python -m mapserver viewer
 
 and open `<http://localhost:8000/viewer>`_ in a browser.
 
@@ -87,7 +87,7 @@ Any publicly accessible map server **must** control who can generate maps — we
 for this. To enable, set the ``MAPMAKER_TOKENS`` environment variable to a space separated list of valid tokens, before starting the server. e.g::
 
     $ export MAPMAKER_TOKENS="token1 token2"
-    $ poetry run hypercorn mapserver.server:server
+    $ uv run python -m mapserver
 
 
 When ``MAPMAKER_TOKENS`` have been defined, every request to a map generation endpoint **must** specify a valid bearer token using the
