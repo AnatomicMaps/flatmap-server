@@ -18,15 +18,10 @@
 #
 #===============================================================================
 
-import asyncio
-import logging.config
+import json
 import os
+import subprocess
 import sys
-
-#===============================================================================
-
-from hypercorn.asyncio import serve
-from hypercorn.config import Config
 import yaml
 
 #===============================================================================
@@ -45,30 +40,36 @@ LOGGING_CONFIG = '''
 version: 1
 disable_existing_loggers: False
 formatters:
-  standard:
-    format: '%(asctime)s %(levelname)s: %(message)s'
   simple:
     format: '%(message)s'
+  standard:
+    format: '%(asctime)s %(levelname)s: %(message)s'
+  generic:
+    format: '%(asctime)s.%(msecs)03d] [%(name)s] [%(levelname)s] %(message)s'
+    datefmt: '[%Y-%m-%d %H:%M:%S'
+  access:
+    format: '%(message)s'
+    datefmt: '[%Y-%m-%d %H:%M:%S %z]'
 handlers:
   console:
     class: logging.StreamHandler
-    formatter: standard
+    formatter: generic
     stream: 'ext://sys.stdout'
   rotatingAccessHandler:
     class: logging.handlers.RotatingFileHandler
-    formatter: simple
+    formatter: access
     filename: {ACCESS_LOG}
     maxBytes: 4194304       # 4 MB
     backupCount: 9
   rotatingErrorHandler:
     class: logging.handlers.RotatingFileHandler
-    formatter: standard
+    formatter: generic
     filename: {ERROR_LOG}
     maxBytes: 1048576       # 1 MB
     backupCount: 9
   rotatingLitestarHandler:
     class: logging.handlers.RotatingFileHandler
-    formatter: standard
+    formatter: generic
     filename: {LITESTAR_LOG}
     maxBytes: 1048576       # 1 MB
     backupCount: 9
@@ -78,15 +79,15 @@ root:
   level: INFO
   propagate: False
 loggers:
-  hypercorn.access:
-    handlers:
-    - rotatingAccessHandler
-    level: INFO
-    propagate: False
-  hypercorn.error:
+  _granian:
     handlers:
     - rotatingErrorHandler
     - console
+    level: INFO
+    propagate: False
+  granian.access:
+    handlers:
+    - rotatingAccessHandler
     level: INFO
     propagate: False
   litestar:
@@ -99,13 +100,16 @@ loggers:
 
 #===============================================================================
 
-def configure_logging(access_log: str, error_log: str, litestar_log: str):
+def configure_logging(access_log: str, error_log: str, litestar_log: str) -> str:
     config = LOGGING_CONFIG.format(ACCESS_LOG=access_log, ERROR_LOG=error_log, LITESTAR_LOG=litestar_log)
-    logging.config.dictConfig(yaml.safe_load(config))
+    log_config = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'log-config.json')
+    with open(log_config, 'w') as fp:
+        json.dump(yaml.safe_load(config), fp)
+    return log_config
 
 #===============================================================================
 
-async def run_server(viewer=False):
+def run_server(viewer=False):
 #==================================
     # Save viewer state for server initialisation
     settings['MAP_VIEWER'] = viewer
@@ -113,23 +117,23 @@ async def run_server(viewer=False):
     ACCESS_LOG_FILE = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'access_log')
     ERROR_LOG_FILE = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'error_log')
     LITESTAR_LOG_FILE = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'maker_log')
-    configure_logging(ACCESS_LOG_FILE, ERROR_LOG_FILE, LITESTAR_LOG_FILE)
+    log_config = configure_logging(ACCESS_LOG_FILE, ERROR_LOG_FILE, LITESTAR_LOG_FILE)
 
-    config = Config()
-    config.accesslog = logging.getLogger('hypercorn.access')
-    config.errorlog = logging.getLogger('hypercorn.error')
-
-    config.bind = [f'{SERVER_INTERFACE}:{SERVER_PORT}']
-    asyncio.run(
-        serve(app, config)
-    )
+    subprocess.run(['granian',
+        '--interface', 'asgi',
+        '--host', SERVER_INTERFACE,
+        '--port', SERVER_PORT,
+        '--log',
+        '--log-config', log_config,
+        '--access-log',
+        'mapserver.__main__:app'])
 
 #===============================================================================
 
 def main(viewer=False):
 #======================
     try:
-        asyncio.run(run_server(viewer))
+        run_server(viewer)
     except KeyboardInterrupt:
         pass
 
