@@ -108,10 +108,18 @@ async def version() -> list[dict]:
             with open(Path(settings['FLATMAP_VIEWER_PATH']) / 'package.json') as fp:
                 package_json = json.load(fp)
             versions.append(
-                {'id': 'viewer', 'version': package_json['version']},
+                {'id': 'viewer', 'version': package_json['version']}
             )
         except:
             settings['LOGGER'].error(f'Cannot read `package.json` in of standalone viewer in {settings["FLATMAP_VIEWER_PATH"]}')
+    if settings['MAPMAKER_TOKENS']:
+        try:
+            from mapmaker import __version__ as mapmaker_version
+            versions.append(
+                {'id': 'mapmaker', 'version': mapmaker_version}
+            )
+        except:
+            pass
     return versions
 
 #===============================================================================
