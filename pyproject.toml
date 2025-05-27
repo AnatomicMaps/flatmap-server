@@ -20,7 +20,7 @@ dependencies = [
     "pyyaml>=6.0.2",
     "asyncpg>=0.30.0",
     "flatmapknowledge @ https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.1.0/flatmapknowledge-2.1.0-py3-none-any.whl",
-    "mapmaker @ https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.17.3/mapmaker-1.17.3-py3-none-any.whl",
+    "mapmaker @ https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.17.4/mapmaker-1.17.4-py3-none-any.whl",
     "granian>=2.2.5",
 ]
 
