@@ -757,7 +757,7 @@ requires-dist = [
 
 [[package]]
 name = "mapserver"
-version = "0.28.5"
+version = "0.29.0"
 source = { editable = "." }
 dependencies = [
     { name = "asyncpg" },
