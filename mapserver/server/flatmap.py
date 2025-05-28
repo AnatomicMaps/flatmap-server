@@ -277,6 +277,8 @@ async def flatmap_connectivity(map_uuid: str, path_id: str) -> dict:
     connectivity = {
         'id': path_id,
         'connectivity': path.get('connectivity', []),
+        'node-phenotypes': path.get('node-phenotypes', {}),
+        'forward-connections': path.get('forward-connections', []),
         'axons': path.get('axons', []),
         'dendrites': path.get('dendrites', []),
         'somas': path.get('somas', []),
