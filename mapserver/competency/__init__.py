@@ -38,8 +38,7 @@ from .definition import QueryError, QueryResults
 
 COMPETENCY_DATABASE = 'map-knowledge'
 
-COMPETENCY_USER = os.environ.get('COMPETENCY_USER')
-COMPETENCY_USER = 'abi:knowledge'
+COMPETENCY_USER = os.environ.get('COMPETENCY_USER', 'abi:knowledge')
 COMPETENCY_HOST = os.environ.get('COMPETENCY_HOST', 'localhost:5432')
 
 if not COMPETENCY_USER:
