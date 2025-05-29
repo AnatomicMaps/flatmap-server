@@ -3,11 +3,13 @@ queries:
     label: Neuron populations associated with a location
     sql: SELECT DISTINCT path_id, source_id FROM path_node_features WHERE %CONDITIONS%
     parameters:
-      - column: feature_id
+      - id: feature_id
+        column: feature_id
         label: Anatomical terms for locations
         type: string
         multiple: true
-      - column: source_id
+      - id: source_id
+        column: source_id
         label: Knowledge source
         type: string
         default_msg: the latest source is used
@@ -32,11 +34,13 @@ queries:
       WHERE pnt.type_id IN ('ilxtr:hasAxonSensorySubcellularElementIn', 'ilxtr:hasAxonPresynapticElementIn')
       AND %CONDITIONS%
     parameters:
-      - column: pnf.feature_id
+      - id: feature_id
+        column: pnf.feature_id
         label: Anatomical terms for locations
         type: string
         multiple: true
-      - column: pnf.source_id
+      - id: source_id
+        column: pnf.source_id
         label: Knowledge source
         type: string
         default_msg: the latest source is used

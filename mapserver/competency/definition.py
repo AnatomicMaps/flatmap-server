@@ -136,6 +136,7 @@ PARAMETER_TYPES = [
 
 class ParameterDefinition:
     def __init__(self, defn: dict, sql_conditions: list[str]):
+        self.__id = defn['id']
         self.__column = defn['column']
         self.__condition = defn.get('condition', sql_conditions[-1])
         if self.__condition not in sql_conditions:
@@ -162,7 +163,7 @@ class ParameterDefinition:
     def as_dict(self) -> ParameterDefinitionDict:
     #============================================
         defn: ParameterDefinitionDict = {
-            'column': self.__column,
+            'column': self.__id,
             'label': self.__label
         }
         if self.__type is not None:
@@ -174,6 +175,10 @@ class ParameterDefinition:
         if self.__default_msg is not None:
             defn['default'] = self.__default_msg
         return defn
+
+    @property
+    def column(self):
+        return self.__column
 
     @property
     def condition(self):
@@ -196,7 +201,7 @@ class QueryDefinition:
         self.__description = defn.get('description')
         self.__sql_defn = SqlDefinition(defn['sql'])
         if self.__sql_defn.has_conditions:
-            self.__parameters = { param_def['column']: ParameterDefinition(param_def, self.__sql_defn.conditions)
+            self.__parameters = { param_def['id']: ParameterDefinition(param_def, self.__sql_defn.conditions)
                                     for param_def in defn['parameters'] }
         else:
             self.__parameters = {}
@@ -239,9 +244,10 @@ class QueryDefinition:
         used_columns = []
         if (req_params := request.get('parameters')) is not None:
             for req_param in req_params:
-                column = req_param['column']
-                if (param_def := self.__parameters.get(column)) is None:
-                    raise ValueError(f'Unknown parameter in request: {column}')
+                column_id = req_param['column']
+                if (param_def := self.__parameters.get(column_id)) is None:
+                    raise ValueError(f'Unknown parameter in request: {column_id}')
+                column = param_def.column
                 req_values = req_param.get('value')
                 if isinstance(req_values, list):
                     if len(req_values) == 0:
