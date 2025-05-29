@@ -175,14 +175,14 @@ files = [
 
 [[package]]
 name = "beziers"
-version = "0.5.0"
+version = "0.6.0"
 description = "Bezier curve manipulation library"
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "beziers-0.5.0-py3-none-any.whl", hash = "sha256:05ccfb67ab67797e6c55ac871191b7464abdc5c22f9004ae58735c7ac1ddca2d"},
-    {file = "beziers-0.5.0.macosx-12-arm64.tar.gz", hash = "sha256:e28375a1f4f9b4a6e67e5b661ef664907e9b87177c74b78367336cf53ae95698"},
+    {file = "beziers-0.6.0-py3-none-any.whl", hash = "sha256:8c7c3a0f726af409f5f84c41943ca8f78ffde935a11370c585e8167e37e41a44"},
+    {file = "beziers-0.6.0.tar.gz", hash = "sha256:8ad31133428a7340b0bda539202eb08ed01677acfb51386f7a33418bbcafd7c0"},
 ]
 
 [package.dependencies]
@@ -408,14 +408,14 @@ numpy = "*"
 
 [[package]]
 name = "cssselect2"
-version = "0.6.0"
+version = "0.8.0"
 description = "CSS selectors for Python ElementTree"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "cssselect2-0.6.0-py3-none-any.whl", hash = "sha256:3a83b2a68370c69c9cd3fcb88bbfaebe9d22edeef2c22d1ff3e1ed9c7fa45ed8"},
-    {file = "cssselect2-0.6.0.tar.gz", hash = "sha256:5b5d6dea81a5eb0c9ca39f116c8578dd413778060c94c1f51196371618909325"},
+    {file = "cssselect2-0.8.0-py3-none-any.whl", hash = "sha256:46fc70ebc41ced7a32cd42d58b1884d72ade23d21e5a4eaaf022401c13f0e76e"},
+    {file = "cssselect2-0.8.0.tar.gz", hash = "sha256:7674ffb954a3b46162392aee2a3a0aedb2e14ecf99fcc28644900f4e6e3e9d3a"},
 ]
 
 [package.dependencies]
@@ -423,8 +423,8 @@ tinycss2 = "*"
 webencodings = "*"
 
 [package.extras]
-doc = ["sphinx", "sphinx_rtd_theme"]
-test = ["coverage[toml]", "pytest", "pytest-cov", "pytest-flake8", "pytest-isort"]
+doc = ["furo", "sphinx"]
+test = ["pytest", "ruff"]
 
 [[package]]
 name = "dill"
@@ -507,21 +507,21 @@ files = [
 
 [[package]]
 name = "flatmapknowledge"
-version = "2.0.6"
+version = "2.1.0"
 description = ""
 optional = false
 python-versions = ">=3.12,<4.0"
 groups = ["main"]
 files = [
-    {file = "flatmapknowledge-2.0.6-py3-none-any.whl", hash = "sha256:988e2f0368a55c7edd989032d9d8a431ae7c8afa422dbd1ecfb667868626749b"},
+    {file = "flatmapknowledge-2.1.0-py3-none-any.whl", hash = "sha256:a324f8a963084f5d342bb50dc438a84d3fd12bfb3fcbbc1216b90439da48a752"},
 ]
 
 [package.dependencies]
-mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.20.6/mapknowledge-0.20.6-py3-none-any.whl"}
+mapknowledge = {url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.21.0/mapknowledge-0.21.0-py3-none-any.whl"}
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.6/flatmapknowledge-2.0.6-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.1.0/flatmapknowledge-2.1.0-py3-none-any.whl"
 
 [[package]]
 name = "frozendict"
@@ -665,14 +665,14 @@ grpcio-gcp = ["grpcio-gcp (>=0.2.2,<1.0.dev0)"]
 
 [[package]]
 name = "google-api-python-client"
-version = "2.168.0"
+version = "2.169.0"
 description = "Google API Client Library for Python"
 optional = false
 python-versions = ">=3.7"
 groups = ["main"]
 files = [
-    {file = "google_api_python_client-2.168.0-py3-none-any.whl", hash = "sha256:ebf27fc318a3cf682dc994cefc46b6794eafee91d91fc659d46e018155ace530"},
-    {file = "google_api_python_client-2.168.0.tar.gz", hash = "sha256:10759c3c8f5bbb17752b349ff336963ab215db150f34594a5581d5cd9b5add41"},
+    {file = "google_api_python_client-2.169.0-py3-none-any.whl", hash = "sha256:dae3e882dc0e6f28e60cf09c1f13fedfd881db84f824dd418aa9e44def2fe00d"},
+    {file = "google_api_python_client-2.169.0.tar.gz", hash = "sha256:0585bb97bd5f5bf3ed8d4bf624593e4c5a14d06c811d1952b07a1f94b4d12c51"},
 ]
 
 [package.dependencies]
@@ -1295,13 +1295,13 @@ source = ["Cython (>=3.0.11,<3.1.0)"]
 
 [[package]]
 name = "mapknowledge"
-version = "0.20.6"
+version = "0.21.0"
 description = ""
 optional = false
 python-versions = ">=3.12,<4.0"
 groups = ["main"]
 files = [
-    {file = "mapknowledge-0.20.6-py3-none-any.whl", hash = "sha256:7d91dfd7750b5fce9d0a6fd9582c1d87193c40b4f8de48a9040d78b3d1345a04"},
+    {file = "mapknowledge-0.21.0-py3-none-any.whl", hash = "sha256:74e593da5579efdb37fa969a171cd6bab10de1dee84603a674d982005f2b16e1"},
 ]
 
 [package.dependencies]
@@ -1316,60 +1316,60 @@ structlog = ">=24.4.0,<25.0.0"
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.20.6/mapknowledge-0.20.6-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.21.0/mapknowledge-0.21.0-py3-none-any.whl"
 
 [[package]]
 name = "mapmaker"
-version = "1.16.1"
-description = ""
+version = "1.17.1"
+description = "Generate MapLibre compatible tilesets for flatmaps."
 optional = false
-python-versions = ">=3.12,<4.0"
+python-versions = ">=3.12,<3.13"
 groups = ["main"]
 files = [
-    {file = "mapmaker-1.16.1-py3-none-any.whl", hash = "sha256:9ccdea892bb63fe60ca27ce3ebf9d12f85d26f0bbaf7aefb61c48a4a368b23c6"},
+    {file = "mapmaker-1.17.1-py3-none-any.whl", hash = "sha256:f8b81b8af037a46e9f648bfbff67239aed1cbb189dcfda7d89b111fca57c1452"},
 ]
 
 [package.dependencies]
-beziers = ">=0.5.0,<0.6.0"
-colormath = ">=3.0.0,<4.0.0"
-cssselect2 = ">=0.6.0,<0.7.0"
-flatmapknowledge = {url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.6/flatmapknowledge-2.0.6-py3-none-any.whl"}
-gitpython = ">=3.1.41,<4.0.0"
-giturlparse = ">=0.12.0,<0.13.0"
-lxml = ">=5.2.2,<6.0.0"
-mbutil = ">=0.3.0,<0.4.0"
-mercantile = ">=1.2.1,<2.0.0"
-multiprocess = ">=0.70.13,<0.71.0"
-networkx = ">=3.4.0,<4.0.0"
+beziers = ">=0.5.0"
+colormath = ">=3.0.0"
+cssselect2 = ">=0.6.0"
+flatmapknowledge = {url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.1.0/flatmapknowledge-2.1.0-py3-none-any.whl"}
+gitpython = ">=3.1.41"
+giturlparse = ">=0.12.0"
+lxml = ">=5.2.2"
+mbutil = ">=0.3.0"
+mercantile = ">=1.2.1"
+multiprocess = ">=0.70.13"
+networkx = ">=3.4.0"
 numpy = ">=1.24,<2.0"
-opencv-python-headless = ">=4.10.0,<5.0.0"
-openpyxl = ">=3.1.0,<4.0.0"
-Pyomo = ">=6.8,<7.0"
-pyparsing = ">=3.0.9,<4.0.0"
-pyproj = ">=3.4.0,<4.0.0"
-python-pptx = ">=0.6.21,<0.7.0"
-pyyaml = ">=6.0,<7.0"
-rdflib = ">=7.1.3,<8.0.0"
-requests = ">=2.32.0,<3.0.0"
-rich = ">=13.9.4,<14.0.0"
-saxonche = ">=12.3.0,<13.0.0"
-shapely = ">=2.0.0,<3.0.0"
-skia-python = ">=124.0b7,<125.0"
-structlog = ">=24.4.0,<25.0.0"
-svgelements = ">=1.9.1,<2.0.0"
-svglib = ">=1.3.0,<2.0.0"
-svgwrite = ">=1.4.3,<2.0.0"
-tinycss2 = ">=1.1.1,<2.0.0"
-tqdm = ">=4.64.0,<5.0.0"
-transforms3d = ">=0.4.1,<0.5.0"
-types-requests = ">=2.28.11.2,<3.0.0.0"
-webcolors = ">=1.12,<2.0"
-XlsxWriter = ">=3.0.3,<4.0.0"
-xmltodict = ">=0.12.0,<0.13.0"
+opencv-python-headless = ">=4.10.0"
+openpyxl = ">=3.1.0"
+Pyomo = ">=6.8"
+pyparsing = ">=3.0.9"
+pyproj = ">=3.4.0"
+python-pptx = ">=0.6.21"
+pyyaml = ">=6.0"
+rdflib = ">=7.1.3"
+requests = ">=2.32.0"
+rich = ">=13.9.4"
+saxonche = ">=12.5.0"
+shapely = ">=2.0.0"
+skia-python = ">=136.0b13"
+structlog = ">=24.4.0"
+svgelements = ">=1.9.1"
+svglib = ">=1.3.0"
+svgwrite = ">=1.4.3"
+tinycss2 = ">=1.1.1"
+tqdm = ">=4.64.0"
+transforms3d = ">=0.4.1"
+types-requests = ">=2.28.11.2"
+webcolors = ">=1.12"
+XlsxWriter = ">=3.0.3"
+xmltodict = ">=0.12.0"
 
 [package.source]
 type = "url"
-url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.16.1/mapmaker-1.16.1-py3-none-any.whl"
+url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.17.1/mapmaker-1.17.1-py3-none-any.whl"
 
 [[package]]
 name = "markdown-it-py"
@@ -2476,19 +2476,20 @@ six = ">=1.5"
 
 [[package]]
 name = "python-pptx"
-version = "0.6.23"
-description = "Generate and manipulate Open XML PowerPoint (.pptx) files"
+version = "1.0.2"
+description = "Create, read, and update PowerPoint 2007+ (.pptx) files."
 optional = false
-python-versions = "*"
+python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "python-pptx-0.6.23.tar.gz", hash = "sha256:587497ff28e779ab18dbb074f6d4052893c85dedc95ed75df319364f331fedee"},
-    {file = "python_pptx-0.6.23-py3-none-any.whl", hash = "sha256:dd0527194627a2b7cc05f3ba23ecaa2d9a0d5ac9b6193a28ed1b7a716f4217d4"},
+    {file = "python_pptx-1.0.2-py3-none-any.whl", hash = "sha256:160838e0b8565a8b1f67947675886e9fea18aa5e795db7ae531606d68e785cba"},
+    {file = "python_pptx-1.0.2.tar.gz", hash = "sha256:479a8af0eaf0f0d76b6f00b0887732874ad2e3188230315290cd1f9dd9cc7095"},
 ]
 
 [package.dependencies]
 lxml = ">=3.1.0"
 Pillow = ">=3.3.2"
+typing-extensions = ">=4.9.0"
 XlsxWriter = ">=0.5.7"
 
 [[package]]
@@ -2628,6 +2629,7 @@ python-versions = "<4,>=3.7"
 groups = ["main"]
 files = [
     {file = "reportlab-4.4.0-py3-none-any.whl", hash = "sha256:0a993f1d4a765fcbdf4e26adc96b3351004ebf4d27583340595ba7edafebec32"},
+    {file = "reportlab-4.4.0.tar.gz", hash = "sha256:a64d85513910e246c21dc97ccc3c9054a1d44370bf8fc1fab80af937814354d5"},
 ]
 
 [package.dependencies]
@@ -2802,14 +2804,14 @@ files = [
 
 [[package]]
 name = "setuptools"
-version = "79.0.1"
+version = "80.1.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "setuptools-79.0.1-py3-none-any.whl", hash = "sha256:e147c0549f27767ba362f9da434eab9c5dc0045d5304feb602a0af001089fc51"},
-    {file = "setuptools-79.0.1.tar.gz", hash = "sha256:128ce7b8f33c3079fd1b067ecbb4051a66e8526e7b65f6cec075dfc650ddfa88"},
+    {file = "setuptools-80.1.0-py3-none-any.whl", hash = "sha256:ea0e7655c05b74819f82e76e11a85b31779fee7c4969e82f72bab0664e8317e4"},
+    {file = "setuptools-80.1.0.tar.gz", hash = "sha256:2e308396e1d83de287ada2c2fd6e64286008fe6aca5008e0b6a8cb0e2c86eedd"},
 ]
 
 [package.extras]
@@ -2893,41 +2895,42 @@ files = [
 
 [[package]]
 name = "skia-python"
-version = "124.0b7"
+version = "136.0b13"
 description = "Skia python binding"
 optional = false
 python-versions = "*"
 groups = ["main"]
 files = [
-    {file = "skia_python-124.0b7-cp310-cp310-macosx_10_13_x86_64.whl", hash = "sha256:c70b59f8b53b4b3bf12e540f754413bebde59e421354c77426cf0c7786ed4820"},
-    {file = "skia_python-124.0b7-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:b619e16ef54f8f29562407e2bba775d03839c43bf2605b84647cc95dc6f5aefd"},
-    {file = "skia_python-124.0b7-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:261870000262b34070a59c0490424216b6b8e45bc1a46d105652c2511d677428"},
-    {file = "skia_python-124.0b7-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:818c5bb709474c1b6d935b0f08ebe2ea773718c2ca136c417925d1d83be2ffd4"},
-    {file = "skia_python-124.0b7-cp310-cp310-win_amd64.whl", hash = "sha256:d4cc33844e8840c06e4bd54e3c40c34cf3fe9e4e3e3d953691363be5a01a2f09"},
-    {file = "skia_python-124.0b7-cp311-cp311-macosx_10_13_x86_64.whl", hash = "sha256:6b1cd458cb582e5b132f5239e8e5e847b1b1661d95a38820a4097c3eacc0cfe1"},
-    {file = "skia_python-124.0b7-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:856feb45dcb015f0fb34f81890d5afa525b10a30067f3872152c15fabab4a57e"},
-    {file = "skia_python-124.0b7-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4e93f4ff00b9b7157f0012eed61ed45c9d453303b3a5f9d7f165165bcf2465aa"},
-    {file = "skia_python-124.0b7-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d376765d853da84c2dfd7741bab8f8e0d18e1c5138201e38c92e365c5024555d"},
-    {file = "skia_python-124.0b7-cp311-cp311-win_amd64.whl", hash = "sha256:a3339829038a5c4f3ee808cc4cd3eb7dd897f732466973bdce0fa28d4ce78c9c"},
-    {file = "skia_python-124.0b7-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:ebaba2d50a32a020802f0ef73db089fa7e5c2bd37d4ba8e3bcfb3d466c150cc6"},
-    {file = "skia_python-124.0b7-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:dd4d8cd9945aab75d95851515b834fde2eab0230f5ca794730171d4e392856e3"},
-    {file = "skia_python-124.0b7-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:cf4af60b27e3ab5e5d98e7b5dcaffdd04ab206d8987819b172bed3190167eed1"},
-    {file = "skia_python-124.0b7-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:eb3697ee2fc6c4a33e033bb6b96ba12c08c6b11ea0c230f108af07078be31043"},
-    {file = "skia_python-124.0b7-cp312-cp312-win_amd64.whl", hash = "sha256:6341539d80ba342884ba367ec40f89f317574a5a4cb99ed868a7a66e66745207"},
-    {file = "skia_python-124.0b7-cp37-cp37m-macosx_10_13_x86_64.whl", hash = "sha256:ae557319787cfce3953a3e5e0ea1e42ad260ab06d27ecb81a1a50de5f3e0a474"},
-    {file = "skia_python-124.0b7-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:685cab0817fda0b7365b6c9550648a792f210f29e9c14b65b7e7fe9d0b4992d4"},
-    {file = "skia_python-124.0b7-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e3a3c1a5969468aafe0cd18d30f21d506b62f8e3af684374479bcf060bae4cc7"},
-    {file = "skia_python-124.0b7-cp37-cp37m-win_amd64.whl", hash = "sha256:bf144ebc19cf1478f29495d56c03ac5831ab08616f436bcb9bfc371c541a72fd"},
-    {file = "skia_python-124.0b7-cp38-cp38-macosx_10_13_x86_64.whl", hash = "sha256:a2d107186039f55be2cc74031e704539a2f9cc9553c6fb5afcc08b833ae5ef8d"},
-    {file = "skia_python-124.0b7-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:aceca28ea35aa1338f00e827f64e7e88447c104a5103334a3020a68d1ec768bd"},
-    {file = "skia_python-124.0b7-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f0e9fe0e43d9ab3d378fbb127b4b6eb45ff1eeca6b18f5be50f973bb29d10cd6"},
-    {file = "skia_python-124.0b7-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2ca12a4665b7abe201c089a43e51e66b9734b1672eaa9e6f7ad88dba0df32f8e"},
-    {file = "skia_python-124.0b7-cp38-cp38-win_amd64.whl", hash = "sha256:1b2d2ddd9962c0e5696edc26af1f217a2c60e651505f111e895ef24f361a8fbb"},
-    {file = "skia_python-124.0b7-cp39-cp39-macosx_10_13_x86_64.whl", hash = "sha256:d800d1c68fa0ad1e0c661457314a68f9d120155e31f8fffd417d6743a5cff180"},
-    {file = "skia_python-124.0b7-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:1cd32f9d44e1af87e9732a74432cb85b8a1dda97bae7206e528f6ba8a1ca4e27"},
-    {file = "skia_python-124.0b7-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d0b4d92c5e7d599ad8e92f4ddf337c8917ed71548eb98a557f3146a78c7ba767"},
-    {file = "skia_python-124.0b7-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:9ddeedc878f4d6a7c989cc55cd6f7757da35b6659121799a7380782414b9bf01"},
-    {file = "skia_python-124.0b7-cp39-cp39-win_amd64.whl", hash = "sha256:c00fb3266b7ed5fd4788c88cf5248f465bf7c79a5033862103d62972117f6019"},
+    {file = "skia_python-136.0b13-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:5bc3a0a5022d97d22f5336c9e7a8383437a56d3858784f304b7cc2f54e8a368f"},
+    {file = "skia_python-136.0b13-cp310-cp310-macosx_11_0_x86_64.whl", hash = "sha256:c3e3f8f97198980459f31d05aca8fd227f4be4ad3224a7a9f72cfc05dc8ee101"},
+    {file = "skia_python-136.0b13-cp310-cp310-manylinux_2_28_aarch64.whl", hash = "sha256:b03a3523eb3250cb9643d60574dcabfb2c001c18af4ed7a9a7b4b67f36f39886"},
+    {file = "skia_python-136.0b13-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:7344317a85577bc1c4085c49f3689985e65c92e6a77237b48bdf2b3e3b9017f5"},
+    {file = "skia_python-136.0b13-cp310-cp310-win_amd64.whl", hash = "sha256:a9c33e81d88d60a864d551757d1bc925bb055c1b165e33dfcb33be2a88225071"},
+    {file = "skia_python-136.0b13-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:c3fbedabcb1208a44a87d8024cabae58e8cfb2972e82f3fe301ee1aa45b0be48"},
+    {file = "skia_python-136.0b13-cp311-cp311-macosx_11_0_x86_64.whl", hash = "sha256:0f74f97975da43aa760f8b4ceb225b40eecedb23271bff71f5a6e78c5871ee58"},
+    {file = "skia_python-136.0b13-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:de99d69f29848e200b724411964fef4dbdae46d79f989eef9f8e6df91887dc82"},
+    {file = "skia_python-136.0b13-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:0652f891d039a0d6292b5cab58631cafbd9af61a3de6c97f41f335b671f6dd37"},
+    {file = "skia_python-136.0b13-cp311-cp311-win_amd64.whl", hash = "sha256:ec06faf2d3ff4b17bcb7bf03942aee0c224a2113d64589b29fcf024cb7cc215c"},
+    {file = "skia_python-136.0b13-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:f0b83852ffc40cd69431afba09eaf389b6d8175cf11f23f9887d0d938789ef3e"},
+    {file = "skia_python-136.0b13-cp312-cp312-macosx_11_0_x86_64.whl", hash = "sha256:08ae4f0846494e47dd5703ba9572ce5731de9a1e2004d15429afd0679f3446e9"},
+    {file = "skia_python-136.0b13-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:851e7d28099718771af1ca71882a2c5b8019fe36de882de9d00c00606c435687"},
+    {file = "skia_python-136.0b13-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:3f8cfc4761fe068472d1ecc165304d601fbfc46638ce594a54b678cb1121b388"},
+    {file = "skia_python-136.0b13-cp312-cp312-win_amd64.whl", hash = "sha256:c8ebdf0694a5dcbbff529636f218b5c6166441fed6cd433eda0517e6f6ef392d"},
+    {file = "skia_python-136.0b13-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:dfc0367cc87c78fee3b69a69a3944dcf1dce82e5c0499215f793125a7b4c6ac4"},
+    {file = "skia_python-136.0b13-cp313-cp313-macosx_11_0_x86_64.whl", hash = "sha256:687d7acc50100ea375aec2df8122ee97bba3eea50cd23336fd09cdbfdc2cfa47"},
+    {file = "skia_python-136.0b13-cp313-cp313-manylinux_2_28_aarch64.whl", hash = "sha256:131ae16f40638e0cbc69d3ed71d08357ef95834a3c1f805a47b50f4797d15b14"},
+    {file = "skia_python-136.0b13-cp313-cp313-manylinux_2_28_x86_64.whl", hash = "sha256:f7128fe8525018f2812ac0ebd35d1c78d80ce2dfaf16dc95063f04b63467cf60"},
+    {file = "skia_python-136.0b13-cp313-cp313-win_amd64.whl", hash = "sha256:e64484f2351acd3662759c347a499863101796c873e9862ab1ff3af6e90e0b10"},
+    {file = "skia_python-136.0b13-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:a141b921e7df65e531a8734051de4a2464d50f798ebce0d12b7c0a93051f093d"},
+    {file = "skia_python-136.0b13-cp38-cp38-macosx_11_0_x86_64.whl", hash = "sha256:9b599fcc1710acbcb20f5b269bbbb4467a53f641259cdad19e3095b30d22266b"},
+    {file = "skia_python-136.0b13-cp38-cp38-manylinux_2_28_aarch64.whl", hash = "sha256:d7e0ebb9367b4fc7485300db8e6b2abe975e32c963a21b1974dcdd148694c67d"},
+    {file = "skia_python-136.0b13-cp38-cp38-manylinux_2_28_x86_64.whl", hash = "sha256:f8aed4421a5725299ac08835c1152454c865f252980024a74bc4f5c8e41965f1"},
+    {file = "skia_python-136.0b13-cp38-cp38-win_amd64.whl", hash = "sha256:fb51d36ac3f989b18bfc11947a8ffe27f33e1bd280b1e271f21fd481b461f1dc"},
+    {file = "skia_python-136.0b13-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:f57631f37e8acbc8e88cbe881a38a21974b417d1277c1bb3b01c42485fe21748"},
+    {file = "skia_python-136.0b13-cp39-cp39-macosx_11_0_x86_64.whl", hash = "sha256:23b844eeb566f6f957be64316d1545098e2845ab635de5c40a9e46df06ec085f"},
+    {file = "skia_python-136.0b13-cp39-cp39-manylinux_2_28_aarch64.whl", hash = "sha256:5019327022f91b26dbe919e42d2d0fcc2199f44b5a0f88a8ebca9f71bc2afd58"},
+    {file = "skia_python-136.0b13-cp39-cp39-manylinux_2_28_x86_64.whl", hash = "sha256:3819f405583f2955c39362774b3f9f3ea19faeddc98601fe907b1717866d213e"},
+    {file = "skia_python-136.0b13-cp39-cp39-win_amd64.whl", hash = "sha256:4f55ab50eefff32b921b67bab33e006c406d01fb528b57769a80a472db3cabf7"},
 ]
 
 [package.dependencies]
@@ -3465,19 +3468,15 @@ test = ["aiohttp (>=3.10.5)", "flake8 (>=5.0,<6.0)", "mypy (>=0.800)", "psutil",
 
 [[package]]
 name = "webcolors"
-version = "1.13"
+version = "24.11.1"
 description = "A library for working with the color formats defined by HTML and CSS."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "webcolors-1.13-py3-none-any.whl", hash = "sha256:29bc7e8752c0a1bd4a1f03c14d6e6a72e93d82193738fa860cbff59d0fcc11bf"},
-    {file = "webcolors-1.13.tar.gz", hash = "sha256:c225b674c83fa923be93d235330ce0300373d02885cef23238813b0d5668304a"},
+    {file = "webcolors-24.11.1-py3-none-any.whl", hash = "sha256:515291393b4cdf0eb19c155749a096f779f7d909f7cceea072791cb9095b92e9"},
+    {file = "webcolors-24.11.1.tar.gz", hash = "sha256:ecb3d768f32202af770477b8b65f318fa4f566c22948673a977b00d589dd80f6"},
 ]
-
-[package.extras]
-docs = ["furo", "sphinx", "sphinx-copybutton", "sphinx-inline-tabs", "sphinx-notfound-page", "sphinxext-opengraph"]
-tests = ["pytest", "pytest-cov"]
 
 [[package]]
 name = "webencodings"
@@ -3584,17 +3583,17 @@ files = [
 
 [[package]]
 name = "xmltodict"
-version = "0.12.0"
+version = "0.14.2"
 description = "Makes working with XML feel like you are working with JSON"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = ">=3.6"
 groups = ["main"]
 files = [
-    {file = "xmltodict-0.12.0-py2.py3-none-any.whl", hash = "sha256:8bbcb45cc982f48b2ca8fe7e7827c5d792f217ecf1792626f808bf41c3b86051"},
-    {file = "xmltodict-0.12.0.tar.gz", hash = "sha256:50d8c638ed7ecb88d90561beedbf720c9b4e851a9fa6c47ebd64e99d166d8a21"},
+    {file = "xmltodict-0.14.2-py2.py3-none-any.whl", hash = "sha256:20cc7d723ed729276e808f26fb6b3599f786cbc37e06c65e192ba77c40f20aac"},
+    {file = "xmltodict-0.14.2.tar.gz", hash = "sha256:201e7c28bb210e374999d1dde6382923ab0ed1a8a5faeece48ab525b7810a553"},
 ]
 
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.13"
-content-hash = "336211b017824c469c970b9215d01d6f09339251e7991751eec9ac383c6de2c6"
+content-hash = "0f8b7bf7633a0ad2604eabd431147e94a616fbc86617b372c322ca2eae174408"

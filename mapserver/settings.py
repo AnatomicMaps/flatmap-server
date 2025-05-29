@@ -46,11 +46,11 @@ settings['FLATMAP_ROOT'] = normalise_path(FLATMAP_ROOT)
 if not os.path.exists(settings['FLATMAP_ROOT']):
     exit(f'Missing {settings["FLATMAP_ROOT"]} directory -- set FLATMAP_ROOT environment variable to the full path and/or create directory')
 
-FLATMAP_VIEWER = os.environ.get('FLATMAP_VIEWER', './viewer')
-settings['FLATMAP_VIEWER'] = normalise_path(FLATMAP_VIEWER)
+FLATMAP_VIEWER_PATH = os.environ.get('FLATMAP_VIEWER', './viewer')
+settings['FLATMAP_VIEWER_PATH'] = normalise_path(FLATMAP_VIEWER_PATH)
 
 # Set True when run as ``python -m mapserver viewer``
-settings['MAP_VIEWER'] = False
+settings['MAP_VIEWER'] = os.environ.get('MAP_VIEWER') == 'VIEWER'
 
 FLATMAP_SERVER_LOGS = os.environ.get('FLATMAP_SERVER_LOGS', './logs')
 settings['FLATMAP_SERVER_LOGS'] = normalise_path(FLATMAP_SERVER_LOGS)

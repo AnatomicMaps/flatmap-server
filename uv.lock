@@ -2,9 +2,12 @@ version = 1
 revision = 1
 requires-python = "==3.12.*"
 resolution-markers = [
-    "sys_platform == 'darwin'",
-    "platform_machine == 'aarch64' and sys_platform == 'linux'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (sys_platform != 'darwin' and sys_platform != 'linux')",
+    "platform_release == '5.4.0-1103-aws' and sys_platform == 'darwin'",
+    "platform_machine == 'aarch64' and platform_release == '5.4.0-1103-aws' and sys_platform == 'linux'",
+    "(platform_machine != 'aarch64' and platform_release == '5.4.0-1103-aws' and sys_platform == 'linux') or (platform_release == '5.4.0-1103-aws' and sys_platform != 'darwin' and sys_platform != 'linux')",
+    "platform_release != '5.4.0-1103-aws' and sys_platform == 'darwin'",
+    "platform_machine == 'aarch64' and platform_release != '5.4.0-1103-aws' and sys_platform == 'linux'",
+    "(platform_machine != 'aarch64' and platform_release != '5.4.0-1103-aws' and sys_platform == 'linux') or (platform_release != '5.4.0-1103-aws' and sys_platform != 'darwin' and sys_platform != 'linux')",
 ]
 
 [manifest]
@@ -85,13 +88,14 @@ wheels = [
 
 [[package]]
 name = "beziers"
-version = "0.5.0"
+version = "0.6.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pyclipper" },
 ]
+sdist = { url = "https://files.pythonhosted.org/packages/51/bb/4a922d0b8f9c834bc7662cc170ba5b804e4fdc7778f3f36085e0b9c8ecc1/beziers-0.6.0.tar.gz", hash = "sha256:8ad31133428a7340b0bda539202eb08ed01677acfb51386f7a33418bbcafd7c0", size = 493304 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ed/18/4d6a77892133b3d91b0d03af5c98ed9aad99ce235230f089502c69724083/beziers-0.5.0-py3-none-any.whl", hash = "sha256:05ccfb67ab67797e6c55ac871191b7464abdc5c22f9004ae58735c7ac1ddca2d", size = 39025 },
+    { url = "https://files.pythonhosted.org/packages/02/86/374078d437d74227f1058f595d27f657a9de6ab517ec1629e4d32b60ecfb/beziers-0.6.0-py3-none-any.whl", hash = "sha256:8c7c3a0f726af409f5f84c41943ca8f78ffde935a11370c585e8167e37e41a44", size = 41407 },
 ]
 
 [[package]]
@@ -215,15 +219,15 @@ requires-dist = [
 
 [[package]]
 name = "cssselect2"
-version = "0.6.0"
+version = "0.8.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "tinycss2" },
     { name = "webencodings" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/68/62/b6a16d0c32bb088079f344202e3cd0936380a4d8cb23ef9b1f8079ff8612/cssselect2-0.6.0.tar.gz", hash = "sha256:5b5d6dea81a5eb0c9ca39f116c8578dd413778060c94c1f51196371618909325", size = 35442 }
+sdist = { url = "https://files.pythonhosted.org/packages/9f/86/fd7f58fc498b3166f3a7e8e0cddb6e620fe1da35b02248b1bd59e95dbaaa/cssselect2-0.8.0.tar.gz", hash = "sha256:7674ffb954a3b46162392aee2a3a0aedb2e14ecf99fcc28644900f4e6e3e9d3a", size = 35716 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/e4/40/98fcfdf1a190aa0aeddf2fd0a432a4997c2c1f826f3f7b00fe42fc72c8ce/cssselect2-0.6.0-py3-none-any.whl", hash = "sha256:3a83b2a68370c69c9cd3fcb88bbfaebe9d22edeef2c22d1ff3e1ed9c7fa45ed8", size = 15250 },
+    { url = "https://files.pythonhosted.org/packages/0f/e7/aa315e6a749d9b96c2504a1ba0ba031ba2d0517e972ce22682e3fccecb09/cssselect2-0.8.0-py3-none-any.whl", hash = "sha256:46fc70ebc41ced7a32cd42d58b1884d72ade23d21e5a4eaaf022401c13f0e76e", size = 15454 },
 ]
 
 [[package]]
@@ -273,17 +277,17 @@ wheels = [
 
 [[package]]
 name = "flatmapknowledge"
-version = "2.0.6"
-source = { url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.6/flatmapknowledge-2.0.6-py3-none-any.whl" }
+version = "2.1.0"
+source = { url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.1.0/flatmapknowledge-2.1.0-py3-none-any.whl" }
 dependencies = [
     { name = "mapknowledge" },
 ]
 wheels = [
-    { url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.6/flatmapknowledge-2.0.6-py3-none-any.whl", hash = "sha256:988e2f0368a55c7edd989032d9d8a431ae7c8afa422dbd1ecfb667868626749b" },
+    { url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.1.0/flatmapknowledge-2.1.0-py3-none-any.whl", hash = "sha256:a324f8a963084f5d342bb50dc438a84d3fd12bfb3fcbbc1216b90439da48a752" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "mapknowledge", url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.20.6/mapknowledge-0.20.6-py3-none-any.whl" }]
+requires-dist = [{ name = "mapknowledge", url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.21.0/mapknowledge-0.21.0-py3-none-any.whl" }]
 
 [[package]]
 name = "frozendict"
@@ -363,7 +367,7 @@ wheels = [
 
 [[package]]
 name = "google-api-python-client"
-version = "2.168.0"
+version = "2.169.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "google-api-core" },
@@ -372,9 +376,9 @@ dependencies = [
     { name = "httplib2" },
     { name = "uritemplate" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/45/81/7eefb49f3421fb55724b436eb024ad114e52bf42295fc9aa771f1bb2da4a/google_api_python_client-2.168.0.tar.gz", hash = "sha256:10759c3c8f5bbb17752b349ff336963ab215db150f34594a5581d5cd9b5add41", size = 12774671 }
+sdist = { url = "https://files.pythonhosted.org/packages/4f/e6/787c24738fc7c99de9289abe60bd64591800ae1cdf60db7b87e0e6ef9cdd/google_api_python_client-2.169.0.tar.gz", hash = "sha256:0585bb97bd5f5bf3ed8d4bf624593e4c5a14d06c811d1952b07a1f94b4d12c51", size = 12811341 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/20/65/0127a66916b5777513dba9cc05b22aab89242750b191ccc19dd8f60d5cc9/google_api_python_client-2.168.0-py3-none-any.whl", hash = "sha256:ebf27fc318a3cf682dc994cefc46b6794eafee91d91fc659d46e018155ace530", size = 13287365 },
+    { url = "https://files.pythonhosted.org/packages/2d/bd/6aa93c38756cc9fc63262e0dc3d3f1ff7241ce6f413a25ad6e4a9c98b473/google_api_python_client-2.169.0-py3-none-any.whl", hash = "sha256:dae3e882dc0e6f28e60cf09c1f13fedfd881db84f824dd418aa9e44def2fe00d", size = 13323742 },
 ]
 
 [[package]]
@@ -633,8 +637,8 @@ wheels = [
 
 [[package]]
 name = "mapknowledge"
-version = "0.20.6"
-source = { url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.20.6/mapknowledge-0.20.6-py3-none-any.whl" }
+version = "0.21.0"
+source = { url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.21.0/mapknowledge-0.21.0-py3-none-any.whl" }
 dependencies = [
     { name = "networkx" },
     { name = "neurondm" },
@@ -646,7 +650,7 @@ dependencies = [
     { name = "structlog" },
 ]
 wheels = [
-    { url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.20.6/mapknowledge-0.20.6-py3-none-any.whl", hash = "sha256:7d91dfd7750b5fce9d0a6fd9582c1d87193c40b4f8de48a9040d78b3d1345a04" },
+    { url = "https://github.com/AnatomicMaps/map-knowledge/releases/download/v0.21.0/mapknowledge-0.21.0-py3-none-any.whl", hash = "sha256:74e593da5579efdb37fa969a171cd6bab10de1dee84603a674d982005f2b16e1" },
 ]
 
 [package.metadata]
@@ -663,8 +667,8 @@ requires-dist = [
 
 [[package]]
 name = "mapmaker"
-version = "1.16.1"
-source = { url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.16.1/mapmaker-1.16.1-py3-none-any.whl" }
+version = "1.17.4"
+source = { url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.17.4/mapmaker-1.17.4-py3-none-any.whl" }
 dependencies = [
     { name = "beziers" },
     { name = "colormath" },
@@ -690,12 +694,14 @@ dependencies = [
     { name = "rich" },
     { name = "saxonche" },
     { name = "shapely" },
-    { name = "skia-python" },
+    { name = "skia-python", version = "124.0b7", source = { registry = "https://pypi.org/simple" }, marker = "platform_release == '5.4.0-1103-aws'" },
+    { name = "skia-python", version = "136.0b13", source = { registry = "https://pypi.org/simple" }, marker = "platform_release != '5.4.0-1103-aws'" },
     { name = "structlog" },
     { name = "svgelements" },
     { name = "svglib" },
     { name = "svgwrite" },
     { name = "tinycss2" },
+    { name = "tippecanoe" },
     { name = "tqdm" },
     { name = "transforms3d" },
     { name = "types-requests" },
@@ -704,52 +710,54 @@ dependencies = [
     { name = "xmltodict" },
 ]
 wheels = [
-    { url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.16.1/mapmaker-1.16.1-py3-none-any.whl", hash = "sha256:9ccdea892bb63fe60ca27ce3ebf9d12f85d26f0bbaf7aefb61c48a4a368b23c6" },
+    { url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.17.4/mapmaker-1.17.4-py3-none-any.whl", hash = "sha256:e43c09135a753e5f21f0b35f6eb7a1d35e11c75a7cad04d78a09e36d53a2c451" },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "beziers", specifier = ">=0.5.0,<0.6.0" },
-    { name = "colormath", specifier = ">=3.0.0,<4.0.0" },
-    { name = "cssselect2", specifier = ">=0.6.0,<0.7.0" },
-    { name = "flatmapknowledge", url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.6/flatmapknowledge-2.0.6-py3-none-any.whl" },
-    { name = "gitpython", specifier = ">=3.1.41,<4.0.0" },
-    { name = "giturlparse", specifier = ">=0.12.0,<0.13.0" },
-    { name = "lxml", specifier = ">=5.2.2,<6.0.0" },
-    { name = "mbutil", specifier = ">=0.3.0,<0.4.0" },
-    { name = "mercantile", specifier = ">=1.2.1,<2.0.0" },
-    { name = "multiprocess", specifier = ">=0.70.13,<0.71.0" },
-    { name = "networkx", specifier = ">=3.4.0,<4.0.0" },
+    { name = "beziers", specifier = ">=0.5.0" },
+    { name = "colormath", specifier = ">=3.0.0" },
+    { name = "cssselect2", specifier = ">=0.6.0" },
+    { name = "flatmapknowledge", url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.1.0/flatmapknowledge-2.1.0-py3-none-any.whl" },
+    { name = "gitpython", specifier = ">=3.1.41" },
+    { name = "giturlparse", specifier = ">=0.12.0" },
+    { name = "lxml", specifier = ">=5.2.2" },
+    { name = "mbutil", specifier = ">=0.3.0" },
+    { name = "mercantile", specifier = ">=1.2.1" },
+    { name = "multiprocess", specifier = ">=0.70.13" },
+    { name = "networkx", specifier = ">=3.4.0" },
     { name = "numpy", specifier = ">=1.24,<2.0" },
-    { name = "opencv-python-headless", specifier = ">=4.10.0,<5.0.0" },
-    { name = "openpyxl", specifier = ">=3.1.0,<4.0.0" },
-    { name = "pyomo", specifier = ">=6.8,<7.0" },
-    { name = "pyparsing", specifier = ">=3.0.9,<4.0.0" },
-    { name = "pyproj", specifier = ">=3.4.0,<4.0.0" },
-    { name = "python-pptx", specifier = ">=0.6.21,<0.7.0" },
-    { name = "pyyaml", specifier = ">=6.0,<7.0" },
-    { name = "rdflib", specifier = ">=7.1.3,<8.0.0" },
-    { name = "requests", specifier = ">=2.32.0,<3.0.0" },
-    { name = "rich", specifier = ">=13.9.4,<14.0.0" },
-    { name = "saxonche", specifier = ">=12.3.0,<13.0.0" },
-    { name = "shapely", specifier = ">=2.0.0,<3.0.0" },
-    { name = "skia-python", specifier = ">=124.0b7,<125.0" },
-    { name = "structlog", specifier = ">=24.4.0,<25.0.0" },
-    { name = "svgelements", specifier = ">=1.9.1,<2.0.0" },
-    { name = "svglib", specifier = ">=1.3.0,<2.0.0" },
-    { name = "svgwrite", specifier = ">=1.4.3,<2.0.0" },
-    { name = "tinycss2", specifier = ">=1.1.1,<2.0.0" },
-    { name = "tqdm", specifier = ">=4.64.0,<5.0.0" },
-    { name = "transforms3d", specifier = ">=0.4.1,<0.5.0" },
-    { name = "types-requests", specifier = ">=2.28.11.2,<3.0.0.0" },
-    { name = "webcolors", specifier = ">=1.12,<2.0" },
-    { name = "xlsxwriter", specifier = ">=3.0.3,<4.0.0" },
-    { name = "xmltodict", specifier = ">=0.12.0,<0.13.0" },
+    { name = "opencv-python-headless", specifier = ">=4.10.0" },
+    { name = "openpyxl", specifier = ">=3.1.0" },
+    { name = "pyomo", specifier = ">=6.8" },
+    { name = "pyparsing", specifier = ">=3.0.9" },
+    { name = "pyproj", specifier = ">=3.4.0" },
+    { name = "python-pptx", specifier = ">=0.6.21" },
+    { name = "pyyaml", specifier = ">=6.0" },
+    { name = "rdflib", specifier = ">=7.1.3" },
+    { name = "requests", specifier = ">=2.32.0" },
+    { name = "rich", specifier = ">=13.9.4" },
+    { name = "saxonche", specifier = ">=12.5.0" },
+    { name = "shapely", specifier = ">=2.0.0" },
+    { name = "skia-python", marker = "platform_release != '5.4.0-1103-aws'", specifier = ">=136.0b13" },
+    { name = "skia-python", marker = "platform_release == '5.4.0-1103-aws'", specifier = "==124.0b7" },
+    { name = "structlog", specifier = ">=24.4.0" },
+    { name = "svgelements", specifier = ">=1.9.1" },
+    { name = "svglib", specifier = ">=1.3.0" },
+    { name = "svgwrite", specifier = ">=1.4.3" },
+    { name = "tinycss2", specifier = ">=1.1.1" },
+    { name = "tippecanoe", specifier = ">=2.72.0" },
+    { name = "tqdm", specifier = ">=4.64.0" },
+    { name = "transforms3d", specifier = ">=0.4.1" },
+    { name = "types-requests", specifier = ">=2.28.11.2" },
+    { name = "webcolors", specifier = ">=1.12" },
+    { name = "xlsxwriter", specifier = ">=3.0.3" },
+    { name = "xmltodict", specifier = ">=0.12.0" },
 ]
 
 [[package]]
 name = "mapserver"
-version = "0.28.0.dev1"
+version = "0.29.0"
 source = { editable = "." }
 dependencies = [
     { name = "asyncpg" },
@@ -771,11 +779,11 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "asyncpg", specifier = ">=0.30.0" },
-    { name = "flatmapknowledge", url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.0.6/flatmapknowledge-2.0.6-py3-none-any.whl" },
+    { name = "flatmapknowledge", url = "https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.1.0/flatmapknowledge-2.1.0-py3-none-any.whl" },
     { name = "granian", specifier = ">=2.2.5" },
     { name = "landez", specifier = ">=2.5.0" },
     { name = "litestar", specifier = ">=2.15.2" },
-    { name = "mapmaker", url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.16.1/mapmaker-1.16.1-py3-none-any.whl" },
+    { name = "mapmaker", url = "https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.17.4/mapmaker-1.17.4-py3-none-any.whl" },
     { name = "pillow", specifier = ">=11.2.0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "rdflib", specifier = ">=7.0.0" },
@@ -1332,16 +1340,17 @@ wheels = [
 
 [[package]]
 name = "python-pptx"
-version = "0.6.23"
+version = "1.0.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "lxml" },
     { name = "pillow" },
+    { name = "typing-extensions" },
     { name = "xlsxwriter" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/20/e7/aeaf794b2d440da609684494075e64cfada248026ecb265807d0668cdd00/python-pptx-0.6.23.tar.gz", hash = "sha256:587497ff28e779ab18dbb074f6d4052893c85dedc95ed75df319364f331fedee", size = 10083771 }
+sdist = { url = "https://files.pythonhosted.org/packages/52/a9/0c0db8d37b2b8a645666f7fd8accea4c6224e013c42b1d5c17c93590cd06/python_pptx-1.0.2.tar.gz", hash = "sha256:479a8af0eaf0f0d76b6f00b0887732874ad2e3188230315290cd1f9dd9cc7095", size = 10109297 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/72/49/6eee83072983473e9905ffddd5c2032b9a0ca4616425560d6d582287b467/python_pptx-0.6.23-py3-none-any.whl", hash = "sha256:dd0527194627a2b7cc05f3ba23ecaa2d9a0d5ac9b6193a28ed1b7a716f4217d4", size = 471575 },
+    { url = "https://files.pythonhosted.org/packages/d9/4f/00be2196329ebbff56ce564aa94efb0fbc828d00de250b1980de1a34ab49/python_pptx-1.0.2-py3-none-any.whl", hash = "sha256:160838e0b8565a8b1f67947675886e9fea18aa5e795db7ae531606d68e785cba", size = 472788 },
 ]
 
 [[package]]
@@ -1507,11 +1516,11 @@ wheels = [
 
 [[package]]
 name = "setuptools"
-version = "80.0.0"
+version = "80.1.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/44/80/97e25f0f1e4067677806084b7382a6ff9979f3d15119375c475c288db9d7/setuptools-80.0.0.tar.gz", hash = "sha256:c40a5b3729d58dd749c0f08f1a07d134fb8a0a3d7f87dc33e7c5e1f762138650", size = 1354221 }
+sdist = { url = "https://files.pythonhosted.org/packages/aa/b2/bd26ed086b842b68c8fe9aac380ad7e5118cf84fa7abd45bb059a88368a8/setuptools-80.1.0.tar.gz", hash = "sha256:2e308396e1d83de287ada2c2fd6e64286008fe6aca5008e0b6a8cb0e2c86eedd", size = 1354038 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/23/63/5517029d6696ddf2bd378d46f63f479be001c31b462303170a1da57650cb/setuptools-80.0.0-py3-none-any.whl", hash = "sha256:a38f898dcd6e5380f4da4381a87ec90bd0a7eec23d204a5552e80ee3cab6bd27", size = 1240907 },
+    { url = "https://files.pythonhosted.org/packages/8b/f6/126c9309c8fe93e5d6bb850593cd58d591daf2da45cc78b61e48d8d95879/setuptools-80.1.0-py3-none-any.whl", hash = "sha256:ea0e7655c05b74819f82e76e11a85b31779fee7c4969e82f72bab0664e8317e4", size = 1240689 },
 ]
 
 [[package]]
@@ -1546,9 +1555,14 @@ wheels = [
 name = "skia-python"
 version = "124.0b7"
 source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "platform_release == '5.4.0-1103-aws' and sys_platform == 'darwin'",
+    "platform_machine == 'aarch64' and platform_release == '5.4.0-1103-aws' and sys_platform == 'linux'",
+    "(platform_machine != 'aarch64' and platform_release == '5.4.0-1103-aws' and sys_platform == 'linux') or (platform_release == '5.4.0-1103-aws' and sys_platform != 'darwin' and sys_platform != 'linux')",
+]
 dependencies = [
-    { name = "numpy" },
-    { name = "pybind11" },
+    { name = "numpy", marker = "platform_release == '5.4.0-1103-aws'" },
+    { name = "pybind11", marker = "platform_release == '5.4.0-1103-aws'" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e3/ed/bcca51e70b0f6c0879515d653ecd45756c68863e2e43479243915c953fdf/skia_python-124.0b7-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:ebaba2d50a32a020802f0ef73db089fa7e5c2bd37d4ba8e3bcfb3d466c150cc6", size = 11709505 },
@@ -1556,6 +1570,27 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/ab/35/5fd2529e74582febd5d2fbc1e39e7681e29a3cfb5d9863e717310ae8ad7b/skia_python-124.0b7-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:cf4af60b27e3ab5e5d98e7b5dcaffdd04ab206d8987819b172bed3190167eed1", size = 12316928 },
     { url = "https://files.pythonhosted.org/packages/74/e8/57549e29f6a7bfe10324abad3a5113354a10044ff62c547491a74ea01187/skia_python-124.0b7-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:eb3697ee2fc6c4a33e033bb6b96ba12c08c6b11ea0c230f108af07078be31043", size = 12790629 },
     { url = "https://files.pythonhosted.org/packages/51/02/b4c91ecdc8c04e9509cf0d6402c14255f3229503f819a8a46a3e14cc704e/skia_python-124.0b7-cp312-cp312-win_amd64.whl", hash = "sha256:6341539d80ba342884ba367ec40f89f317574a5a4cb99ed868a7a66e66745207", size = 5720806 },
+]
+
+[[package]]
+name = "skia-python"
+version = "136.0b13"
+source = { registry = "https://pypi.org/simple" }
+resolution-markers = [
+    "platform_release != '5.4.0-1103-aws' and sys_platform == 'darwin'",
+    "platform_machine == 'aarch64' and platform_release != '5.4.0-1103-aws' and sys_platform == 'linux'",
+    "(platform_machine != 'aarch64' and platform_release != '5.4.0-1103-aws' and sys_platform == 'linux') or (platform_release != '5.4.0-1103-aws' and sys_platform != 'darwin' and sys_platform != 'linux')",
+]
+dependencies = [
+    { name = "numpy", marker = "platform_release != '5.4.0-1103-aws'" },
+    { name = "pybind11", marker = "platform_release != '5.4.0-1103-aws'" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8b/9c/45ee922bcf78ad9cf9d0a78fb988983e45bc9c87bcc8c75fbcd10c513513/skia_python-136.0b13-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:f0b83852ffc40cd69431afba09eaf389b6d8175cf11f23f9887d0d938789ef3e", size = 11738717 },
+    { url = "https://files.pythonhosted.org/packages/2f/ca/40888b5f819b4b605d0ba2a74dce1896c98d994806bd2c069bc2301ea774/skia_python-136.0b13-cp312-cp312-macosx_11_0_x86_64.whl", hash = "sha256:08ae4f0846494e47dd5703ba9572ce5731de9a1e2004d15429afd0679f3446e9", size = 12116735 },
+    { url = "https://files.pythonhosted.org/packages/21/b4/e19ef88aae69b44cb3a3e326ca8dbc1ef0bae180f8e82c14dfba9e98ab55/skia_python-136.0b13-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:851e7d28099718771af1ca71882a2c5b8019fe36de882de9d00c00606c435687", size = 13147945 },
+    { url = "https://files.pythonhosted.org/packages/e2/82/0b9165a92bc571c329b005d379bb3ce62c0d6cc2d4359d526af346965080/skia_python-136.0b13-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:3f8cfc4761fe068472d1ecc165304d601fbfc46638ce594a54b678cb1121b388", size = 13628824 },
+    { url = "https://files.pythonhosted.org/packages/fc/0b/7fd23ed75d5e3154d3425ea8347c465b12e0dc450390136b84a8c63c20b5/skia_python-136.0b13-cp312-cp312-win_amd64.whl", hash = "sha256:c8ebdf0694a5dcbbff529636f218b5c6166441fed6cd433eda0517e6f6ef392d", size = 10681914 },
 ]
 
 [[package]]
@@ -1655,6 +1690,25 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/7a/fd/7a5ee21fd08ff70d3d33a5781c255cbe779659bd03278feb98b19ee550f4/tinycss2-1.4.0.tar.gz", hash = "sha256:10c0972f6fc0fbee87c3edb76549357415e94548c1ae10ebccdea16fb404a9b7", size = 87085 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e6/34/ebdc18bae6aa14fbee1a08b63c015c72b64868ff7dae68808ab500c492e2/tinycss2-1.4.0-py3-none-any.whl", hash = "sha256:3a49cf47b7675da0b15d0c6e1df8df4ebd96e9394bb905a5775adb0d884c5289", size = 26610 },
+]
+
+[[package]]
+name = "tippecanoe"
+version = "2.72.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/2b/2c/fc6ada08e660966b21c14da4503d41c7c7b86a008ad9e37a70a49883fb7f/tippecanoe-2.72.0.tar.gz", hash = "sha256:89a1878a368694097cf02adb66774f9f1832f438bd4791c9e37eb3d39c245c25", size = 12917 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/31/4d/2a273b15dd1cb4bd0b62b76b2bcec141aff30ce4a2cf70f0d5971d22b63d/tippecanoe-2.72.0-py2.py3-none-macosx_10_14_x86_64.whl", hash = "sha256:2316b800fdec59d85c24726d4fe910c3f822af067a825f8d2d5579a8815627be", size = 1530995 },
+    { url = "https://files.pythonhosted.org/packages/b0/d7/a2122e270b5721ccd41aff7b0ea05eb26cdd475aacf03ed0cd1428e8175b/tippecanoe-2.72.0-py2.py3-none-macosx_11_0_arm64.whl", hash = "sha256:958b1ba08a06f416690a21714a22ca40462f1251d2d2821dea7624a9034da1f3", size = 1392223 },
+    { url = "https://files.pythonhosted.org/packages/db/67/26190cc8602d984eac1fe0ccd5f9ffffbc238e1b2351dfd3c6a14732a6eb/tippecanoe-2.72.0-py2.py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:2c27c220467df763ac75f4643d84315d9e933c76aad7c7599238cf42be713eec", size = 22054802 },
+    { url = "https://files.pythonhosted.org/packages/20/32/2f21c1906d576c39298b0b3594daee2d572483cd1d88c25bff95bf4ff02f/tippecanoe-2.72.0-py2.py3-none-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:4d8f5c576b8cefc3f83eff679c55f6484a1d421b055e3ec1e7d340ffcf0ce3cc", size = 22073299 },
+    { url = "https://files.pythonhosted.org/packages/2a/27/44b0e0b576c3b7b9c9967bf4d2907b1bd417760a4d0f2ec150b82937857a/tippecanoe-2.72.0-py2.py3-none-manylinux_2_17_s390x.manylinux2014_s390x.whl", hash = "sha256:0dcc13af896ea7c369a09627009a7181cc36136aef29d80874469e1aac75cc94", size = 22650091 },
+    { url = "https://files.pythonhosted.org/packages/3c/c9/e24d41694a43580832a5f09b6cd181345a7e55ebeed5fe440c62dfcca4cf/tippecanoe-2.72.0-py2.py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cd35371d108b6a3f75517ca10b461c3c0a6110797d5b465ff504fee149136179", size = 22346461 },
+    { url = "https://files.pythonhosted.org/packages/6f/6e/a8be3813bb559aea52ae5b8a4a9e90cc5c767da4ea59e1b220fce9682e2d/tippecanoe-2.72.0-py2.py3-none-musllinux_1_2_aarch64.whl", hash = "sha256:d5edbb8021617ee4adac5e23c74c470c347697b6ced43a08ae4aeb61b76b1a89", size = 22681248 },
+    { url = "https://files.pythonhosted.org/packages/7c/93/58b32b0f5fba52d1e133f133c40e380b75beecc231fb58cb96c54809d3ba/tippecanoe-2.72.0-py2.py3-none-musllinux_1_2_i686.whl", hash = "sha256:79e1055037372f4ee55672c2fe21d6de32a6376935f9cf1154f37549dfa11cb1", size = 23511048 },
+    { url = "https://files.pythonhosted.org/packages/9f/60/3ba789213a72d775692d008a215bd7ba691fc656eca0536a0d0f9124e809/tippecanoe-2.72.0-py2.py3-none-musllinux_1_2_ppc64le.whl", hash = "sha256:3fcfd34f52b55d63d3c28780288e0f9c941bdf475abe98108aadf638a9361831", size = 23792178 },
+    { url = "https://files.pythonhosted.org/packages/fb/8b/72aeda5f8b79742ad6a18bcb073d8336782ba2a3289a83f7c4330410a767/tippecanoe-2.72.0-py2.py3-none-musllinux_1_2_s390x.whl", hash = "sha256:0e59dd25192407cc19f978637a0d04b2f0eae98daf4f93968f24a0883f7f18d6", size = 24247407 },
+    { url = "https://files.pythonhosted.org/packages/e8/8f/c69b9aed121f6cc810696a19fd1ce57ce897f338bac85cf87fe85747ffbd/tippecanoe-2.72.0-py2.py3-none-musllinux_1_2_x86_64.whl", hash = "sha256:77b5d0606bf73b5afd378b62c11e4fbfa52ad1609bd9f1094ef4ddf231457326", size = 23474808 },
 ]
 
 [[package]]
@@ -1766,11 +1820,11 @@ wheels = [
 
 [[package]]
 name = "webcolors"
-version = "1.13"
+version = "24.11.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a1/fb/f95560c6a5d4469d9c49e24cf1b5d4d21ffab5608251c6020a965fb7791c/webcolors-1.13.tar.gz", hash = "sha256:c225b674c83fa923be93d235330ce0300373d02885cef23238813b0d5668304a", size = 41152 }
+sdist = { url = "https://files.pythonhosted.org/packages/7b/29/061ec845fb58521848f3739e466efd8250b4b7b98c1b6c5bf4d40b419b7e/webcolors-24.11.1.tar.gz", hash = "sha256:ecb3d768f32202af770477b8b65f318fa4f566c22948673a977b00d589dd80f6", size = 45064 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d5/e1/3e9013159b4cbb71df9bd7611cbf90dc2c621c8aeeb677fc41dad72f2261/webcolors-1.13-py3-none-any.whl", hash = "sha256:29bc7e8752c0a1bd4a1f03c14d6e6a72e93d82193738fa860cbff59d0fcc11bf", size = 14360 },
+    { url = "https://files.pythonhosted.org/packages/60/e8/c0e05e4684d13459f93d312077a9a2efbe04d59c393bc2b8802248c908d4/webcolors-24.11.1-py3-none-any.whl", hash = "sha256:515291393b4cdf0eb19c155749a096f779f7d909f7cceea072791cb9095b92e9", size = 14934 },
 ]
 
 [[package]]
@@ -1813,9 +1867,9 @@ wheels = [
 
 [[package]]
 name = "xmltodict"
-version = "0.12.0"
+version = "0.14.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/58/40/0d783e14112e064127063fbf5d1fe1351723e5dfe9d6daad346a305f6c49/xmltodict-0.12.0.tar.gz", hash = "sha256:50d8c638ed7ecb88d90561beedbf720c9b4e851a9fa6c47ebd64e99d166d8a21", size = 18481 }
+sdist = { url = "https://files.pythonhosted.org/packages/50/05/51dcca9a9bf5e1bce52582683ce50980bcadbc4fa5143b9f2b19ab99958f/xmltodict-0.14.2.tar.gz", hash = "sha256:201e7c28bb210e374999d1dde6382923ab0ed1a8a5faeece48ab525b7810a553", size = 51942 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/28/fd/30d5c1d3ac29ce229f6bdc40bbc20b28f716e8b363140c26eff19122d8a5/xmltodict-0.12.0-py2.py3-none-any.whl", hash = "sha256:8bbcb45cc982f48b2ca8fe7e7827c5d792f217ecf1792626f808bf41c3b86051", size = 9170 },
+    { url = "https://files.pythonhosted.org/packages/d6/45/fc303eb433e8a2a271739c98e953728422fa61a3c1f36077a49e395c972e/xmltodict-0.14.2-py2.py3-none-any.whl", hash = "sha256:20cc7d723ed729276e808f26fb6b3599f786cbc37e06c65e192ba77c40f20aac", size = 9981 },
 ]

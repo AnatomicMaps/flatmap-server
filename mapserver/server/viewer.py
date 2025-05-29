@@ -30,7 +30,7 @@ from ..settings import settings
 
 #===============================================================================
 
-viewer_dir = pathlib.Path(settings['FLATMAP_VIEWER']) / 'app' / 'dist'
+viewer_dir = pathlib.Path(settings['FLATMAP_VIEWER_PATH']) / 'app' / 'dist'
 
 viewer_router = create_static_files_router(
     path="/viewer",

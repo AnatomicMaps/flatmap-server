@@ -109,10 +109,10 @@ def configure_logging(access_log: str, error_log: str, litestar_log: str) -> str
 
 #===============================================================================
 
-def run_server(viewer=False):
+def run_server(viewer: bool=False):
 #==================================
     # Save viewer state for server initialisation
-    settings['MAP_VIEWER'] = viewer
+    os.environ['MAP_VIEWER'] = 'VIEWER' if viewer else ''
 
     ACCESS_LOG_FILE = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'access_log')
     ERROR_LOG_FILE = os.path.join(settings['FLATMAP_SERVER_LOGS'], 'error_log')
