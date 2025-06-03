@@ -60,7 +60,7 @@ queries:
         type: string
 
   - id: 3
-    label: Neuron populations with an evidence
+    label: Neuron populations supported by evidence
     sql: >
       SELECT DISTINCT term_id AS path_id, source_id
       FROM feature_evidence
@@ -89,7 +89,7 @@ queries:
         type: string
 
   - id: 4
-    label: Evidences for a neuron population and a species
+    label: Evidence for a neuron population and a species
     sql: >
       SELECT DISTINCT fe.evidence_id, fe.source_id
       FROM feature_evidence fe
@@ -123,7 +123,7 @@ queries:
         type: string
 
   - id: 5
-    label: Neuron populations connecting two locations
+    label: Neuron populations connecting two anatomical locations
     sql: >
       WITH
       RECURSIVE
@@ -220,7 +220,7 @@ queries:
         type: string
 
   - id: 6
-    label: Parasympathetic neuron populations connecting two locations
+    label: Parasympathetic neuron populations that connect two locations
     sql: >
       WITH
       RECURSIVE
@@ -325,7 +325,7 @@ queries:
         type: string
 
   - id: 7
-    label: Sympathetic neuron populations connecting two locations
+    label: Sympathetic neuron populations that connect two locations
     sql: >
       WITH
       RECURSIVE
@@ -463,7 +463,7 @@ queries:
         type: string
 
   - id: 9
-    label: Nerves terminating at a location
+    label: Nerves that terminate at a location
     sql: >
       SELECT DISTINCT fnerve.source_id, fnerve.feature_id AS nerve_id, ft.label
       FROM path_edges pe
@@ -570,7 +570,7 @@ queries:
         type: string
 
   - id: 11
-    label: Nerves related to a specific neuron population
+    label: Nerves associated to a specific neuron population
     sql: >
       SELECT ft.source_id, ft.term_id as nerve_id, f.label
       FROM feature_types ft 
@@ -604,7 +604,7 @@ queries:
         type: string
 
   - id: 12
-    label: All nerves available and relate them to neuron population
+    label: All available nerves and their corresponding neuron populations
     sql: >
       SELECT ft.source_id, ft.term_id as nerve_id, f.label, pnf.path_id
       FROM feature_types ft 
@@ -637,7 +637,7 @@ queries:
         type: string
 
   - id: 13
-    label: Nodes as the target of a nerve including those in the forward connection
+    label: Nodes targeted by a nerve, including those in the forward connections
     sql: >
       WITH RECURSIVE 
       path_routes AS (
@@ -719,7 +719,7 @@ queries:
         type: string
 
   - id: 14
-    label: Nodes as the origin of a nerve including those in the forward connection
+    label: Nodes serving as the origin of a nerve, including those in the forward connections
     sql: >
       WITH RECURSIVE 
       path_routes AS (
@@ -804,7 +804,7 @@ queries:
         type: string
 
   - id: 15
-    label: Nodes as the origin and destination of a nerve (regarding paths only)
+    label: Nodes serving as the origin or destination of a nerve (considering paths only)
     sql: >
       SELECT DISTINCT
         pnt.source_id,
@@ -852,7 +852,7 @@ queries:
         type: string
   
   - id: 16
-    label: Different neuron populations between species
+    label: Differences in neuron populations between species
     sql: >
       SELECT source_id, taxon_id, path_id
       FROM path_taxons
@@ -891,7 +891,7 @@ queries:
         type: string
 
   - id: 17
-    label: Different neuron populations and evidences between species
+    label: Different neuron populations and their evidences between species
     sql: >
       SELECT pt.source_id, pt.taxon_id, pt.path_id, fe.evidence_id
       FROM path_taxons pt
@@ -945,7 +945,7 @@ queries:
         type: string
 
   - id: 18
-    label: Parasympathetic forward connection, soma source, axon-terminal target, and route related to a location
+    label: Parasympathetic forward connections with soma as source, axon-terminal as target, and routes related to a location
     sql: >
       WITH RECURSIVE
         para_pre AS (
@@ -1057,7 +1057,7 @@ queries:
         type: list
 
   - id: 19
-    label: Sympathetic forward connection, soma source, axon-terminal target, and route related to a location
+    label: Sympathetic forward connections with soma as source, axon-terminal as target, and routes related to a location
     sql: >
       WITH RECURSIVE
         sym_pre AS (
@@ -1170,7 +1170,7 @@ queries:
         type: list
 
   - id: 20
-    label: Anatomical structure might be affected by perturbation at a location
+    label: Anatomical structures that might be affected by perturbation at a location
     sql: >
       WITH selected_paths AS (
         SELECT DISTINCT path_id, source_id, node_id 
@@ -1220,7 +1220,7 @@ queries:
         type: string
 
   - id: 21
-    label: Downstream or upstream anatomical structure as axon_terminal might be affected by perturbation at a location
+    label: Anatomical structures as axon terminals that might be affected by perturbation at a location
     sql: >
       WITH RECURSIVE
         connected_paths AS (
@@ -1281,7 +1281,7 @@ queries:
         type: string
 
   - id: 22
-    label: Neuron populations that share at list a nerve with another neuron population
+    label: Neuron populations that share at least one nerve with another neuron population
     sql: >
       SELECT DISTINCT pnt_1.source_id, pnt_1.path_id
       FROM path_node_types pnt_0 
@@ -1312,7 +1312,7 @@ queries:
         type: string
 
   - id: 23
-    label: Neuron populations that share at list an edge with another neuron population
+    label: Neuron populations that share at least one edge with another neuron population
     sql: >
       SELECT DISTINCT pe_1.source_id, pe_1.path_id
       FROM path_edges pe_0 
