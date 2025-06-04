@@ -52,7 +52,7 @@ queries:
       AND pfc_0.source_id = pfc_1.source_id
       JOIN feature_terms ft ON pfc_0.source_id = ft.source_id AND pfc_0.feature_id =
       ft.term_id
-      WHERE pfc_0.type_id = 'nerve'
+      WHERE pfc_0.type_id = 'UBERON:0001021'
         AND %CONDITIONS%
     parameters:
     - id: feature_id

@@ -12,7 +12,7 @@ queries:
       = fdest.path_id AND pe.node_1 = fdest.node_id
       JOIN feature_terms ft ON fnerve.source_id = ft.source_id AND fnerve.feature_id
       = ft.term_id
-      WHERE tnerve.type_id = 'nerve'
+      WHERE tnerve.type_id = 'UBERON:0001021'
         AND %CONDITIONS%
     parameters:
     - id: feature_id

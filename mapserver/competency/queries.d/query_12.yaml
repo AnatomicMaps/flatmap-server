@@ -6,7 +6,7 @@ queries:
       FROM feature_types ft  JOIN feature_terms f ON ft.source_id = f.source_id AND
       ft.term_id = f.term_id
       JOIN path_node_features pnf ON ft.source_id = pnf.source_id AND ft.term_id = pnf.feature_id
-      WHERE ft.type_id = 'nerve'  AND %CONDITIONS%
+      WHERE ft.type_id = 'UBERON:0001021'  AND %CONDITIONS%
     parameters:
     - id: source_id
       column: ft.source_id

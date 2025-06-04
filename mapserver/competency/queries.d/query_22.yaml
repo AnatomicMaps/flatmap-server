@@ -5,7 +5,7 @@ queries:
       SELECT DISTINCT pnt_1.source_id, pnt_1.path_id
       FROM path_node_types pnt_0  JOIN path_node_types pnt_1 ON pnt_0.source_id = pnt_1.source_id
       AND pnt_0.node_id = pnt_1.node_id
-      WHERE pnt_0.type_id = 'nerve'
+      WHERE pnt_0.type_id = 'UBERON:0001021'
         AND pnt_0.path_id <> pnt_1.path_id
         AND %CONDITIONS%
     parameters:
