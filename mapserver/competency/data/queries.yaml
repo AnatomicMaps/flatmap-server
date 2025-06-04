@@ -692,7 +692,7 @@ queries:
         JOIN path_route_edges t ON r.destination_node_id = t.node_0 AND r.path_ids = t.path_ids AND r.source_id = t.source_id
         WHERE NOT r.node_ids @> ARRAY[t.node_1]
       )
-      SELECT DISTINCT pnt.node_id as destination, pnt.source_id
+      SELECT DISTINCT pnt.node_id AS axon_terminal, pnt.source_id
         FROM node_routes nr JOIN path_node_types pnt ON nr.destination_node_id = pnt.node_id AND nr.path_id = pnt.path_id AND nr.source_id = pnt.source_id 
         WHERE pnt.type_id IN ('ilxtr:hasAxonPresynapticElementIn', 'ilxtr:hasAxonSensorySubcellularElementIn') 
     parameters:
@@ -714,12 +714,12 @@ queries:
       - key: source_id
         label: Knowledge source
         type: string
-      - key: destination
-        label: Node as destination
+      - key: axon_terminal
+        label: Node as axon terminal
         type: string
 
   - id: 14
-    label: Nodes serving as the origin of a nerve, including those in the forward connections
+    label: Nodes serving as the soma/origin of a nerve, including those in the forward connections
     sql: >
       WITH RECURSIVE 
       path_routes AS (
@@ -776,7 +776,7 @@ queries:
         JOIN path_route_edges t ON r.start_node_id = t.node_1 AND r.path_ids = t.path_ids AND r.source_id = t.source_id
         WHERE NOT r.node_ids @> ARRAY[t.node_0]
       )
-      SELECT DISTINCT pnt.source_id, pnt.node_id as origin
+      SELECT DISTINCT pnt.source_id, pnt.node_id as soma
         FROM node_routes nr
         JOIN path_node_types pnt ON nr.start_node_id = pnt.node_id AND nr.path_id = pnt.path_id AND nr.source_id = pnt.source_id
         WHERE pnt.type_id IN ('ilxtr:hasSomaLocatedIn')
@@ -799,8 +799,8 @@ queries:
       - key: source_id
         label: Knowledge source
         type: string
-      - key: origin
-        label: Node as origin
+      - key: soma
+        label: Node as soma
         type: string
 
   - id: 15
@@ -945,7 +945,7 @@ queries:
         type: string
 
   - id: 18
-    label: Parasympathetic forward connections with soma as source, axon-terminal as target, and routes related to a location
+    label: Parasympathetic forward connections with soma as origin, axon-terminal as target, and routes related to a location
     sql: >
       WITH RECURSIVE
         para_pre AS (
@@ -1057,7 +1057,7 @@ queries:
         type: list
 
   - id: 19
-    label: Sympathetic forward connections with soma as source, axon-terminal as target, and routes related to a location
+    label: Sympathetic forward connections with soma as origin, axon-terminal as target, and routes related to a location
     sql: >
       WITH RECURSIVE
         sym_pre AS (
