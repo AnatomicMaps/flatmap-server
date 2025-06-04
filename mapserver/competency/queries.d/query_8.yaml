@@ -1,0 +1,35 @@
+queries:
+  - id: 8
+    label: Motoric neuron populations associated with a location
+    sql: >
+      SELECT pp.path_id, pp.source_id
+      FROM path_phenotypes pp
+      JOIN path_node_types pnt ON pp.path_id = pnt.path_id AND pp.source_id = pnt.source_id
+      JOIN path_node_features pnf ON pnt.path_id = pnf.path_id AND pnt.source_id = pnf.source_id
+      AND pnt.node_id = pnf.node_id
+      WHERE pp.phenotype = 'ilxtr:MotorPhenotype'
+        AND pnt.type_id = 'ilxtr:hasSomaLocatedIn'
+        AND %CONDITIONS%
+    parameters:
+    - id: feature_id
+      column: pnf.feature_id
+      label: Anatomical terms for locations
+      type: string
+      multiple: true
+    - id: source_id
+      column: pnf.source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: path_id
+      label: Neuron population
+      type: string
+

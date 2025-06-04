@@ -1,0 +1,82 @@
+queries:
+  - id: 10
+    label: Nerves projecting (directly or indirectly) to a location
+    sql: >
+      WITH
+      RECURSIVE
+        path_fc AS (
+          SELECT
+          source_id,
+          path_id,
+          forward_path_id,
+          path_id || ' > ' || forward_path_id AS connected_paths
+        FROM path_forward_connections
+        UNION ALL
+          SELECT
+          pfc.source_id,
+          pfc.path_id,
+          pf.forward_path_id,
+          pfc.path_id || ' > ' || pf.connected_paths AS connected_paths
+        FROM path_forward_connections pfc JOIN path_fc pf
+          ON pfc.source_id = pf.source_id
+          AND pfc.forward_path_id = pf.path_id
+        WHERE pf.connected_paths NOT LIKE '%' || pfc.forward_path_id || '%'
+        ),
+        path_fc_connected AS(
+        SELECT pfc.source_id, pfc.connected_paths, pfc.path_id, pnf.node_id, pnf.feature_id,
+      pnt.type_id
+        FROM path_fc pfc JOIN path_node_features pnf ON pfc.source_id = pnf.source_id
+      AND pfc.path_id = pnf.path_id
+                        JOIN path_node_types pnt ON pnf.source_id = pnt.source_id AND
+      pnf.path_id = pnt.path_id AND pnf.node_id = pnt.node_id
+        UNION
+        SELECT pfc.source_id, pfc.connected_paths, pfc.forward_path_id, pnf.node_id,
+      pnf.feature_id, pnt.type_id
+        FROM path_fc pfc JOIN path_node_features pnf ON pfc.source_id = pnf.source_id
+      AND pfc.forward_path_id = pnf.path_id
+                        JOIN path_node_types pnt ON pnf.source_id = pnt.source_id AND
+      pnf.path_id = pnt.path_id AND pnf.node_id = pnt.node_id
+        UNION
+        SELECT pn.source_id, pn.path_id, pn.path_id, pnf.node_id, pnf.feature_id, pnt.type_id
+        FROM path_nodes pn JOIN path_node_features pnf ON pn.source_id = pnf.source_id
+      AND pn.path_id = pnf.path_id
+                          JOIN path_node_types pnt ON pnf.source_id = pnt.source_id
+      AND pnf.path_id = pnt.path_id AND pnf.node_id = pnt.node_id
+        WHERE pn.path_id NOT IN (SELECT path_id FROM path_fc UNION SELECT forward_path_id
+      FROM path_fc)
+        )
+
+      SELECT DISTINCT pfc_0.source_id, pfc_0.feature_id AS nerve_id, ft.label
+      FROM path_fc_connected pfc_0
+      JOIN path_fc_connected pfc_1 ON pfc_0.connected_paths = pfc_1.connected_paths
+      AND pfc_0.source_id = pfc_1.source_id
+      JOIN feature_terms ft ON pfc_0.source_id = ft.source_id AND pfc_0.feature_id =
+      ft.term_id
+      WHERE pfc_0.type_id = 'nerve'
+        AND %CONDITIONS%
+    parameters:
+    - id: feature_id
+      column: pfc_1.feature_id
+      label: Anatomical terms for locations
+      type: string
+      multiple: true
+    - id: source_id
+      column: pfc_1.source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: nerve_id
+      label: Nerve term id
+      type: string
+    - key: label
+      label: Nerve term label
+      type: string
+

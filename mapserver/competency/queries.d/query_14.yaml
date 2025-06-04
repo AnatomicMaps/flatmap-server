@@ -1,0 +1,91 @@
+queries:
+  - id: 14
+    label: Nodes serving as the soma/origin of a nerve, including those in the forward
+      connections
+    sql: >
+      WITH RECURSIVE  path_routes AS (
+        SELECT DISTINCT
+          ARRAY_REMOVE(ARRAY[p.path_id, pn.path_id], NULL) AS path_ids,
+          p.path_id AS start_path_id,
+          pn.path_id AS destination_path_id,
+        pn.source_id
+        FROM path_node_features pn
+        LEFT JOIN path_forward_connections p ON p.forward_path_id = pn.path_id AND p.source_id
+      = pn.source_id
+        WHERE %CONDITIONS%
+
+        UNION ALL
+
+        SELECT
+          t.path_id || r.path_ids,
+          t.path_id,
+          r.destination_path_id,
+        r.source_id
+        FROM path_routes r
+        JOIN path_forward_connections t ON r.start_path_id = t.path_id AND r.source_id
+      = t.source_id
+        WHERE NOT r.path_ids @> ARRAY[t.path_id]
+      ),
+      path_route_edges AS (
+        SELECT DISTINCT p.path_ids, p.path_id, p.source_id, pe.node_0, pe.node_1
+        FROM (
+        SELECT DISTINCT r.path_ids, unnest(r.path_ids) as path_id, r.source_id
+        FROM path_routes r
+        ) AS p
+        JOIN path_edges pe ON p.path_id = pe.path_id AND p.source_id = pe.source_id
+      ),
+      node_routes AS (
+        SELECT DISTINCT
+          p.path_ids,
+          p.source_id,
+        p.path_id,
+        ARRAY[p.node_0, p.node_1] AS node_ids,
+        p.node_0 AS start_node_id,
+        p.node_1 AS destination_node_id
+        FROM path_route_edges p
+        JOIN path_node_features pn ON p.node_1 = pn.node_id AND p.path_id = pn.path_id
+      AND p.source_id = pn.source_id
+        WHERE %CONDITIONS%
+
+        UNION ALL
+
+        SELECT
+          r.path_ids,
+          r.source_id,
+        t.path_id,
+        t.node_0 || r.node_ids,
+        t.node_0,
+        r.destination_node_id
+        FROM node_routes r
+        JOIN path_route_edges t ON r.start_node_id = t.node_1 AND r.path_ids = t.path_ids
+      AND r.source_id = t.source_id
+        WHERE NOT r.node_ids @> ARRAY[t.node_0]
+      )
+      SELECT DISTINCT pnt.source_id, pnt.node_id as soma
+        FROM node_routes nr
+        JOIN path_node_types pnt ON nr.start_node_id = pnt.node_id AND nr.path_id =
+      pnt.path_id AND nr.source_id = pnt.source_id
+        WHERE pnt.type_id IN ('ilxtr:hasSomaLocatedIn')
+    parameters:
+    - id: feature_id
+      column: pn.feature_id
+      label: Anatomical terms for nerves
+      type: string
+      multiple: true
+    - id: source_id
+      column: pn.source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: soma
+      label: Node as soma
+      type: string
+

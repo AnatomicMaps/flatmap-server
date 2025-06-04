@@ -1,0 +1,30 @@
+queries:
+  - id: 3
+    label: Neuron populations supported by evidence
+    sql: >
+      SELECT DISTINCT term_id AS path_id, source_id
+      FROM feature_evidence
+      WHERE %CONDITIONS%
+    parameters:
+    - id: evidence_id
+      column: evidence_id
+      label: Evidence from specific papers
+      type: string
+      multiple: true
+    - id: source_id
+      column: source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: path_id
+      label: Neuron population
+      type: string
+

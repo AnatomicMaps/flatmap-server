@@ -1,0 +1,27 @@
+queries:
+  - id: 1
+    label: Neuron populations associated with a location
+    sql: SELECT DISTINCT path_id, source_id FROM path_node_features WHERE %CONDITIONS%
+    parameters:
+    - id: feature_id
+      column: feature_id
+      label: Anatomical terms for locations
+      type: string
+      multiple: true
+    - id: source_id
+      column: source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: path_id
+      label: Neuron population
+      type: string
+

@@ -1,0 +1,122 @@
+queries:
+  - id: 18
+    label: Parasympathetic forward connections with soma as origin, axon-terminal as
+      target, and routes related to a location
+    sql: >
+      WITH RECURSIVE
+        para_pre AS (
+          SELECT DISTINCT p0.path_id, p0.source_id
+          FROM path_phenotypes p0 JOIN path_phenotypes p1 ON p0.path_id = p1.path_id
+      AND p0.source_id = p1.source_id
+          WHERE p0.phenotype = 'ilxtr:ParasympatheticPhenotype'
+            AND p1.phenotype = 'ilxtr:PreGanglionicPhenotype'
+            OR p0.phenotype = 'ilxtr:neuron-phenotype-para-pre'
+        ),
+        para_post AS (
+          SELECT DISTINCT pf.path_id, pf.source_id
+            FROM path_node_features pf JOIN path_node_types pt ON pf.path_id = pt.path_id
+      AND pf.source_id = pt.source_id
+            WHERE pt.type_id IN ('ilxtr:hasAxonSensorySubcellularElementIn', 'ilxtr:hasAxonPresynapticElementIn')
+              AND %CONDITIONS%
+              AND (pf.path_id, pf.source_id) IN (
+              SELECT DISTINCT p0.path_id, p0.source_id
+              FROM path_phenotypes p0 JOIN path_phenotypes p1 ON p0.path_id = p1.path_id
+      AND p0.source_id = p1.source_id
+              WHERE p0.phenotype = 'ilxtr:ParasympatheticPhenotype'
+                AND p1.phenotype = 'ilxtr:PostGanglionicPhenotype'
+                OR p0.phenotype = 'ilxtr:neuron-phenotype-para-post'
+              )
+        ),
+        para_pre_post AS (
+          SELECT source_id, path_id, forward_path_id
+            FROM path_forward_connections p
+            WHERE p.path_id IN (SELECT path_id FROM para_pre)
+            AND p.forward_path_id IN (SELECT path_id FROM para_post)
+        ),
+        para_edges AS (
+          SELECT p.source_id, p.path_id, p.forward_path_id, p.path_id AS pe_path_id,
+      pe.node_0, pe.node_1
+          FROM para_pre_post p
+          JOIN path_edges pe ON p.source_id = pe.source_id AND p.path_id = pe.path_id
+          UNION ALL
+          SELECT p.source_id, p.path_id, p.forward_path_id, p.forward_path_id, pe.node_0,
+      pe.node_1
+          FROM para_pre_post p
+          JOIN path_edges pe ON p.source_id = pe.source_id AND p.forward_path_id = pe.path_id
+        ),
+        para_routes AS (
+          SELECT
+            source_id,
+            path_id,
+            forward_path_id,
+            pe_path_id,
+            node_0 AS soma,
+            node_1,
+            ARRAY[node_0, node_1] AS node_ids
+          FROM para_edges p
+          WHERE p.path_id = p.pe_path_id
+            AND p.node_0 IN (SELECT node_id FROM path_node_types WHERE source_id = p.source_id
+      AND path_id = p.path_id AND type_id = 'ilxtr:hasSomaLocatedIn')
+          UNION ALL
+          SELECT
+            r.source_id,
+            r.path_id,
+            r.forward_path_id,
+            e.pe_path_id,
+            r.soma,
+            e.node_1,
+            r.node_ids || e.node_1
+          FROM para_routes r JOIN para_edges e
+            ON r.source_id = e.source_id AND r.path_id = e.path_id AND r.forward_path_id
+      = e.forward_path_id AND r.node_1 = e.node_0
+          WHERE NOT r.node_ids @> ARRAY[e.node_1]
+        )
+      SELECT DISTINCT
+        p.source_id,
+        p.path_id,
+        p.forward_path_id,
+        p.soma,
+        p.node_1 AS axon_terminal,
+        p.node_ids
+      FROM para_routes p JOIN path_node_types pnt
+        ON p.source_id = pnt.source_id AND p.pe_path_id = pnt.path_id AND p.node_1 =
+      pnt.node_id AND pnt.type_id IN ('ilxtr:hasAxonSensorySubcellularElementIn', 'ilxtr:hasAxonPresynapticElementIn')
+      JOIN path_node_features pf
+        ON p.source_id = pf.source_id AND p.pe_path_id = pf.path_id AND p.node_1 = pf.node_id
+      WHERE p.forward_path_id = p.pe_path_id
+        AND %CONDITIONS%
+    parameters:
+    - id: feature_id
+      column: pf.feature_id
+      label: Anatomical terms for locations
+      type: string
+      multiple: true
+    - id: source_id
+      column: pf.source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: path_id
+      label: Neuron population
+      type: string
+    - key: forward_path_id
+      label: Forward neuron population
+      type: string
+    - key: soma
+      label: Soma
+      type: string
+    - key: axon_terminal
+      label: Axon terminal
+      type: string
+    - key: node_ids
+      label: Route from soma to axon terminal
+      type: list
+

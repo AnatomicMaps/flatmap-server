@@ -1,0 +1,32 @@
+queries:
+  - id: 22
+    label: Neuron populations that share at least one nerve with another neuron population
+    sql: >
+      SELECT DISTINCT pnt_1.source_id, pnt_1.path_id
+      FROM path_node_types pnt_0  JOIN path_node_types pnt_1 ON pnt_0.source_id = pnt_1.source_id
+      AND pnt_0.node_id = pnt_1.node_id
+      WHERE pnt_0.type_id = 'nerve'
+        AND pnt_0.path_id <> pnt_1.path_id
+        AND %CONDITIONS%
+    parameters:
+    - id: path_id
+      column: pnt_0.path_id
+      label: Neuron population
+      type: string
+    - id: source_id
+      column: pnt_0.source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: path_id
+      label: Neuron population
+      type: string
+

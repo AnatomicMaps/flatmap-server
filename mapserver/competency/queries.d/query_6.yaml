@@ -1,0 +1,112 @@
+queries:
+  - id: 6
+    label: Parasympathetic neuron populations that connect two locations
+    sql: >
+      WITH
+      RECURSIVE
+      path_fc AS (
+      SELECT
+        source_id,
+        path_id,
+        forward_path_id,
+        path_id || ' > ' || forward_path_id AS connected_paths
+      FROM path_forward_connections
+      UNION ALL
+      SELECT
+        pfc.source_id,
+        pfc.path_id,
+        pf.forward_path_id,
+        pfc.path_id || ' > ' || pf.connected_paths AS connected_paths
+      FROM path_forward_connections pfc JOIN path_fc pf
+        ON pfc.source_id = pf.source_id
+        AND pfc.forward_path_id = pf.path_id
+      WHERE pf.connected_paths NOT LIKE '%' || pfc.forward_path_id || '%'
+      ),
+      path_fc_nodes AS(
+      SELECT
+        pfc.*,
+        pnfp.node_id AS path_node_id,
+        pnfp.feature_id AS path_feature_id,
+        pntp.type_id AS path_type_id,
+        pnp.phenotype AS path_phenotype,
+        pnff.node_id AS forward_path_node_id,
+        pnff.feature_id AS forward_path_feature_id,
+        pntf.type_id AS forward_path_type_id,
+        pnf.phenotype AS forward_path_phenotype
+      FROM path_fc pfc JOIN path_node_features pnfp ON pfc.source_id = pnfp.source_id
+      AND pfc.path_id = pnfp.path_id
+              JOIN path_node_features pnff ON pfc.source_id = pnff.source_id AND pfc.forward_path_id
+      = pnff.path_id
+              JOIN path_node_types pntp ON pnfp.source_id = pntp.source_id AND pnfp.path_id
+      = pntp.path_id AND pnfp.node_id = pntp.node_id
+              JOIN path_node_types pntf ON pnff.source_id = pntf.source_id AND pnff.path_id
+      = pntf.path_id AND pnff.node_id = pntf.node_id
+              JOIN path_phenotypes pnp ON pnp.source_id = pnfp.source_id AND pnp.path_id
+      = pnfp.path_id
+              JOIN path_phenotypes pnf ON pnf.source_id = pnff.source_id AND pnf.path_id
+      = pnff.path_id
+      )
+      SELECT DISTINCT  pfn_0.path_node_id AS soma,
+      pfn_0.path_id AS path_start_0,  pfn_0.forward_path_id AS path_destination_0,
+      pfn_0.connected_paths AS connected_paths_0,
+      pfn_1.path_id AS path_start_1,  pfn_1.forward_path_id AS path_destination_1,
+      pfn_1.connected_paths AS connected_paths_1,
+      pfn_1.source_id
+      FROM path_fc_nodes pfn_0  JOIN path_fc_nodes pfn_1
+        ON pfn_0.source_id = pfn_1.source_id AND pfn_0.path_node_id = pfn_1.path_node_id
+      WHERE pfn_0.path_type_id = 'ilxtr:hasSomaLocatedIn' AND pfn_1.path_type_id = 'ilxtr:hasSomaLocatedIn'
+        AND pfn_0.path_phenotype IN ('ilxtr:ParasympatheticPhenotype', 'ilxtr:neuron-phenotype-para-pre',
+      'ilxtr:neuron-phenotype-para-post')
+        AND pfn_0.forward_path_phenotype IN ('ilxtr:ParasympatheticPhenotype', 'ilxtr:neuron-phenotype-para-pre',
+      'ilxtr:neuron-phenotype-para-post')
+        AND pfn_1.path_phenotype IN ('ilxtr:ParasympatheticPhenotype', 'ilxtr:neuron-phenotype-para-pre',
+      'ilxtr:neuron-phenotype-para-post')
+        AND pfn_1.forward_path_phenotype IN ('ilxtr:ParasympatheticPhenotype', 'ilxtr:neuron-phenotype-para-pre',
+      'ilxtr:neuron-phenotype-para-post')
+        AND %CONDITIONS%
+    parameters:
+    - id: feature_id_0
+      column: pfn_0.forward_path_feature_id
+      label: Anatomical terms for locations 0
+      type: string
+      multiple: true
+    - id: feature_id_1
+      column: pfn_1.forward_path_feature_id
+      label: Anatomical terms for locations 1
+      type: string
+      multiple: true
+    - id: source_id
+      column: pfn_0.source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: soma
+      label: Soma connecting locations
+      type: string
+    - key: path_start_0
+      label: Location_0 neuron population start
+      type: string
+    - key: path_destination_0
+      label: Location_0 neuron population destination
+      type: string
+    - key: connected_paths_0
+      label: Location_0 neuron population path
+      type: string
+    - key: path_start_1
+      label: Location_1 neuron population start
+      type: string
+    - key: path_destination_1
+      label: Location_1 neuron population destination
+      type: string
+    - key: connected_paths_1
+      label: Location_1 neuron population path
+      type: string
+

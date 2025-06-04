@@ -47,13 +47,13 @@ if not COMPETENCY_USER:
 #===============================================================================
 #===============================================================================
 
-QUERY_DEFINITIONS = str(importlib.resources.files() / 'data' / 'queries.yaml')
+QUERY_DEFINITION_DIRECTORY = str(importlib.resources.files() / 'queries.d')
 
 def get_query_definitions(app: Litestar):
 #========================================
     query_definitions = getattr(app.state, 'competency-definitions', None)
     if query_definitions is None:
-        query_definitions = load_query_definitions(QUERY_DEFINITIONS)
+        query_definitions = load_query_definitions(QUERY_DEFINITION_DIRECTORY)
         app.state['competency-definitions'] = query_definitions
     return query_definitions
 

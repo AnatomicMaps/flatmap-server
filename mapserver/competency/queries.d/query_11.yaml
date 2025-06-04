@@ -1,0 +1,34 @@
+queries:
+  - id: 11
+    label: Nerves associated to a specific neuron population
+    sql: >
+      SELECT ft.source_id, ft.term_id as nerve_id, f.label
+      FROM feature_types ft  JOIN feature_terms f ON ft.source_id = f.source_id AND
+      ft.term_id = f.term_id
+      JOIN path_node_features pnf ON ft.source_id = pnf.source_id AND ft.term_id = pnf.feature_id
+      WHERE ft.type_id = 'nerve'  AND %CONDITIONS%
+    parameters:
+    - id: path_id
+      column: pnf.path_id
+      label: Neuron population
+      type: string
+    - id: source_id
+      column: pnf.source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: nerve_id
+      label: Nerve term id
+      type: string
+    - key: label
+      label: Nerve term label
+      type: string
+

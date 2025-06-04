@@ -1,0 +1,55 @@
+queries:
+  - id: 17
+    label: Different neuron populations and their evidences between species
+    sql: >
+      SELECT pt.source_id, pt.taxon_id, pt.path_id, fe.evidence_id
+      FROM path_taxons pt
+      JOIN path_node_features pnf ON pt.path_id = pnf.path_id AND pt.source_id = pnf.source_id
+      LEFT JOIN feature_evidence fe ON pt.path_id = fe.term_id AND pt.source_id = fe.source_id
+      WHERE %CONDITION_1%
+        AND pt.path_id IN (
+        SELECT pt.path_id
+        FROM path_taxons pt
+        WHERE %CONDITION_2%
+        GROUP BY pt.path_id
+        HAVING COUNT(DISTINCT pt.taxon_id) = 1
+        )
+        AND %CONDITION_2%
+      ORDER BY fe.evidence_id, pt.taxon_id, pt.path_id
+    parameters:
+    - id: taxon_id
+      column: pt.taxon_id
+      condition: CONDITION_1
+      label: taxon terms for species
+      type: string
+      multiple: true
+    - id: source_id
+      column: pt.source_id
+      condition: CONDITION_1
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    - id: feature_id
+      column: pnf.feature_id
+      label: Anatomical terms for locations
+      condition: CONDITION_2
+      type: string
+      multiple: true
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: taxon_id
+      label: Species taxon term
+      type: string
+    - key: path_id
+      label: Neuron population
+      type: string
+    - key: evidence_id
+      label: Evidence from specific papers
+      type: string
+

@@ -1,0 +1,30 @@
+queries:
+  - id: 23
+    label: Neuron populations that share at least one edge with another neuron population
+    sql: >
+      SELECT DISTINCT pe_1.source_id, pe_1.path_id
+      FROM path_edges pe_0  JOIN path_edges pe_1 ON pe_0.source_id = pe_1.source_id
+      AND pe_0.node_0 = pe_1.node_0 AND pe_0.node_1 = pe_1.node_1
+      WHERE pe_0.path_id <> pe_1.path_id
+        AND %CONDITIONS%
+    parameters:
+    - id: path_id
+      column: pe_0.path_id
+      label: Neuron population
+      type: string
+    - id: source_id
+      column: pe_0.source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: path_id
+      label: Neuron population
+      type: string

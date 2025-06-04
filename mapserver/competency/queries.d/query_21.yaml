@@ -1,0 +1,67 @@
+queries:
+  - id: 21
+    label: Anatomical structures as axon terminals that might be affected by perturbation
+      at a location
+    sql: >
+      WITH RECURSIVE
+        connected_paths AS (
+          SELECT
+            pe.source_id,
+            pe.path_id,
+            ARRAY[node_0, node_1] AS node_ids,
+            pe.node_1 AS dest_node_id
+          FROM path_edges pe JOIN path_node_features pf
+            ON pe.source_id = pf.source_id AND pe.path_id = pf.path_id AND pe.node_0
+      = pf.node_id
+          WHERE %CONDITIONS%
+          UNION ALL
+          SELECT
+            cp.source_id,
+            cp.path_id,
+            cp.node_ids || pe.node_1,
+            pe.node_1
+          FROM connected_paths cp JOIN path_edges pe
+            ON cp.source_id = pe.source_id AND cp.path_id = pe.path_id AND cp.dest_node_id
+      = pe.node_0
+          WHERE NOT cp.node_ids @> ARRAY[pe.node_1]
+        )
+      SELECT p.source_id, p.node_id, ARRAY_AGG(label ORDER BY POSITION(feature_id IN
+      p.node_id)) AS label
+      FROM (
+            SELECT DISTINCT pf.source_id, pf.node_id, pf.feature_id, pf.path_id
+            FROM connected_paths AS cp JOIN path_node_features pf
+            ON cp.source_id = pf.source_id AND cp.path_id = pf.path_id AND cp.dest_node_id
+      = pf.node_id
+          ) AS p
+      JOIN feature_terms ft
+        ON p.source_id = ft.source_id AND p.feature_id = ft.term_id
+      JOIN path_node_types AS pt
+        ON p.source_id = pt.source_id AND p.node_id = pt.node_id AND p.path_id = pt.path_id
+      WHERE pt.type_id IN ('ilxtr:hasAxonSensorySubcellularElementIn', 'ilxtr:hasAxonPresynapticElementIn')
+      GROUP BY p.source_id, p.node_id, p.path_id
+    parameters:
+    - id: feature_id
+      column: pf.feature_id
+      label: Anatomical terms for locations
+      type: string
+      multiple: true
+    - id: source_id
+      column: pf.source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: node_id
+      label: Anatomical structure
+      type: string
+    - key: label
+      label: Anatomical structure label
+      type: string
+

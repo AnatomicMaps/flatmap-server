@@ -1,0 +1,51 @@
+queries:
+  - id: 20
+    label: Anatomical structures that might be affected by perturbation at a location
+    sql: >
+      WITH selected_paths AS (
+        SELECT DISTINCT path_id, source_id, node_id
+        FROM path_node_features
+        WHERE %CONDITIONS%
+      )
+      SELECT
+        sub.source_id,
+        sub.node_id,
+        ARRAY_AGG(label ORDER BY POSITION(feature_id IN sub.node_id)) AS label
+      FROM (
+          SELECT DISTINCT
+            node_id,
+            source_id,
+            feature_id
+          FROM path_node_features
+          WHERE (path_id, source_id) IN (SELECT  path_id, source_id FROM selected_paths)
+          AND node_id NOT IN (SELECT node_id FROM selected_paths)
+        ) AS sub
+        JOIN feature_terms ft
+        ON sub.source_id = ft.source_id AND sub.feature_id = ft.term_id
+      GROUP BY sub.source_id, sub.node_id
+    parameters:
+    - id: feature_id
+      column: feature_id
+      label: Anatomical terms for locations
+      type: string
+      multiple: true
+    - id: source_id
+      column: source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: node_id
+      label: Anatomical structure
+      type: string
+    - key: label
+      label: Anatomical structure label
+      type: string
+

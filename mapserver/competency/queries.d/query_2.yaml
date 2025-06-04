@@ -1,0 +1,37 @@
+queries:
+  - id: 2
+    label: Neuron populations terminating at a location
+    sql: >
+      SELECT DISTINCT pnf.source_id as source_id, pnt.path_id as path_id, pnt.node_id
+      AS axon_terminal
+      FROM path_node_types pnt JOIN path_node_features pnf
+      ON pnf.path_id = pnt.path_id AND pnf.node_id = pnt.node_id AND pnf.source_id =
+      pnt.source_id
+      WHERE pnt.type_id IN ('ilxtr:hasAxonSensorySubcellularElementIn', 'ilxtr:hasAxonPresynapticElementIn')
+      AND %CONDITIONS%
+    parameters:
+    - id: feature_id
+      column: pnf.feature_id
+      label: Anatomical terms for locations
+      type: string
+      multiple: true
+    - id: source_id
+      column: pnf.source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: path_id
+      label: Neuron population
+      type: string
+    - key: axon_terminal
+      label: Axon terminal
+      type: string
+

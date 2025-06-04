@@ -1,0 +1,40 @@
+queries:
+  - id: 16
+    label: Differences in neuron populations between species
+    sql: >
+      SELECT source_id, taxon_id, path_id
+      FROM path_taxons
+      WHERE %CONDITIONS%
+        AND path_id IN (
+          SELECT path_id
+          FROM path_taxons
+          WHERE %CONDITIONS%
+          GROUP BY path_id
+          HAVING COUNT(DISTINCT taxon_id) = 1
+        )
+    parameters:
+    - id: taxon_id
+      column: taxon_id
+      label: taxon terms for species
+      type: string
+      multiple: true
+    - id: source_id
+      column: source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: taxon_id
+      label: Species taxon term
+      type: string
+    - key: path_id
+      label: Neuron population
+      type: string
+

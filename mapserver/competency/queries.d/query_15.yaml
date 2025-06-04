@@ -1,0 +1,52 @@
+queries:
+  - id: 15
+    label: Nodes serving as the origin or destination of a nerve (considering paths
+      only)
+    sql: >
+      SELECT DISTINCT
+        pnt.source_id,
+        pnt.node_id,
+        CASE
+          WHEN pnt.type_id IN ('ilxtr:hasSomaLocatedIn') THEN 'soma'
+        WHEN pnt.type_id IN ('ilxtr:hasAxonSensorySubcellularElementIn', 'ilxtr:hasAxonPresynapticElementIn')
+      THEN 'axon-terminal'
+        END AS type
+      FROM path_node_types as pnt
+      JOIN (
+          SELECT DISTINCT path_id, source_id
+          FROM path_node_features
+          WHERE %CONDITIONS%
+        ) as pt
+        ON pnt.path_id = pt.path_id and pnt.source_id = pt.source_id
+      WHERE pnt.type_id IN (
+        'ilxtr:hasSomaLocatedIn',   -- soma
+        'ilxtr:hasAxonSensorySubcellularElementIn', 'ilxtr:hasAxonPresynapticElementIn'
+      -- axon-terminal
+        )
+        AND pnt.source_id = pt.source_id
+    parameters:
+    - id: feature_id
+      column: feature_id
+      label: Anatomical terms for nerves
+      type: string
+      multiple: true
+    - id: source_id
+      column: source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: node_id
+      label: Anatomical node
+      type: string
+    - key: type
+      label: Anatomical node type ('soma' or 'axon-terminal')
+      type: string
+

@@ -19,6 +19,7 @@
 #===============================================================================
 
 from collections import defaultdict
+from pathlib import Path
 import re
 from typing import NotRequired, Optional, TypedDict
 import yaml
@@ -285,21 +286,22 @@ class QueryDefinition:
 
 #===============================================================================
 
-def load_query_definitions(yaml_file: str) -> dict[str, QueryDefinition]:
-#========================================================================
+def load_query_definitions(queries_directory: str) -> dict[str, QueryDefinition]:
+#================================================================================
     result = {}
-    with open(yaml_file) as fp:
-        try:
-            definitions = yaml.safe_load(fp)
-            if 'queries' not in definitions:
-                raise ValueError(f'No queries block in {yaml_file}...')
-            for defn in definitions['queries']:
-                if 'id' in defn:
-                    result[str(defn['id'])] = QueryDefinition(defn)
-                else:
-                    raise ValueError(f'Query definitions must have `id`s')
-        except yaml.YAMLError as err:
-            raise ValueError(f'Error parsing query definitions: {err}')
+    for query_file in Path(queries_directory).glob('*.yaml'):
+        with open(query_file) as fp:
+            try:
+                definitions = yaml.safe_load(fp)
+                if 'queries' not in definitions:
+                    raise ValueError(f'No queries block in {query_file}...')
+                for defn in definitions['queries']:
+                    if 'id' in defn:
+                        result[str(defn['id'])] = QueryDefinition(defn)
+                    else:
+                        raise ValueError(f'Query definitions must have `id`s')
+            except yaml.YAMLError as err:
+                raise ValueError(f'Error parsing query definitions: {err}')
     return result
 
 #===============================================================================

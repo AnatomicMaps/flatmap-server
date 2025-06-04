@@ -1,0 +1,34 @@
+queries:
+  - id: 4
+    label: Evidence for a neuron population and a species
+    sql: >
+      SELECT DISTINCT fe.evidence_id, fe.source_id
+      FROM feature_evidence fe
+      JOIN path_taxons pt  ON pt.path_id = fe.term_id AND pt.source_id = fe.source_id
+      WHERE %CONDITIONS%
+    parameters:
+    - id: path_id
+      column: pt.path_id
+      label: Neuron population
+      type: string
+    - id: taxon_id
+      column: pt.taxon_id
+      label: Species
+      type: string
+    - id: source_id
+      column: pt.source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: evidence_id
+      label: Evidence from specific papers
+      type: string
+
