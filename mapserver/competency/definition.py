@@ -266,7 +266,7 @@ class QueryDefinition:
                     negate = '!' if req_param.get('negate', False) else ''
                     where_condition = f'{column} {negate}= ({param_def.default_sql})'
                 conditions[param_def.condition].append(where_condition)
-                used_columns.append(column)
+                used_columns.append(column_id)
         # NB. req_params might/will not have entries for default params
         for column, param_def in self.__parameters.items():
             if column not in used_columns:
