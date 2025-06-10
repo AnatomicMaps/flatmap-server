@@ -29,6 +29,9 @@ sphinx = "^8.1"
 sphinx-rtd-theme = "^3.0.1"
 sphinxcontrib-httpdomain = "*"
 
+[tool.poetry.group.tests.dependencies]
+pytest = "^8.3.5"
+
 [tool.poetry.scripts]
 mapserver = 'mapserver.__main__:mapserver'
 mapviewer = 'mapserver.__main__:mapviewer'
