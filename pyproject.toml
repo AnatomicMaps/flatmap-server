@@ -25,18 +25,23 @@ dependencies = [
     "granian>=2.2.5",
 ]
 
-[tool.poetry.group.dev.dependencies]
-sphinx = "^8.1"
-sphinx-rtd-theme = "^3.0.1"
-sphinxcontrib-httpdomain = "*"
+[dependency-groups]
+dev = [
+    "sphinx<=8.1",
+    "sphinx-rtd-theme<=3.0.1",
+    "sphinxcontrib-httpdomain",
+]
 
-[tool.poetry.scripts]
+[project.scripts]
 mapserver = 'mapserver.__main__:mapserver'
 mapviewer = 'mapserver.__main__:mapviewer'
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.metadata]
+allow-direct-references = true
 
 [tool.pyright]
 pythonVersion = "3.12"
