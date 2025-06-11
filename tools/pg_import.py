@@ -103,11 +103,11 @@ def get_map_knowledge(map_uuid: str, competency_db: CompetencyDatabase) -> Knowl
             'id': path_id,
             'source': map_uuid,
             'label': annotations['label'],
-            'long-label': descriptions[path_id],
+            'long-label': descriptions.get(path_id, annotations['label']),
             'connectivity': path_knowledge['connectivity'],
             'taxons': annotations.get('taxons', []),
-            'forward-connections': path_knowledge['forward-connections'],
-            'node-phenotypes': path_knowledge['node-phenotypes'],
+            'forward-connections': path_knowledge.get('forward-connections', []),
+            'node-phenotypes': path_knowledge.get('node-phenotypes', {}),
             'nerves': path_knowledge.get('node-nerves', []),
             'phenotypes': path_phenotypes.get(path_id, []),
             'references': path_evidence.get(path_id, []),
@@ -126,7 +126,7 @@ def get_map_knowledge(map_uuid: str, competency_db: CompetencyDatabase) -> Knowl
                 'id': feature_id,
                 'source': map_uuid,
                 'label': properties['label'],
-                'long-label': descriptions[feature_id],
+                'long-label': descriptions.get(feature_id, properties['label']),
             }
             if properties.get('type') == 'nerve':
                 knowledge_terms[feature_id]['type'] = NERVE_TYPE
