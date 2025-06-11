@@ -262,7 +262,7 @@ class QueryDefinition:
                     negate = '!' if req_param.get('negate', False) else ''
                     where_condition = f'{column} {negate}= {sql_params.add_params([req_values])}'
                 elif not param_def.optional:
-                    raise ValueError(f'Required parameter must have a value: {column}')
+                    raise ValueError(f'Required parameter must have a value: {column_id}')
                 else:
                     negate = '!' if req_param.get('negate', False) else ''
                     where_condition = f'{column} {negate}= ({param_def.default_sql})'
@@ -272,7 +272,7 @@ class QueryDefinition:
         for column_id, param_def in self.__parameters.items():
             if column_id not in used_columns:
                 if not param_def.optional:
-                    raise ValueError(f'Required parameter must have a value: {column_id}')
+                    raise ValueError(f'Required parameter must have a value... {column_id}')
                 where_condition = f'{param_def.column} = ({param_def.default_sql})'
                 conditions[param_def.condition].append(where_condition)
         sql = self.__sql_defn.sql
