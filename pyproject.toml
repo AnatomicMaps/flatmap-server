@@ -30,6 +30,7 @@ dev = [
     "sphinx<=8.1",
     "sphinx-rtd-theme<=3.0.1",
     "sphinxcontrib-httpdomain",
+    "pytest>=8.4.0",
 ]
 
 [project.scripts]
