@@ -94,6 +94,7 @@ def get_map_knowledge(map_uuid: str, competency_db: CompetencyDatabase) -> Knowl
 
     # Path features (i.e. those with connectivity)
     pathways = json_map_metadata(map_uuid, 'pathways').get('paths', {})
+    nerve_terms = set()
     for path_id, path_knowledge in pathways.items():
         if 'connectivity' not in path_knowledge:
             continue
@@ -118,6 +119,7 @@ def get_map_knowledge(map_uuid: str, competency_db: CompetencyDatabase) -> Knowl
             knowledge_terms[path_id]['biologicalSex'] = properties['biologicalSex']
         if 'pathDisconnected' in properties:
             knowledge_terms[path_id]['pathDisconnected'] = properties['pathDisconnected']
+        nerve_terms.update(term for node in knowledge_terms[path_id]['nerves'] for term in [node[0]] + node[1])
 
     # Non-path features with an anatomical term
     for feature_id, properties in annotated_features.items():
@@ -128,7 +130,7 @@ def get_map_knowledge(map_uuid: str, competency_db: CompetencyDatabase) -> Knowl
                 'label': properties['label'],
                 'long-label': descriptions.get(feature_id, properties['label']),
             }
-            if properties.get('type') == 'nerve':
+            if properties.get('type') == 'nerve' or feature_id in nerve_terms:
                 knowledge_terms[feature_id]['type'] = NERVE_TYPE
 
     return KnowledgeList(KnowledgeSource(map_uuid, sckan_release, metadata['name']), list(knowledge_terms.values()))
