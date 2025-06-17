@@ -9,18 +9,18 @@ queries:
           source_id,
           path_id,
           forward_path_id,
-          path_id || ' > ' || forward_path_id AS connected_paths
+          ARRAY[path_id, forward_path_id] AS connected_paths
         FROM path_forward_connections
         UNION ALL
         SELECT
           pfc.source_id,
           pfc.path_id,
           pf.forward_path_id,
-          pfc.path_id || ' > ' || pf.connected_paths AS connected_paths
+          pfc.path_id || pf.connected_paths AS connected_paths
         FROM path_forward_connections pfc JOIN path_fc pf
           ON pfc.source_id = pf.source_id
           AND pfc.forward_path_id = pf.path_id
-        WHERE pf.connected_paths NOT LIKE '%' || pfc.forward_path_id || '%'
+        WHERE NOT pf.connected_paths @> ARRAY[pfc.forward_path_id]
         ),
         path_fc_nodes AS(
         SELECT
@@ -89,7 +89,7 @@ queries:
       type: string
     - key: connected_paths_0
       label: Location_0 neuron population path
-      type: string
+      type: list
     - key: path_start_1
       label: Location_1 neuron population start
       type: string
@@ -98,5 +98,5 @@ queries:
       type: string
     - key: connected_paths_1
       label: Location_1 neuron population path
-      type: string
+      type: list
 
