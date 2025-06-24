@@ -12,7 +12,7 @@ def test_sckan():
     assert_valid_query_response(
         response,
         expected_num_keys=4,
-        expected_num_values=409
+        expected_num_values=422
     )
 
 def test_human_male_map():
