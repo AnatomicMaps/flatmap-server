@@ -31,6 +31,7 @@ dev = [
     "sphinx-rtd-theme<=3.0.1",
     "sphinxcontrib-httpdomain",
     "pytest>=8.4.0",
+    "rich>=13.9.4",
 ]
 
 [project.scripts]
