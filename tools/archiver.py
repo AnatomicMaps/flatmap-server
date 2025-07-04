@@ -69,7 +69,7 @@ directory can subsequently be removed to free disk space (it is created as neces
 Flatmaps on the server are ordered by their **taxon**, **biological sex** and **creation time**,
 with the most recent maps kept and older ones archived. The number of maps for a particular
 taxon/biologicalSex that will be kept is set by the **--keep** option. This defaults to
-**{MIN_KEEP_GENERATIONS+1}**, and cannot be less than {MIN_KEEP_GENERATIONS}.
+**{MIN_KEEP_GENERATIONS+1}**, and cannot be less than **{MIN_KEEP_GENERATIONS}**.
 
 A summary of the flatmaps that would be archived is shown before asking the user to
 confirm their actual archive; the **--full** option will provide a detailed
@@ -347,7 +347,7 @@ def main():
     parser.add_argument('server', choices=list(SERVER_HOME_DIRECTORIES.keys()),
         help='The server containing flatmaps to be archived')
     parser.add_argument('--keep', type=int, default=MIN_KEEP_GENERATIONS+1,
-        help='The number of recent versions of a flatmap to retain')
+        help=f'The number of recent versions of a flatmap to retain; defaults to {MIN_KEEP_GENERATIONS+1}')
     parser.add_argument('--full', action='store_true', help='Show details of flatmaps that would be archived')
     parser.add_argument('--report', action='store_true', help="Only report details and don't archive flatmaps")
     parser.add_argument('--taxon', help="Only report details flatmaps with this taxon identifier")
