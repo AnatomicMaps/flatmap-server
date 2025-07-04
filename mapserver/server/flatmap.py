@@ -38,9 +38,10 @@ from PIL import Image
 
 from ..knowledge.hierarchy import AnatomicalHierarchy
 from ..settings import settings
-from ..utils import get_metadata, json_metadata, json_map_metadata
+from ..utils import get_metadata, json_map_metadata
 
 from .knowledge import query_knowledge
+from .utils import get_flatmap_list
 
 #===============================================================================
 """
@@ -105,72 +106,13 @@ async def flatmap_maps(request: Request) -> list:
     :>jsonarr string created: when the map was generated
     :>jsonarr string describes: the map's description
     """
-    flatmap_list = []
-    root_path = pathlib.Path(settings['FLATMAP_ROOT'])
-    if root_path.is_dir():
-        for flatmap_dir in root_path.iterdir():
-            index = pathlib.Path(settings['FLATMAP_ROOT']) / flatmap_dir / 'index.json'
-            mbtiles = pathlib.Path(settings['FLATMAP_ROOT']) / flatmap_dir / 'index.mbtiles'
-            map_making = pathlib.Path(settings['FLATMAP_ROOT']) / flatmap_dir / MAKER_SENTINEL
-            if (flatmap_dir.is_dir() and not map_making.exists()
-            and index.exists() and mbtiles.exists()):
-                with open(index) as fp:
-                    index = json.loads(fp.read())
-                version = index.get('version', 1.0)
-                reader = MBTilesReader(mbtiles)
-                if version >= 1.3:
-                    metadata: dict[str, Any] = json_metadata(reader, 'metadata')
-                    if (('id' not in metadata or flatmap_dir.name != metadata['id'])
-                     and ('uuid' not in metadata or flatmap_dir.name != metadata['uuid'].split(':')[-1])):
-                        request.logger.error(f'Flatmap id mismatch: {flatmap_dir}')
-                        continue
-                    flatmap = {
-                        'id': metadata['id'],
-                        'source': metadata['source'],
-                        'version': version
-                    }
-                    if 'uuid' in metadata:
-                        flatmap['uuid'] = metadata['uuid']
-                        id = metadata['uuid']
-                    else:
-                        id = metadata['id']
-                    flatmap['uri'] = f'{request.base_url}{FLATMAP_PATH_PREFIX}/{id}/'
-                    if 'created' in metadata:
-                        flatmap['created'] = metadata['created']
-                        flatmap['creator'] = metadata['creator']
-                    if 'git-status' in metadata:
-                        flatmap['git-status'] = metadata['git-status']
-                    if 'taxon' in metadata:
-                        flatmap['taxon'] = metadata['taxon']
-                        flatmap['describes'] = metadata['describes'] if 'describes' in metadata else flatmap['taxon']
-                    elif 'describes' in metadata:
-                        flatmap['taxon'] = metadata['describes']
-                        flatmap['describes'] = flatmap['taxon']
-                    if 'biological-sex' in metadata:
-                        flatmap['biologicalSex'] = metadata['biological-sex']
-                    if 'name' in metadata:
-                        flatmap['name'] = metadata['name']
-                    if 'connectivity' in metadata:
-                        flatmap['sckan'] = metadata['connectivity']
-                else:
-                    source_row = None
-                    try:
-                        source_row = get_metadata(reader, 'source')
-                    except (InvalidFormatError, sqlite3.OperationalError):
-                        raise exceptions.NotFoundException(detail=f'Cannot read tile database: {mbtiles}')
-                    if source_row is None:
-                        continue
-                    flatmap = {
-                        'id': flatmap_dir.name,
-                        'source': source_row[0]
-                    }
-                    created = get_metadata(reader, 'created')
-                    if created is not None:
-                        flatmap['created'] = created[0]
-                    describes = get_metadata(reader, 'describes')
-                    if describes is not None and describes[0]:
-                        flatmap['describes'] = describes[0]
-                flatmap_list.append(flatmap)
+    flatmap_list = get_flatmap_list()
+    for flatmap in flatmap_list:
+        if 'error' in flatmap:
+            request.logger.error(flatmap['error'])
+        else:
+            id = flatmap.get('uuid', flatmap['id'])
+            flatmap['uri'] = f'{request.base_url}{FLATMAP_PATH_PREFIX}/{id}/'
     return flatmap_list
 
 #===============================================================================
