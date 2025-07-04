@@ -44,11 +44,6 @@ from .knowledge import query_knowledge
 from .utils import get_flatmap_list
 
 #===============================================================================
-"""
-If a file with this name exists in the map's output directory then the map
-is in the process of being made
-"""
-MAKER_SENTINEL = '.map_making'
 
 """
 The name of the log file from when the map was made

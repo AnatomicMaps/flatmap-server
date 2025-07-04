@@ -44,9 +44,18 @@ import mapmaker.utils as utils
 
 #===============================================================================
 
+"""
+If a file with this name exists in the map's output directory then the map
+is in the process of being made
+"""
+MAKER_SENTINEL = '.map_making'
+
+#===============================================================================
+
 MAKER_RESULT_KEYS = ['id', 'models', 'uuid']
 
 #===============================================================================
+
 @dataclass
 class MakerData:
     source: str
