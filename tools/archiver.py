@@ -28,6 +28,7 @@ from typing import Any, Callable, Optional
 
 from rich import box, print
 from rich.logging import RichHandler
+from rich.markdown import Markdown
 from rich.prompt import Confirm
 from rich.table import Table
 from rich.text import Text
@@ -59,6 +60,25 @@ SERVER_HOME_DIRECTORIES = {
 }
 
 #===============================================================================
+
+explanation = f"""
+Flatmaps are archived by moving them from the server's **flatmap** directory
+(`./{FLATMAP_DIRECTORY}`) to an **archive** directory, `./{ARCHIVE_DIRECTORY}`; this archive
+directory can subsequently be removed to free disk space (it is created as necessary).
+
+Flatmaps on the server are ordered by their **taxon**, **biological sex** and **creation time**,
+with the most recent maps kept and older ones archived. The number of maps for a particular
+taxon/biologicalSex that will be kept is set by the **--keep** option. This defaults to
+**{MIN_KEEP_GENERATIONS+1}**, and cannot be less than {MIN_KEEP_GENERATIONS}.
+
+A summary of the flatmaps that would be archived is shown before asking the user to
+confirm their actual archive; the **--full** option will provide a detailed
+report.
+
+This utility will not archive flatmaps on the **{PRODUCTION}** server as the intent
+is that maps persist once they are published.
+"""
+
 
 def flatmaps_in_directory(directory: Path, taxon: Optional[str]=None) -> list[dict]:
 #===================================================================================
@@ -293,12 +313,12 @@ def archive(args):
         exit(0)
 
     if args.server == PRODUCTION:
-        log.info(f'Cannot archive {PRODUCTION} flatmaps, exiting.')
+        log.info(f'Cannot archive [b]{PRODUCTION}[/b] flatmaps, exiting.')
         exit(0)
 
     archive = args.archive
     if not archive:
-        archive = Confirm.ask(f"Archive the above flatmaps, keeping {args.keep} versions?", default=False)
+        archive = Confirm.ask(f"Archive the above flatmaps on [b]{args.server}[/b], keeping [b]{args.keep}[/b] versions?", default=False)
     if archive:
         archiver.archive_maps()
 
@@ -318,8 +338,11 @@ logging.basicConfig(
 def main():
 #==========
     import argparse
+    from rich_argparse import RichHelpFormatter
 
-    parser = argparse.ArgumentParser(description='Report on and archive maps on a flatmap server.')
+    parser = argparse.ArgumentParser(formatter_class=RichHelpFormatter,
+        description='Report on and archive maps on a flatmap server.',
+        epilog=Markdown(explanation, style='argparse.text'))            # type: ignore
 
     parser.add_argument('server', choices=list(SERVER_HOME_DIRECTORIES.keys()),
         help='The server containing flatmaps to be archived')
