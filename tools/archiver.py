@@ -73,7 +73,8 @@ taxon/biologicalSex that will be kept is set by the **--keep** option. This defa
 
 A summary of the flatmaps that would be archived is shown before asking the user to
 confirm their actual archive; the **--full** option will provide a detailed
-report.
+report; **--all** will report on all maps, with those that would be archived indicated
+with a **\\*** in the left hand column of the report.
 
 This utility will not archive flatmaps on the **{PRODUCTION}** server as the intent
 is that maps persist once they are published.
@@ -141,7 +142,6 @@ class PrintColumn:
     map: Optional[Callable[[Any], str|Text]] = None
 
 FULL_REPORT: list[PrintColumn] = [
-#    PrintColumn('', 'archive', {}, lambda archive: '*' if archive else ''),
     PrintColumn('Taxon', 'taxon'),
     PrintColumn('Biological Sex', 'biologicalSex'),
     PrintColumn('Created', 'created'),
@@ -149,6 +149,8 @@ FULL_REPORT: list[PrintColumn] = [
     PrintColumn('Directory', 'relative_path'),
     PrintColumn('Size', 'size', {'justify': 'right'}, formatted_size),
 ]
+
+ARCHIVE_COLUMN = PrintColumn('', 'archive', {}, lambda archive: '*' if archive else '')
 
 SUMMARY_REPORT: list[PrintColumn] = [
     PrintColumn('Taxon', 'taxon'),
@@ -160,9 +162,12 @@ SUMMARY_REPORT: list[PrintColumn] = [
 #===============================================================================
 
 class FlatmapReport:
-    def __init__(self, full_report=False):
-        self.__columns = FULL_REPORT if full_report else SUMMARY_REPORT
-        self.__full_report = full_report
+    def __init__(self, full_report=False, all_maps=False):
+        self.__full_report = full_report or all_maps
+        self.__all_maps = all_maps
+        self.__columns = FULL_REPORT if self.__full_report else SUMMARY_REPORT
+        if all_maps:
+            self.__columns.insert(0, ARCHIVE_COLUMN)
 
     def __get_print_row(self, flatmap: dict) -> list[str|Text]:
     #==========================================================
@@ -192,14 +197,14 @@ class FlatmapReport:
         taxon_total = 0
         last_map_taxon_sex = None
         for flatmap in flatmaps:
-            if not flatmap.get('archive', False):
+            if not flatmap.get('archive', False) and not self.__all_maps:
                 continue
             map_taxon_sex = (flatmap.get('taxon', ''), flatmap.get('biologicalSex', ''))
             if last_map_taxon_sex != map_taxon_sex:
                 if last_map_taxon_sex is not None:
                     if self.__full_report:
                         output.add_row(*self.__get_print_row({
-                            'relative_path': Text('TOTAL:', 'bold'),
+                            'relative_path': Text(f'{map_count(taxon_maps)}, total size:', 'bold'),
                             'size': taxon_total}), style='bold')
                     else:
                         output.add_row(*self.__get_print_row({
@@ -218,7 +223,7 @@ class FlatmapReport:
         if last_map_taxon_sex is not None:
             if self.__full_report:
                 output.add_row(*self.__get_print_row({
-                    'relative_path': Text('TOTAL:', 'bold'),
+                    'relative_path': Text(f'{map_count(taxon_maps)}, total size:', 'bold'),
                     'size': taxon_total}), style='bold')
                 output.add_row('')
             else:
@@ -302,7 +307,7 @@ def archive(args):
     archiver = Archiver(args.server, keep_generations=args.keep, taxon=args.taxon)
     flatmaps = archiver.flatmaps
 
-    report = FlatmapReport(full_report=args.full)
+    report = FlatmapReport(full_report=args.full, all_maps=args.all)
     report.print_report(flatmaps)
     if args.report:
         return
@@ -349,6 +354,7 @@ def main():
     parser.add_argument('--keep', type=int, default=MIN_KEEP_GENERATIONS+1,
         help=f'The number of recent versions of a flatmap to retain; defaults to {MIN_KEEP_GENERATIONS+1}')
     parser.add_argument('--full', action='store_true', help='Show details of flatmaps that would be archived')
+    parser.add_argument('--all', action='store_true', help='Show details of all flatmaps, not only those that would be archived')
     parser.add_argument('--report', action='store_true', help="Only report details and don't archive flatmaps")
     parser.add_argument('--taxon', help="Only report details flatmaps with this taxon identifier")
     parser.add_argument('--archive', action='store_true', help='Archive flatmaps without confirmation')
