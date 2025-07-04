@@ -315,9 +315,9 @@ def main():
 #==========
     import argparse
 
-    parser = argparse.ArgumentParser(description='Report on and archive maps on a flatmap server')
+    parser = argparse.ArgumentParser(description='Report on and archive maps on a flatmap server.')
 
-    parser.add_argument('server', metavar='SERVER', choices=list(SERVER_HOME_DIRECTORIES.keys()),
+    parser.add_argument('server', choices=list(SERVER_HOME_DIRECTORIES.keys()),
         help='The server containing flatmaps to be archived')
     parser.add_argument('--keep', type=int, default=MIN_KEEP_GENERATIONS+1,
         help='The number of recent versions of a flatmap to retain')
