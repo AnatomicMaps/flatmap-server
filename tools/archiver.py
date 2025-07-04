@@ -292,6 +292,10 @@ def archive(args):
         log.info('No flatmaps to archive, exiting.')
         exit(0)
 
+    if args.server == PRODUCTION:
+        log.info(f'Cannot archive {PRODUCTION} flatmaps, exiting.')
+        exit(0)
+
     archive = args.archive
     if not archive:
         archive = Confirm.ask(f"Archive the above flatmaps, keeping {args.keep} versions?", default=False)
