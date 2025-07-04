@@ -37,6 +37,7 @@ dev = [
 [project.scripts]
 mapserver = 'mapserver.__main__:mapserver'
 mapviewer = 'mapserver.__main__:mapviewer'
+archiver = "tools.archiver:main"
 
 [build-system]
 requires = ["hatchling"]
