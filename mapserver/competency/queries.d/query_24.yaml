@@ -51,6 +51,7 @@ queries:
       column: pws.source_id
       label: Knowledge source
       type: string
+      multiple: true
       default_msg: the latest source is used
       default_sql: >
         select source_id from knowledge_sources where source_id like 'sckan%'
