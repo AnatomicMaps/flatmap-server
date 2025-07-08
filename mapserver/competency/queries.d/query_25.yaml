@@ -1,0 +1,66 @@
+queries:
+  - id: 25
+    label: Neuron populations that have source, via, and destination locations
+    sql: >
+      WITH
+        path_with_source AS (
+          SELECT source_id, path_id, node_id AS source_node_id, feature_id AS source_feature_id
+        FROM path_node_types NATURAL JOIN path_node_features
+        WHERE type_id = 'ilxtr:hasSomaLocatedIn'
+        ),
+        path_with_destination AS (
+        SELECT source_id, path_id, node_id AS dest_node_id, feature_id AS dest_feature_id
+        FROM path_node_types NATURAL JOIN path_node_features
+        WHERE type_id IN ('ilxtr:hasAxonPresynapticElementIn', 'ilxtr:hasAxonSensorySubcellularElementIn')
+        ),
+        path_with_via AS (
+        SELECT source_id, path_id, node_id AS via_node_id, feature_id AS via_feature_id
+        FROM path_node_types NATURAL JOIN path_node_features
+        WHERE type_id IN ('ilxtr:hasAxonLeadingToSensorySubcellularElementIn', 'ilxtr:hasAxonLocatedIn')
+        )
+
+      SELECT DISTINCT pws.source_id, pws.path_id
+      FROM path_with_source pws NATURAL JOIN path_with_destination pwd NATURAL JOIN path_with_via pwv
+      WHERE %CONDITIONS%
+    parameters:
+    - id: source_feature_id
+      column: pws.source_feature_id
+      label: Anatomical terms for source locations
+      type: string
+      multiple: true
+      default_msg: An empty string is used for the source location. To include all locations, set the 'negate' attribute to True.
+      default_sql: >
+        select ''
+    - id: via_feature_id
+      column: pwv.via_feature_id
+      label: Anatomical terms for via locations
+      type: string
+      multiple: true
+      default_msg: An empty string is used for the via location. To include all locations, set the 'negate' attribute to True.
+      default_sql: >
+        select ''
+    - id: dest_feature_id
+      column: pwd.dest_feature_id
+      label: Anatomical terms for destination locations
+      type: string
+      multiple: true
+      default_msg: An empty string is used for the destination location. To include all locations, set the 'negate' attribute to True.
+      default_sql: >
+        select ''
+    - id: source_id
+      column: pws.source_id
+      label: Knowledge source
+      type: string
+      multiple: true
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: path_id
+      label: Neuron population
+      type: string
