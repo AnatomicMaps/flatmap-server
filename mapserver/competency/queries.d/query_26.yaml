@@ -1,0 +1,92 @@
+queries:
+  - id: 26
+    label: Neuron populations as forward or backward connections of a neuron population
+    sql: >
+      WITH RECURSIVE forward_pos AS (
+          SELECT
+              source_id,
+              path_id as base_path_id,
+              path_id,
+              forward_path_id,
+              ARRAY[path_id, forward_path_id] AS visited,
+              1 AS distance
+            FROM path_forward_connections
+            WHERE %CONDITIONS%
+          UNION ALL
+          SELECT
+              pf.source_id,
+              base_path_id,
+              pf.path_id,
+              pf.forward_path_id,
+              visited || pf.forward_path_id,
+              p.distance + 1
+            FROM forward_pos p
+            JOIN path_forward_connections pf
+              ON p.source_id = pf.source_id
+            AND p.forward_path_id = pf.path_id
+            WHERE NOT pf.forward_path_id = ANY(p.visited)
+        ),
+        path_backward_connections AS (
+          SELECT
+            source_id,
+            path_id AS backward_path_id,
+            forward_path_id AS path_id
+          FROM path_forward_connections
+        ),
+        backward_pos AS (
+          SELECT
+              source_id,
+              path_id AS base_path_id,
+              path_id,
+              backward_path_id,
+              ARRAY[backward_path_id, path_id] AS visited,
+              -1 AS distance
+            FROM path_backward_connections
+            WHERE %CONDITIONS%
+          UNION ALL
+          SELECT
+              pf.source_id,
+              base_path_id,
+              pf.path_id,
+              pf.backward_path_id,
+              pf.backward_path_id || visited,
+              p.distance - 1
+            FROM backward_pos p
+            JOIN path_backward_connections pf
+              ON p.source_id = pf.source_id
+            AND p.backward_path_id = pf.path_id
+            WHERE NOT pf.backward_path_id = ANY(p.visited)
+        )
+
+        SELECT source_id, base_path_id, forward_path_id as dest_path_id, distance FROM forward_pos
+        UNION
+        SELECT source_id, base_path_id, backward_path_id, distance FROM backward_pos
+    parameters:
+    - id: path_id
+      column: path_id
+      label: Neuron population
+      type: string
+      multiple: true
+    - id: source_id
+      column: source_id
+      label: Knowledge source
+      type: string
+      multiple: true
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: base_path_id
+      label: Neuron population as the base
+      type: string
+    - key: dest_path_id
+      label: Neuron population as destination
+      type: string
+    - key: distance
+      label: Neuron population
+      type: number
