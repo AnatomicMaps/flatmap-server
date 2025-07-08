@@ -8,12 +8,24 @@ base_query = {
     ]
 }
 
-expected_path_ids = [
+base_query_expected_path_ids = [
     'ilxtr:neuron-type-sstom-1',
     'ilxtr:neuron-type-sstom-2',
     'ilxtr:neuron-type-sstom-3',
-    'ilxtr:neuron-type-sstom-4',
+    'ilxtr:neuron-type-sstom-5'
+]
+
+backward_query = {
+    'query_id': '26',
+    'parameters': [
+        {'column': 'path_id','value': 'ilxtr:neuron-type-sstom-12'}
+    ]
+}
+
+backward_query_expected_path_ids = [
+    'ilxtr:neuron-type-sstom-6',
     'ilxtr:neuron-type-sstom-5',
+    'ilxtr:neuron-type-sstom-8'
 ]
 
 def test_sckan():
@@ -22,8 +34,17 @@ def test_sckan():
     assert_valid_query_response(
         response,
         expected_num_keys=4,
-        expected_num_values=5,
-        expected_column_values={'dest_path_id': expected_path_ids}
+        expected_num_values=4,
+        expected_column_values={'dest_path_id': base_query_expected_path_ids}
+    )
+
+    query = {**backward_query, 'parameters': backward_query['parameters'] + [{'column': 'source_id', 'value': SCKAN_VERSION}]}
+    response = cq_request(query)
+    assert_valid_query_response(
+        response,
+        expected_num_keys=4,
+        expected_num_values=3,
+        expected_column_values={'dest_path_id': backward_query_expected_path_ids}
     )
 
 def test_human_male_map():
@@ -32,8 +53,17 @@ def test_human_male_map():
     assert_valid_query_response(
         response,
         expected_num_keys=4,
-        expected_num_values=5,
-        expected_column_values={'dest_path_id': expected_path_ids}
+        expected_num_values=4,
+        expected_column_values={'dest_path_id': base_query_expected_path_ids}
+    )
+
+    query = {**backward_query, 'parameters': backward_query['parameters'] + [{'column': 'source_id', 'value': MALE_UUID}]}
+    response = cq_request(query)
+    assert_valid_query_response(
+        response,
+        expected_num_keys=4,
+        expected_num_values=3,
+        expected_column_values={'dest_path_id': backward_query_expected_path_ids}
     )
 
 def test_human_female_map():
@@ -42,8 +72,17 @@ def test_human_female_map():
     assert_valid_query_response(
         response,
         expected_num_keys=4,
-        expected_num_values=5,
-        expected_column_values={'dest_path_id': expected_path_ids}
+        expected_num_values=4,
+        expected_column_values={'dest_path_id': base_query_expected_path_ids}
+    )
+
+    query = {**backward_query, 'parameters': backward_query['parameters'] + [{'column': 'source_id', 'value': FEMALE_UUID}]}
+    response = cq_request(query)
+    assert_valid_query_response(
+        response,
+        expected_num_keys=4,
+        expected_num_values=3,
+        expected_column_values={'dest_path_id': backward_query_expected_path_ids}
     )
 
 def test_human_rat_map():
@@ -52,6 +91,15 @@ def test_human_rat_map():
     assert_valid_query_response(
         response,
         expected_num_keys=4,
-        expected_num_values=5,
-        expected_column_values={'dest_path_id': expected_path_ids}
+        expected_num_values=4,
+        expected_column_values={'dest_path_id': base_query_expected_path_ids}
+    )
+
+    query = {**backward_query, 'parameters': backward_query['parameters'] + [{'column': 'source_id', 'value': RAT_UUID}]}
+    response = cq_request(query)
+    assert_valid_query_response(
+        response,
+        expected_num_keys=4,
+        expected_num_values=3,
+        expected_column_values={'dest_path_id': backward_query_expected_path_ids}
     )
