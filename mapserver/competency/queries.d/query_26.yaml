@@ -2,53 +2,65 @@ queries:
   - id: 26
     label: Neuron populations as forward or backward connections of a neuron population
     sql: >
-      WITH RECURSIVE pos AS (
+      WITH RECURSIVE forward_pos AS (
           SELECT
               source_id,
-          path_id as base_path_id,
+              path_id as base_path_id,
               path_id,
               forward_path_id,
               ARRAY[path_id, forward_path_id] AS visited,
-          1 AS distance
-          FROM path_forward_connections
-          WHERE %CONDITIONS%
-        ),
-        forward_pos AS (
-        SELECT * FROM pos
+              1 AS distance
+            FROM path_forward_connections
+            WHERE %CONDITIONS%
           UNION ALL
           SELECT
               pf.source_id,
-          base_path_id,
+              base_path_id,
               pf.path_id,
               pf.forward_path_id,
               visited || pf.forward_path_id,
-          p.distance + 1
-          FROM forward_pos p
-          JOIN path_forward_connections pf
-            ON p.source_id = pf.source_id
-          AND p.forward_path_id = pf.path_id
-          WHERE NOT pf.forward_path_id = ANY(p.visited)
+              p.distance + 1
+            FROM forward_pos p
+            JOIN path_forward_connections pf
+              ON p.source_id = pf.source_id
+            AND p.forward_path_id = pf.path_id
+            WHERE NOT pf.forward_path_id = ANY(p.visited)
+        ),
+        path_backward_connections AS (
+          SELECT
+            source_id,
+            path_id AS backward_path_id,
+            forward_path_id AS path_id
+          FROM path_forward_connections
         ),
         backward_pos AS (
-          SELECT * FROM pos
+          SELECT
+              source_id,
+              path_id AS base_path_id,
+              path_id,
+              backward_path_id,
+              ARRAY[backward_path_id, path_id] AS visited,
+              -1 AS distance
+            FROM path_backward_connections
+            WHERE %CONDITIONS%
           UNION ALL
-        SELECT
+          SELECT
               pf.source_id,
-          base_path_id,
+              base_path_id,
               pf.path_id,
-              pf.forward_path_id,
-              pf.path_id || visited,
-          p.distance + 1
-          FROM pos p
-          JOIN path_forward_connections pf
-            ON p.source_id = pf.source_id
-          AND p.path_id = pf.forward_path_id
-          WHERE NOT pf.path_id = ANY(p.visited)
+              pf.backward_path_id,
+              pf.backward_path_id || visited,
+              p.distance - 1
+            FROM backward_pos p
+            JOIN path_backward_connections pf
+              ON p.source_id = pf.source_id
+            AND p.backward_path_id = pf.path_id
+            WHERE NOT pf.backward_path_id = ANY(p.visited)
         )
 
-      SELECT source_id, base_path_id, forward_path_id as dest_path_id, distance FROM forward_pos
-      UNION
-      SELECT source_id, base_path_id, path_id, (distance-1) * -1 FROM backward_pos
+        SELECT source_id, base_path_id, forward_path_id as dest_path_id, distance FROM forward_pos
+        UNION
+        SELECT source_id, base_path_id, backward_path_id, distance FROM backward_pos
     parameters:
     - id: path_id
       column: path_id
