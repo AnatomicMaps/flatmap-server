@@ -4,15 +4,21 @@ queries:
     sql: >
       SELECT DISTINCT fnerve.source_id, fnerve.feature_id AS nerve_id, ft.label
       FROM path_edges pe
-      JOIN path_node_types tnerve ON pe.source_id = tnerve.source_id AND pe.path_id
-      = tnerve.path_id  AND pe.node_0 = tnerve.node_id
-      JOIN path_node_features fnerve ON pe.source_id = fnerve.source_id AND pe.path_id
-      = fnerve.path_id AND pe.node_0 = fnerve.node_id
-      JOIN path_node_features fdest ON pe.source_id = fdest.source_id AND pe.path_id
-      = fdest.path_id AND pe.node_1 = fdest.node_id
-      JOIN feature_terms ft ON fnerve.source_id = ft.source_id AND fnerve.feature_id
-      = ft.term_id
-      WHERE tnerve.type_id = 'UBERON:0001021'
+      JOIN path_node_features fnerve
+        ON pe.source_id = fnerve.source_id
+        AND pe.path_id = fnerve.path_id
+        AND pe.node_0 = fnerve.node_id
+      JOIN path_node_features fdest
+        ON pe.source_id = fdest.source_id
+        AND pe.path_id = fdest.path_id
+        AND pe.node_1 = fdest.node_id
+      JOIN feature_terms ft
+        ON fnerve.source_id = ft.source_id
+        AND fnerve.feature_id = ft.term_id
+      JOIN feature_types ftypes
+        ON fnerve.source_id = ftypes.source_id
+        AND fnerve.feature_id = ftypes.term_id
+      WHERE ftypes.type_id = 'UBERON:0001021'
         AND %CONDITIONS%
     parameters:
     - id: feature_id

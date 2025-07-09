@@ -2,19 +2,24 @@ queries:
   - id: 22
     label: Neuron populations that share at least one nerve with another neuron population
     sql: >
-      SELECT DISTINCT pnt_1.source_id, pnt_1.path_id
-      FROM path_node_types pnt_0  JOIN path_node_types pnt_1 ON pnt_0.source_id = pnt_1.source_id
-      AND pnt_0.node_id = pnt_1.node_id
-      WHERE pnt_0.type_id = 'UBERON:0001021'
-        AND pnt_0.path_id <> pnt_1.path_id
+      SELECT DISTINCT pnf_1.source_id, pnf_1.path_id
+      FROM path_node_features pnf_0
+      JOIN feature_types ft_0
+        ON pnf_0.source_id = ft_0.source_id
+      AND pnf_0.feature_id = ft_0.term_id
+      JOIN path_node_features pnf_1
+        ON pnf_0.source_id = pnf_1.source_id
+      AND pnf_0.node_id = pnf_1.node_id
+      WHERE ft_0.type_id = 'UBERON:0001021'
+      AND pnf_0.path_id <> pnf_1.path_id
         AND %CONDITIONS%
     parameters:
     - id: path_id
-      column: pnt_0.path_id
+      column: pnf_0.path_id
       label: Neuron population
       type: string
     - id: source_id
-      column: pnt_0.source_id
+      column: pnf_0.source_id
       label: Knowledge source
       type: string
       default_msg: the latest source is used
