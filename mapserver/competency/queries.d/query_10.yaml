@@ -60,7 +60,7 @@ queries:
             (SELECT path_id FROM path_fc UNION SELECT forward_path_id FROM path_fc)
       )
 
-      SELECT DISTINCT pfc_0.node_id, pfc_0.source_id, pfc_0.feature_id AS nerve_id, ft.label
+      SELECT DISTINCT pfc_0.source_id, pfc_0.feature_id AS nerve_id, ft.label
       FROM path_fc_connected pfc_0
       JOIN path_fc_connected pfc_1
         ON pfc_0.connected_paths = pfc_1.connected_paths
