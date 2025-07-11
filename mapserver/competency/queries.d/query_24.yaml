@@ -3,55 +3,90 @@ queries:
     label: Neuron populations that have source, via, and destination nodes
     sql: >
       WITH
+        dummy_node (source_node_id, via_node_id, dest_node_id) AS (
+          VALUES ('', '', '')
+        ),
         path_with_source AS (
           SELECT source_id, path_id, node_id AS source_node_id
-        FROM path_node_types
-        WHERE type_id = 'ilxtr:hasSomaLocatedIn'
+          FROM path_node_types
+          WHERE type_id = 'ilxtr:hasSomaLocatedIn'
         ),
         path_with_destination AS (
-        SELECT source_id, path_id, node_id AS dest_node_id
-        FROM path_node_types
-        WHERE type_id IN ('ilxtr:hasAxonPresynapticElementIn', 'ilxtr:hasAxonSensorySubcellularElementIn')
+          SELECT source_id, path_id, node_id AS dest_node_id
+          FROM path_node_types
+          WHERE type_id IN ('ilxtr:hasAxonPresynapticElementIn', 'ilxtr:hasAxonSensorySubcellularElementIn')
         ),
         path_with_via AS (
-        SELECT source_id, path_id, node_id AS via_node_id
-        FROM path_node_types
-        WHERE type_id IN ('ilxtr:hasAxonLeadingToSensorySubcellularElementIn', 'ilxtr:hasAxonLocatedIn')
+          SELECT source_id, path_id, node_id AS via_node_id
+          FROM path_node_types
+          WHERE type_id IN ('ilxtr:hasAxonLeadingToSensorySubcellularElementIn', 'ilxtr:hasAxonLocatedIn')
         )
 
-      SELECT DISTINCT pws.source_id, pws.path_id
-      FROM path_with_source pws NATURAL JOIN path_with_destination pwd NATURAL JOIN path_with_via pwv
-      WHERE %CONDITIONS%
+      SELECT DISTINCT source_id, path_id
+        FROM (
+          SELECT source_id, path_id FROM path_with_source
+          WHERE NOT EXISTS (SELECT 1 FROM dummy_node WHERE %CONDITION_1%)
+            AND %CONDITION_1%
+            AND %CONDITION_0%
+          UNION ALL
+          SELECT source_id, path_id FROM path_nodes
+          WHERE EXISTS (SELECT 1 FROM dummy_node WHERE %CONDITION_1%)
+            AND %CONDITION_0%
+        ) s
+        NATURAL JOIN (
+          SELECT source_id, path_id FROM path_with_via
+          WHERE NOT EXISTS (SELECT 1 FROM dummy_node WHERE %CONDITION_2%)
+            AND %CONDITION_2%
+            AND %CONDITION_0%
+          UNION ALL
+          SELECT source_id, path_id FROM path_nodes
+          WHERE EXISTS (SELECT 1 FROM dummy_node WHERE %CONDITION_2%)
+            AND %CONDITION_0%
+        ) v
+        NATURAL JOIN (
+          SELECT source_id, path_id FROM path_with_destination
+          WHERE NOT EXISTS (SELECT 1 FROM dummy_node WHERE %CONDITION_3%)
+            AND %CONDITION_3%
+            AND %CONDITION_0%
+          UNION ALL
+          SELECT source_id, path_id FROM path_nodes
+          WHERE EXISTS (SELECT 1 FROM dummy_node WHERE %CONDITION_3%)
+            AND %CONDITION_0%
+        ) d
     parameters:
     - id: source_node_id
-      column: pws.source_node_id
+      column: source_node_id
       label: Anatomical nodes as sources
       type: string
       multiple: true
-      default_msg: An empty string is used for the source node. To include all nodes, set the 'negate' attribute to True.
+      condition: CONDITION_1
+      default_msg: An empty string is used for the source node and this will include all nodes.
       default_sql: >
         select ''
     - id: via_node_id
-      column: pwv.via_node_id
+      column: via_node_id
       label: Anatomical nodes as vias
       type: string
       multiple: true
-      default_msg: An empty string is used for the via node. To include all nodes, set the 'negate' attribute to True.
+      condition: CONDITION_2
+      default_msg: An empty string is used for the via node and this will include all nodes.
       default_sql: >
         select ''
     - id: dest_node_id
-      column: pwd.dest_node_id
+      column: dest_node_id
       label: Anatomical nodes as destinations
       type: string
       multiple: true
-      default_msg: An empty string is used for the destination node. To include all nodes, set the 'negate' attribute to True.
+      condition: CONDITION_3
+      default_msg: An empty string is used for the destination node and this will include all nodes.
       default_sql: >
         select ''
     - id: source_id
-      column: pws.source_id
+      column: source_id
       label: Knowledge source
       type: string
       multiple: true
+      condition: CONDITION_0
       default_msg: the latest source is used
       default_sql: >
         select source_id from knowledge_sources where source_id like 'sckan%'
