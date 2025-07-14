@@ -33,6 +33,7 @@ from litestar import exceptions, Litestar, Request
 from .definition import load_query_definitions
 from .definition import QueryDefinitionDict, QueryDefinitionSummary, QueryRequest
 from .definition import QueryError, QueryResults
+from .knowledge import CompetencyKnowledge
 
 #===============================================================================
 

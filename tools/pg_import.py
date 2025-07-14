@@ -18,19 +18,15 @@
 #
 #===============================================================================
 
-from collections import defaultdict
 import logging
 import os
 
 #===============================================================================
 
-import psycopg as pg
-
-#===============================================================================
-
 from mapknowledge import NERVE_TYPE
-from mapknowledge.competency import clean_knowledge_source, CompetencyDatabase
+from mapknowledge.competency import clean_knowledge_source
 from mapknowledge.competency import KnowledgeList, KnowledgeSource
+from mapserver.competency import CompetencyKnowledge
 from mapserver.settings import settings
 from mapserver.utils import json_map_metadata
 
@@ -51,8 +47,8 @@ settings['FLATMAP_ROOT'] = os.environ.get('FLATMAP_ROOT', './flatmaps')
 
 #===============================================================================
 
-def get_map_knowledge(map_uuid: str, competency_db: CompetencyDatabase) -> KnowledgeList:
-#========================================================================================
+def get_map_knowledge(map_uuid: str, competency_db: CompetencyKnowledge) -> KnowledgeList:
+#=========================================================================================
     metadata = json_map_metadata(map_uuid, 'metadata')
     if map_uuid != metadata.get('uuid'):
         raise IOError("Flatmap source UUID doesn't match the provided UUID.")
@@ -64,30 +60,11 @@ def get_map_knowledge(map_uuid: str, competency_db: CompetencyDatabase) -> Knowl
     annotated_features = { models: feature
                             for feature in annotations.values()
                                 if (models := feature.get('models')) is not None }
-    descriptions = { row[0]: row[1]
-                        for row in competency_db.execute(
-                            'select term_id, description from feature_terms where source_id=%s', (map_knowledge_source,)) }
-    path_properties = {}
-    for row in competency_db.execute(
-            'select path_id, alert, biological_sex, disconnected from path_properties where source_id=%s', (map_knowledge_source,)):
-        properties = {}
-        if row[1] is not None:
-            properties['alert'] = row[1]
-        if row[2] is not None:
-            properties['biologicalSex'] = row[2]
-        if row[3] is not None:
-            properties['pathDisconnected'] = row[3]
-        path_properties[row[0]] = properties
 
-    path_evidence = defaultdict(list)
-    for row in competency_db.execute(
-            'select term_id, evidence_id from feature_evidence where source_id=%s', (map_knowledge_source,)):
-        path_evidence[row[0]].append(row[1])
-
-    path_phenotypes = defaultdict(list)
-    for row in competency_db.execute(
-            'select path_id, phenotype from path_phenotypes where source_id=%s', (map_knowledge_source,)):
-        path_phenotypes[row[0]].append(row[1])
+    descriptions = competency_db.term_descriptions(map_knowledge_source)
+    path_properties = competency_db.path_properties(map_knowledge_source)
+    path_evidence = competency_db.path_evidence(map_knowledge_source)
+    path_phenotypes = competency_db.path_phenotypes(map_knowledge_source)
 
     # Collect all map knowledge
     knowledge_terms = {}
@@ -149,7 +126,7 @@ def main():
     if not args.quiet:
         logging.basicConfig(level=logging.INFO)
 
-    competency_db = CompetencyDatabase(KNOWLEDGE_USER, KNOWLEDGE_HOST, PG_DATABASE)
+    competency_db = CompetencyKnowledge(KNOWLEDGE_USER, KNOWLEDGE_HOST, PG_DATABASE)
     knowledge = get_map_knowledge(args.uuid, competency_db)
     competency_db.import_knowledge(knowledge)
 
