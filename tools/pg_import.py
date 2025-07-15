@@ -23,12 +23,9 @@ import os
 
 #===============================================================================
 
-from mapknowledge import NERVE_TYPE
-from mapknowledge.competency import clean_knowledge_source
-from mapknowledge.competency import KnowledgeList, KnowledgeSource
 from mapserver.competency import CompetencyKnowledge
+from mapserver.competency.manager import map_knowledge as get_map_knowledge
 from mapserver.settings import settings
-from mapserver.utils import json_map_metadata
 
 #===============================================================================
 
@@ -44,73 +41,6 @@ KNOWLEDGE_HOST = os.environ.get('KNOWLEDGE_HOST', 'localhost:5432')
 # Used by `json_map_metadata`
 
 settings['FLATMAP_ROOT'] = os.environ.get('FLATMAP_ROOT', './flatmaps')
-
-#===============================================================================
-
-def get_map_knowledge(map_uuid: str, competency_db: CompetencyKnowledge) -> KnowledgeList:
-#=========================================================================================
-    metadata = json_map_metadata(map_uuid, 'metadata')
-    if map_uuid != metadata.get('uuid'):
-        raise IOError("Flatmap source UUID doesn't match the provided UUID.")
-
-    sckan_release = metadata.get('connectivity', {}).get('npo', {}).get('release')
-    map_knowledge_source = clean_knowledge_source(sckan_release)
-
-    annotations = json_map_metadata(map_uuid, 'annotations')
-    annotated_features = { models: feature
-                            for feature in annotations.values()
-                                if (models := feature.get('models')) is not None }
-
-    descriptions = competency_db.term_descriptions(map_knowledge_source)
-    path_properties = competency_db.path_properties(map_knowledge_source)
-    path_evidence = competency_db.path_evidence(map_knowledge_source)
-    path_phenotypes = competency_db.path_phenotypes(map_knowledge_source)
-
-    # Collect all map knowledge
-    knowledge_terms = {}
-
-    # Path features (i.e. those with connectivity)
-    pathways = json_map_metadata(map_uuid, 'pathways').get('paths', {})
-    nerve_terms = set()
-    for path_id, path_knowledge in pathways.items():
-        if 'connectivity' not in path_knowledge:
-            continue
-        annotations = annotated_features.get(path_id, {})
-        properties = path_properties.get(path_id, {})
-        knowledge_terms[path_id] = {
-            'id': path_id,
-            'source': map_uuid,
-            'label': annotations['label'],
-            'long-label': descriptions.get(path_id, annotations['label']),
-            'connectivity': path_knowledge['connectivity'],
-            'taxons': annotations.get('taxons', []),
-            'forward-connections': path_knowledge.get('forward-connections', []),
-            'node-phenotypes': path_knowledge.get('node-phenotypes', {}),
-            'nerves': path_knowledge.get('node-nerves', []),
-            'phenotypes': path_phenotypes.get(path_id, []),
-            'references': path_evidence.get(path_id, []),
-        }
-        if 'alert' in properties:
-            knowledge_terms[path_id]['alert'] = properties['alert']
-        if 'biologicalSex' in properties:
-            knowledge_terms[path_id]['biologicalSex'] = properties['biologicalSex']
-        if 'pathDisconnected' in properties:
-            knowledge_terms[path_id]['pathDisconnected'] = properties['pathDisconnected']
-        nerve_terms.update(term for node in knowledge_terms[path_id]['nerves'] for term in [node[0]] + node[1])
-
-    # Non-path features with an anatomical term
-    for feature_id, properties in annotated_features.items():
-        if feature_id not in knowledge_terms:
-            knowledge_terms[feature_id] = {
-                'id': feature_id,
-                'source': map_uuid,
-                'label': properties['label'],
-                'long-label': descriptions.get(feature_id, properties['label']),
-            }
-            if properties.get('type') == 'nerve' or feature_id in nerve_terms:
-                knowledge_terms[feature_id]['type'] = NERVE_TYPE
-
-    return KnowledgeList(KnowledgeSource(map_uuid, sckan_release, metadata['name']), list(knowledge_terms.values()))
 
 #===============================================================================
 
