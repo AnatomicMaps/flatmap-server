@@ -24,23 +24,22 @@ import os
 #===============================================================================
 
 from mapserver.competency import CompetencyKnowledge
-from mapserver.competency.manager import map_knowledge as get_map_knowledge
+from mapserver.competency.flatmap import anatomical_map_knowledge
 from mapserver.settings import settings
 
 #===============================================================================
 
 PG_DATABASE = 'map-knowledge'
 
-DEFAULT_STORE = 'knowledgebase.db'
-
-KNOWLEDGE_USER = os.environ.get('KNOWLEDGE_USER')
-KNOWLEDGE_HOST = os.environ.get('KNOWLEDGE_HOST', 'localhost:5432')
+KNOWLEDGE_USER = os.environ.get('COMPETENCY_USER')
+KNOWLEDGE_HOST = os.environ.get('COMPETENCY_HOST', 'localhost:5432')
 
 #===============================================================================
 
-# Used by `json_map_metadata`
+# Used by `json_map_metadata` and `anatomical_map_knowledge`
 
 settings['FLATMAP_ROOT'] = os.environ.get('FLATMAP_ROOT', './flatmaps')
+settings['LOGGER'] = logging.getLogger()
 
 #===============================================================================
 
@@ -57,8 +56,9 @@ def main():
         logging.basicConfig(level=logging.INFO)
 
     competency_db = CompetencyKnowledge(KNOWLEDGE_USER, KNOWLEDGE_HOST, PG_DATABASE)
-    knowledge = get_map_knowledge(args.uuid, competency_db)
-    competency_db.import_knowledge(knowledge)
+    knowledge = anatomical_map_knowledge(args.uuid, competency_db)
+    if knowledge is not None:
+        competency_db.import_knowledge(knowledge, show_progress=True)
 
 #===============================================================================
 

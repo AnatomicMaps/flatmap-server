@@ -28,17 +28,37 @@ from mapknowledge.competency import CompetencyDatabase
 
 class CompetencyKnowledge(CompetencyDatabase):
 
-    def term_descriptions(self, source: str) -> dict[str, str]:
-    #==========================================================
-        return { row[0]: row[1]
-            for row in self.execute(
-                'select term_id, description from feature_terms where source_id=%s', (source,)) }
+    def has_knowledge_source(self, source_id) -> bool:
+    #=================================================
+        return self.execute('select * from knowledge_sources where source_id=%s', (source_id,)).rowcount > 0
 
-    def path_properties(self, source: str) -> dict:
-    #==============================================
+    def knowledge_source_ids(self) -> list[str]:
+    #===========================================
+        return [row[0]
+            for row in self.execute(
+                'select distinct source_id from knowledge_sources order by source_id', None)]
+
+    def path_evidence(self, source_id: str) -> dict[str, list[str]]:
+    #===============================================================
+        path_evidence = defaultdict(list)
+        for row in self.execute(
+                'select term_id, evidence_id from feature_evidence where source_id=%s', (source_id,)):
+            path_evidence[row[0]].append(row[1])
+        return path_evidence
+
+    def path_phenotypes(self, source_id: str) -> dict[str, list[str]]:
+    #=================================================================
+        path_phenotypes = defaultdict(list)
+        for row in self.execute(
+                'select path_id, phenotype from path_phenotypes where source_id=%s', (source_id,)):
+            path_phenotypes[row[0]].append(row[1])
+        return path_phenotypes
+
+    def path_properties(self, source_id: str) -> dict:
+    #=================================================
         path_properties = {}
         for row in self.execute(
-                'select path_id, alert, biological_sex, disconnected from path_properties where source_id=%s', (source,)):
+                'select path_id, alert, biological_sex, disconnected from path_properties where source_id=%s', (source_id,)):
             properties = {}
             if row[1] is not None:
                 properties['alert'] = row[1]
@@ -49,21 +69,11 @@ class CompetencyKnowledge(CompetencyDatabase):
             path_properties[row[0]] = properties
         return path_properties
 
-    def path_evidence(self, source: str) -> dict[str, list[str]]:
-    #============================================================
-        path_evidence = defaultdict(list)
-        for row in self.execute(
-                'select term_id, evidence_id from feature_evidence where source_id=%s', (source,)):
-            path_evidence[row[0]].append(row[1])
-        return path_evidence
-
-    def path_phenotypes(self, source: str) -> dict[str, list[str]]:
-    #==============================================================
-        path_phenotypes = defaultdict(list)
-        for row in self.execute(
-                'select path_id, phenotype from path_phenotypes where source_id=%s', (source,)):
-            path_phenotypes[row[0]].append(row[1])
-        return path_phenotypes
+    def term_descriptions(self, source_id: str) -> dict[str, str]:
+    #=============================================================
+        return { row[0]: row[1]
+            for row in self.execute(
+                'select term_id, description from feature_terms where source_id=%s', (source_id,)) }
 
 #===============================================================================
 #===============================================================================

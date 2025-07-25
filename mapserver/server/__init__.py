@@ -36,7 +36,8 @@ from litestar.types import GetLogger
 
 #===============================================================================
 
-from ..competency import competency_connection_context, initialise_query_definitions
+from ..competency import COMPETENCY_USER, competency_connection_context, initialise_query_definitions
+from ..competency.manager import initialise_competency_update, terminate_competency_update
 from ..knowledge import KnowledgeStore
 from ..openapi import RapidocRenderPlugin
 from ..settings import settings
@@ -87,6 +88,10 @@ def initialise(app: Litestar):
     # Load definitions of competency queries into the application state
     initialise_query_definitions(app)
 
+    # Initialise updating CQ database with flatmap knowledge
+    if COMPETENCY_USER:
+        initialise_competency_update()
+
     # Initialise the manager for remote map making
     init_maker()
 
@@ -94,6 +99,7 @@ def initialise(app: Litestar):
 
 def terminate(app: Litestar):
     end_maker()
+    terminate_competency_update()
     settings['LOGGER'].info(f'Shutdown flatmap server...')
 
 #===============================================================================
