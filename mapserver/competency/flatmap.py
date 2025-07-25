@@ -58,10 +58,10 @@ def anatomical_map_knowledge(map_uuid: str, competency_db: CompetencyKnowledge) 
 #==========================================================================================================
     metadata = json_map_metadata(map_uuid, 'metadata')
     if map_uuid != metadata.get('uuid'):
-        return ignore_map(map_uuid, f"Flatmap source {map_uuid} doesn't match the provided UUID.",
+        return ignore_map(map_uuid, f"Flatmap source {map_uuid} doesn't match the provided UUID, ignored.",
                             settings['LOGGER'].error)
     if metadata.get('style', 'anatomical') != 'anatomical':
-        return ignore_map(map_uuid, f"{map_uuid} is not an anatomical map so has no anatomical map knowledge.",
+        return ignore_map(map_uuid, f"{map_uuid} is not an anatomical map, ignored.",
                             settings['LOGGER'].warning)
     creator_version = metadata.get('creator', '').split()[1]
     try:
@@ -69,7 +69,7 @@ def anatomical_map_knowledge(map_uuid: str, competency_db: CompetencyKnowledge) 
     except ValueError:
         invalid_version = True
     if invalid_version:
-        return ignore_map(map_uuid, f"{map_uuid} was created using an older mapmaker, v{creator_version}, and so doesn't have rendered connectivity.",
+        return ignore_map(map_uuid, f"{map_uuid} has no rendered connectivity (mapmaker v{creator_version}), ignored.",
                             settings['LOGGER'].warning)
 
     sckan_release = metadata.get('connectivity', {}).get('npo', {}).get('release', '')

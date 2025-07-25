@@ -57,6 +57,7 @@ SERVER_HOME_DIRECTORIES = {
     'isan': '/home/ubuntu/services/isan-flatmap-server',
     PRODUCTION: '/home/ubuntu/services/prod-flatmap-server',
     'staging': '/home/ubuntu/services/staging-flatmap-server',
+    'local': '.',              ########### Do not commit <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 }
 
 #===============================================================================
