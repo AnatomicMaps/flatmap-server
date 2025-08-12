@@ -18,7 +18,6 @@
 #
 #===============================================================================
 
-import logging
 from typing import Optional
 
 #===============================================================================
@@ -94,7 +93,7 @@ def anatomical_map_knowledge(map_uuid: str, competency_db: CompetencyKnowledge) 
     nerve_terms = set()
     for path_id, path_knowledge in pathways.items():
         if 'connectivity' not in path_knowledge or len(path_knowledge['connectivity']) == 0:
-            logging.warning(f'{map_uuid}/{path_id} has no connectivity, path not imported.')
+            settings['LOGGER'].warning(f'{map_uuid}/{path_id} has no connectivity, path not imported.')
             break
         annotations = annotated_features.get(path_id, {})
         properties = path_properties.get(path_id, {})
