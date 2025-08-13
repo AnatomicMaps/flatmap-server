@@ -37,7 +37,7 @@ from .knowledge import CompetencyKnowledge
 
 #===============================================================================
 
-COMPETENCY_DATABASE = 'map-knowledge'
+COMPETENCY_DATABASE = os.environ.get('COMPETENCY_DATABASE', 'map-knowledge')
 
 COMPETENCY_USER = os.environ.get('COMPETENCY_USER')
 COMPETENCY_HOST = os.environ.get('COMPETENCY_HOST', 'localhost:5432')
