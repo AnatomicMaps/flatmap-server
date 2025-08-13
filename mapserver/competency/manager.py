@@ -38,8 +38,8 @@ from .knowledge import CompetencyKnowledge
 
 #===============================================================================
 
-CHECK_MAPS_INTERVAL = 300   # 5 minutes between checking for any updated flatmaps
-LOAD_MAP_INTERVAL   =   5   # 5 seconds between loading individual maps
+CHECK_MAPS_INTERVAL = 60    # 1 minute between checking for any updated flatmaps
+LOAD_MAP_INTERVAL   =  1    # 1 second between loading individual maps
 
 #===============================================================================
 
