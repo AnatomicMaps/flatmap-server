@@ -303,18 +303,4 @@ class Manager(threading.Thread):
         self.__log.info(f'Started mapmaker process: {process.name}, PID: {process.process_id}')
 
 #===============================================================================
-
-if __name__ == '__main__':
-    import argparse
-
-    parser = argparse.ArgumentParser('Generate a flatmap in the background')
-    parser.add_argument('map', metavar="MAP",
-        help='URL or directory path containing a flatmap manifest')
-
-    args = parser.parse_args()
-
-    generator = Manager()
-    status = generator.make({'source': args.map})
-
-#===============================================================================
 #===============================================================================
