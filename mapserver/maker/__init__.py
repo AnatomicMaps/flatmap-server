@@ -22,12 +22,13 @@ import dataclasses
 from dataclasses import dataclass
 import asyncio
 import json
+import logging
 import multiprocessing
 import os
 import queue
 import sys
 import threading
-from typing import Optional
+from typing import Any, Optional
 import uuid
 
 #===============================================================================
@@ -101,14 +102,15 @@ async def _make_map(params):
 #===============================================================================
 
 class MakerProcess(multiprocessing.Process):
-    def __init__(self, params: dict):
+    def __init__(self, params: dict[str, Any]):
         id = str(uuid.uuid4())
+        self.__log_queue = multiprocessing.Queue()
+        params['logQueue'] = self.__log_queue      ## Is there a better name...
         super().__init__(target=_run_in_loop, args=(_make_map, params), name=id)
         self.__id = id
         self.__process_id = None
         self.__log_file = None
         self.__status = 'queued'
-        self.__last_log_lines = []
         self.__result = {}
 
     @property
@@ -122,14 +124,6 @@ class MakerProcess(multiprocessing.Process):
     @property
     def id(self):
         return self.__id
-
-    @property
-    def last_log_lines(self):
-        n = len(self.__last_log_lines) - 1
-        # Find last line with a dated timestamp -- code is good until 2099
-        while n > 0 and not self.__last_log_lines[n].startswith('20'):
-            n -= 1
-        return '\n'.join(self.__last_log_lines[n:]).strip().split('\n')
 
     @property
     def process_id(self):
@@ -148,9 +142,9 @@ class MakerProcess(multiprocessing.Process):
 
     def close(self):
     #===============
+        self.__clean_up()
         if self.exitcode == 0:
             self.__status = 'terminated'
-            self.__result = self.__clean_up()
         else:
             self.__status = 'aborted'
         super().join()
@@ -161,28 +155,30 @@ class MakerProcess(multiprocessing.Process):
         if (filename := self.__log_file) is not None and os.path.exists(filename):
             with open(filename) as fp:
                 log_lines = fp.read().split('\n')
-                self.__last_log_lines = log_lines[-10:]
                 return '\n'.join(log_lines[start_line-1:])
         return ''
 
-    def __clean_up(self) -> dict[str, str]:
+    def __clean_up(self):
     #====================
-        result = {}
-        self.get_log()
-        for log_json in self.__last_log_lines:
-            if len(log_json):
-                log_line = json.loads(log_json)
-                if log_line['msg'] == 'Generated map':
-                    result = { key: value for key in MAKER_RESULT_KEYS
-                                    if (value := log_line.get(key)) is not None }
-                    break
-        if 'uuid' in result:
+        if 'uuid' in self.__result:
             # Remove the log file when we've succesfully built a map
             # (it's already been copied into the map's directory)
             if self.__log_file is not None:
                 os.remove(self.__log_file)
                 self.__log_file = None
-        return result
+
+    def read_log_queue(self) -> Optional[dict]:
+    #==========================================
+        try:
+            log_record = self.__log_queue.get(block=False)
+            message = json.loads(log_record.msg)
+            if log_record.levelno == logging.CRITICAL:
+                if message['msg'].startswith('Mapmaker succeeded'):
+                    self.__result = { key: value for key in MAKER_RESULT_KEYS
+                                        if (value := message.get(key)) is not None }
+            return message
+        except queue.Empty:
+            pass
 
     def start(self):
     #===============
@@ -259,15 +255,19 @@ class Manager(threading.Thread):
             for id in self.__running_processes:
                 async with self.__process_lock:
                     process = self.__processes_by_id[id]
+                    while (msg := process.read_log_queue()) is not None:
+                        pass
                     if process.is_alive():
                         still_running.append(id)
                     else:
                         process.close()
                         maker_result = process.result
-                        status = 'Finished' if process.status == 'terminated' else 'FAILED'
-                        info = ', '.join([ f'{key}: {value}' for key in MAKER_RESULT_KEYS
+                        if len(maker_result):
+                            info = ', '.join([ f'{key}: {value}' for key in MAKER_RESULT_KEYS
                                             if (value := maker_result.get(key)) is not None ])
-                        self.__log.info(f'{status} mapmaker process: {process.name}, Map {info}')
+                            self.__log.info(f'Mapmaker succeeded: {process.name}, Map {info}')
+                        else:
+                            self.__log.error(f'Mapmaker FAILED: {process.name}')
                 self.__running_processes = still_running
             if len(self.__running_processes) == 0:
                 try:
