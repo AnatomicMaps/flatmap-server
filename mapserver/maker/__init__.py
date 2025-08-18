@@ -110,6 +110,7 @@ class MakerProcess(multiprocessing.Process):
         self.__id = id
         self.__process_id = None
         self.__log_file = None
+        self.__msg_queue = multiprocessing.Queue()
         self.__status = 'queued'
         self.__result = {}
 
@@ -124,6 +125,10 @@ class MakerProcess(multiprocessing.Process):
     @property
     def id(self):
         return self.__id
+
+    @property
+    def msg_queue(self):
+        return self.__msg_queue
 
     @property
     def process_id(self):
@@ -167,18 +172,19 @@ class MakerProcess(multiprocessing.Process):
                 os.remove(self.__log_file)
                 self.__log_file = None
 
-    def read_log_queue(self) -> Optional[dict]:
-    #==========================================
-        try:
-            log_record = self.__log_queue.get(block=False)
-            message = json.loads(log_record.msg)
-            if log_record.levelno == logging.CRITICAL:
-                if message['msg'].startswith('Mapmaker succeeded'):
-                    self.__result = { key: value for key in MAKER_RESULT_KEYS
-                                        if (value := message.get(key)) is not None }
-            return message
-        except queue.Empty:
-            pass
+    def read_process_log_queue(self):
+    #================================
+        while True:
+            try:
+                log_record = self.__process_log_queue.get(block=False)
+                message = json.loads(log_record.msg)
+                if log_record.levelno == logging.CRITICAL:
+                    if message['msg'].startswith('Mapmaker succeeded'):
+                        self.__result = { key: value for key in MAKER_RESULT_KEYS
+                                            if (value := message.get(key)) is not None }
+                self.__msg_queue.put(message)
+            except queue.Empty:
+                return
 
     def start(self):
     #===============
@@ -224,6 +230,17 @@ class Manager(threading.Thread):
             return log_lines
         return ''
 
+    async def get_process_log(self, id):
+    #===================================
+        if id in self.__processes_by_id:
+            process = self.__processes_by_id[id]
+            while not process.completed:
+                try:
+                    msg = process.msg_queue.get(block=False)
+                    yield msg
+                except queue.Empty:
+                    await asyncio.sleep(0.01)
+
     async def make(self, data: MakerData) -> MakerStatus:
     #====================================================
         params = {key: value for (key, value) in dataclasses.asdict(data).items()
@@ -255,8 +272,7 @@ class Manager(threading.Thread):
             for id in self.__running_processes:
                 async with self.__process_lock:
                     process = self.__processes_by_id[id]
-                    while (msg := process.read_log_queue()) is not None:
-                        pass
+                    process.read_process_log_queue()
                     if process.is_alive():
                         still_running.append(id)
                     else:

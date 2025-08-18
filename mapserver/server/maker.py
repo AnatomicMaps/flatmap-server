@@ -18,12 +18,19 @@
 #
 #===============================================================================
 
+from collections.abc import AsyncGenerator
 from datetime import datetime
 import sys
+from typing import Any
 
 #===============================================================================
 
+import anyio
+
 from litestar import exceptions, get, post, Request, Response, Router
+from litestar import Litestar, WebSocket, websocket
+from litestar.exceptions import WebSocketDisconnect
+from litestar.handlers import send_websocket_stream
 
 #===============================================================================
 
@@ -129,6 +136,56 @@ async def make_status(id: str) -> MakerStatus|Response:
     return status
 
 #===============================================================================
+
+@websocket("/maker-log")
+async def maker_ws_log(socket: WebSocket) -> None:
+#=================================================
+    await socket.accept()
+    should_stop = anyio.Event()
+
+    async def handle_receive() -> Any:
+        await socket.send_json({
+            'status': 'connected'
+        })
+        msg = await socket.receive_json()
+        if map_maker is None or msg.get('type') != 'status':
+            await socket.close()
+        else:
+            id = msg['id']
+            running = True
+            while running and not should_stop.is_set():
+                status = await map_maker.status(id)
+                if status.status == 'queued':
+                    await socket.send_json({
+                        'id': status.id,
+                        'status': status.status,
+                        'pid': status.pid,
+                        'stamp': str(datetime.now())
+                    })
+                    ## remote maker will reconnect after POLL delay
+                    await socket.close()
+                else:
+                    async for log_msg in map_maker.get_process_log(id):
+                        status = await map_maker.status(id)
+                        await socket.send_json({
+                            'id': status.id,
+                            'status': status.status,
+                            'pid': status.pid,
+                            'log': log_msg,
+                            'stamp': str(datetime.now())
+                        })
+                        if should_stop.is_set():
+                            break
+                    running = False
+                    await socket.close()
+
+    try:
+        async with anyio.create_task_group() as task_group:
+            task_group.start_soon(handle_receive)
+    except WebSocketDisconnect:
+        should_stop.set()
+
+#===============================================================================
 #===============================================================================
 
 def check_authorised(request: Request):
@@ -150,7 +207,8 @@ maker_router = Router(
         make_map,
         make_process_log,
         make_status,
-        make_status_log
+        make_status_log,
+        maker_ws_log
         ],
     )
 

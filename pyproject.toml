@@ -24,6 +24,7 @@ dependencies = [
     "mapmaker @ https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.20.1/mapmaker-1.20.1-py3-none-any.whl",
     "granian>=2.2.5",
     "semver>=3.0.4",
+    "anyio>=4.9.0",
 ]
 
 [dependency-groups]
