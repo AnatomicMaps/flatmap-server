@@ -38,9 +38,13 @@ Running
 Debugging
 ---------
 
+Need to have ``dev`` dependencies installed, in particular ``uvicorn``.
+
 ::
 
-    $ export LITESTAR_DEBUG=True
+    $ litestar --app mapserver.__main__:app run --debug
+
+N.B. Can use ``--reload`` option but then exception tracebacks aren't shown.
 
 
 Optional map viewer
