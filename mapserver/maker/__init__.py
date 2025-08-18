@@ -95,8 +95,8 @@ async def _make_map(params):
     try:
         mapmaker = MapMaker(params)
         mapmaker.make()
-    except Exception as err:
-        utils.log.exception(err, exc_info=True)
+    except Exception as e:
+        utils.log.exception(e, exc_info=True)
         sys.exit(1)
 
 #===============================================================================
@@ -104,8 +104,8 @@ async def _make_map(params):
 class MakerProcess(multiprocessing.Process):
     def __init__(self, params: dict[str, Any]):
         id = str(uuid.uuid4())
-        self.__log_queue = multiprocessing.Queue()
-        params['logQueue'] = self.__log_queue      ## Is there a better name...
+        self.__process_log_queue = multiprocessing.Queue()
+        params['logQueue'] = self.__process_log_queue
         super().__init__(target=_run_in_loop, args=(_make_map, params), name=id)
         self.__id = id
         self.__process_id = None
