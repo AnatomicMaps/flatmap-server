@@ -203,7 +203,7 @@ class Manager(threading.Thread):
         self.__map_dir = None
         self.__processes_by_id: dict[str, MakerProcess] = {}
         self.__running_processes: list[str] = []
-        self.__queued_processes:queue.Queue[MakerProcess] = queue.Queue()
+        self.__queued_processes:multiprocessing.Queue[MakerProcess] = multiprocessing.Queue()
 
         # Make sure we have a directory for log files
         if not os.path.exists(settings['MAPMAKER_LOGS']):
