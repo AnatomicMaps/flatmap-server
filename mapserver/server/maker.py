@@ -86,7 +86,7 @@ async def make_map(data: MakerData) -> MakerResponse|Response:
     if map_maker is None:
         return Response(content={'error': 'unauthorized'}, status_code=403)
     result = await map_maker.make(data)
-    return MakerResponse(result.id, result.status, result.pid, data.source,  data.commit)
+    return MakerResponse(result.status, result.id, result.pid, data.source,  data.commit)
 
 @get('/process-log/{pid:int}')
 async def make_process_log(pid: int) -> dict|Response:
@@ -115,7 +115,7 @@ async def make_status_log(id: str, start_line: int=1) -> MakerLogResponse|Respon
         return Response(content={'error': 'unauthorized'}, status_code=403)
     log_data = await map_maker.get_log(id, start_line)
     status = await map_maker.status(id)
-    return MakerLogResponse(status.id, status.status, status.pid, log_data,  str(datetime.now()))
+    return MakerLogResponse(status.status, status.id, status.pid, log_data,  str(datetime.now()))
 
 @get('/status/{id:str}')
 async def make_status(id: str) -> MakerStatus|Response:
@@ -164,6 +164,7 @@ async def maker_ws_log(socket: WebSocket) -> None:
                     })
                     ## remote maker will reconnect after POLL delay
                     await socket.close()
+                    return
                 else:
                     async for log_msg in map_maker.get_process_log(id):
                         status = await map_maker.status(id)
@@ -176,8 +177,8 @@ async def maker_ws_log(socket: WebSocket) -> None:
                         })
                         if should_stop.is_set():
                             break
-                    running = False
                     await socket.close()
+                    return
 
     try:
         async with anyio.create_task_group() as task_group:

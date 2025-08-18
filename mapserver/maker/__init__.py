@@ -65,8 +65,8 @@ class MakerData:
 
 @dataclass
 class MakerStatus:
-    id: int
     status: str
+    id: Optional[int]
     pid: Optional[int]
 
 @dataclass
@@ -200,18 +200,16 @@ class Manager(threading.Thread):
     def __init__(self):
         super().__init__(name='maker-thread')
         self.__log = settings['LOGGER']
-        self.__map_dir = None
-        self.__processes_by_id: dict[str, MakerProcess] = {}
-        self.__running_processes: list[str] = []
-        self.__queued_processes:multiprocessing.Queue[MakerProcess] = multiprocessing.Queue()
-
         # Make sure we have a directory for log files
         if not os.path.exists(settings['MAPMAKER_LOGS']):
             os.makedirs(settings['MAPMAKER_LOGS'])
         self.__map_dir = settings['FLATMAP_ROOT']
+
+        self.__running_process: Optional[MakerProcess] = None
         self.__terminate_event = asyncio.Event()
         self.__process_lock = asyncio.Lock()
         self.__loop = uvloop.new_event_loop()
+
         self.start()
 
     async def full_log(self, pid):
@@ -224,19 +222,17 @@ class Manager(threading.Thread):
 
     async def get_log(self, id, start_line=1):
     #=========================================
-        if id in self.__processes_by_id:
-            process = self.__processes_by_id[id]
-            log_lines = process.get_log(start_line)
+        if self.__running_process is not None and id == self.__running_process.id:
+            log_lines = self.__running_process.get_log(start_line)
             return log_lines
         return ''
 
     async def get_process_log(self, id):
     #===================================
-        if id in self.__processes_by_id:
-            process = self.__processes_by_id[id]
-            while not process.completed:
+        if self.__running_process is not None and id == self.__running_process.id:
+            while self.__running_process is not None and not self.__running_process.completed:
                 try:
-                    msg = process.msg_queue.get(block=False)
+                    msg = self.__running_process.msg_queue.get(block=False)
                     yield msg
                 except queue.Empty:
                     await asyncio.sleep(0.01)
@@ -252,14 +248,12 @@ class Manager(threading.Thread):
             'noPathLayout': True,
             'logPath': settings['MAPMAKER_LOGS']  # Logfile name is `PROCESS_ID.json.log`
         })
-        process = MakerProcess(params)
-        async with self.__process_lock:
-            self.__processes_by_id[process.id] = process
-        if len(self.__running_processes):
-            self.__queued_processes.put(process)
-        else:
+        if self.__running_process is None:
+            process = MakerProcess(params)
             await self.__start_process(process)
-        return await self.status(process.id)
+            return await self.status(process.id)
+        else:
+            return MakerStatus('queued', None, None)
 
     def run(self):
     #=============
@@ -268,15 +262,13 @@ class Manager(threading.Thread):
     async def _run(self):
     #====================
         while not self.__terminate_event.is_set():
-            still_running = []
-            for id in self.__running_processes:
+            if self.__running_process is not None:
                 async with self.__process_lock:
-                    process = self.__processes_by_id[id]
+                    process = self.__running_process
                     process.read_process_log_queue()
-                    if process.is_alive():
-                        still_running.append(id)
-                    else:
+                    if not process.is_alive():
                         process.close()
+                        self.__running_process = None
                         maker_result = process.result
                         if len(maker_result):
                             info = ', '.join([ f'{key}: {value}' for key in MAKER_RESULT_KEYS
@@ -284,13 +276,6 @@ class Manager(threading.Thread):
                             self.__log.info(f'Mapmaker succeeded: {process.name}, Map {info}')
                         else:
                             self.__log.error(f'Mapmaker FAILED: {process.name}')
-                self.__running_processes = still_running
-            if len(self.__running_processes) == 0:
-                try:
-                    process = self.__queued_processes.get(False)
-                    await self.__start_process(process)
-                except queue.Empty:
-                    pass
             await asyncio.sleep(0.01)
 
     def terminate(self):
@@ -300,22 +285,18 @@ class Manager(threading.Thread):
     async def status(self, id) -> MakerStatus:
     #=========================================
         pid = None
-        if id in self.__processes_by_id:
-            process = self.__processes_by_id[id]
-            status = process.status
-            pid = process.process_id
-            if process.status in ['aborted', 'terminated']:
-                async with self.__process_lock:
-                    del self.__processes_by_id[id]
+        if self.__running_process is not None and id == self.__running_process.id:
+            status = self.__running_process.status
+            pid = self.__running_process.process_id
         else:
             status = 'unknown'
-        return MakerStatus(id, status, pid)
+        return MakerStatus(status, id, pid)
 
     async def __start_process(self, process: MakerProcess):
     #======================================================
         process.start()
         async with self.__process_lock:
-            self.__running_processes.append(process.id)
+            self.__running_process = process
         self.__log.info(f'Started mapmaker process: {process.name}, PID: {process.process_id}')
 
 #===============================================================================
