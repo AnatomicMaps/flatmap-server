@@ -115,7 +115,6 @@ class MakerProcess(multiprocessing.Process):
         self.__process_id = None
         self.__log_file = None
         self.__msg_queue = msg_queue
-        self.__next_log_line = 1
         self.__status = 'queued'
         self.__result = {}
 
@@ -155,16 +154,6 @@ class MakerProcess(multiprocessing.Process):
             self.__status = 'aborted'
         super().join()
         super().close()
-
-    def new_log_lines(self) -> str:
-    #==============================
-        if (filename := self.__log_file) is not None and os.path.exists(filename):
-            with open(filename) as fp:
-                log_lines = fp.read().split('\n')
-                last_lines = log_lines[self.__next_log_line - 1:]
-                self.__next_log_line += len(last_lines)
-                return'\n'.join(last_lines)
-        return ''
 
     def __clean_up(self):
     #====================
@@ -230,10 +219,20 @@ class Manager(threading.Thread):
     async def get_status_log(self, id: str) -> str:
     #==============================================
         if self.__running_process is not None and id == self.__running_process.id:
-            return self.__running_process.new_log_lines()
+            return self.__get_log_lines()
         elif id == self.__last_running_process_id and self.__last_log_lines is not None:
             return self.__last_log_lines
         return ''
+
+    def __get_log_lines(self) -> str:
+    #================================
+        log_lines = []
+        while True:
+            try:
+                log_data = self.__process_msg_queue.get(block=False)
+                log_lines.append(json.dumps(log_data))
+            except queue.Empty:
+                return '\n'.join(log_lines)
 
     def __flush_process_log(self):
     #=============================
@@ -252,7 +251,6 @@ class Manager(threading.Thread):
                     yield msg
                 except queue.Empty:
                     await asyncio.sleep(0.01)
-
 
     async def make(self, data: MakerData) -> MakerStatus:
     #====================================================
@@ -285,15 +283,8 @@ class Manager(threading.Thread):
                     process = self.__running_process
                     process.read_process_log_queue()
                     if not process.is_alive():
-                        if not self.__process_msg_queue.empty():
-                            self.__log.error(f'Process log queue is not empty: {process.status} {process.result}')
-                            while True:
-                                try:
-                                    self.__log.warn(f'Queued: {self.__process_msg_queue.get(block=False)}')
-                                except queue.Empty:
-                                    break
                         process.close()                                 # This updates status
-                        self.__last_log_lines = process.new_log_lines()
+                        self.__last_log_lines = self.__get_log_lines()
                         self.__last_running_process_id = process.id
                         self.__last_running_process_status = process.status
                         if len(process.result):
