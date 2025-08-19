@@ -24,8 +24,11 @@ import asyncio
 import json
 import logging
 import multiprocessing
+import pickle
 import os
 import queue
+import socket
+import struct
 import sys
 import threading
 from typing import Any, Optional
@@ -91,10 +94,10 @@ def _run_in_loop(func, *args):
     loop = uvloop.new_event_loop()
     loop.run_until_complete(func(*args))
 
-async def _make_map(params, process_log_queue: multiprocessing.Queue):
-#=====================================================================
+async def _make_map(params, logger_port: Optional[int], process_log_queue: Optional[multiprocessing.Queue]):
+#===========================================================================================================
     try:
-        mapmaker = MapMaker(params, process_log_queue=process_log_queue)
+        mapmaker = MapMaker(params, logger_port=logger_port, process_log_queue=process_log_queue)
         mapmaker.make()
     except Exception as e:
         utils.log.exception(e, exc_info=True)
@@ -106,11 +109,54 @@ async def _make_map(params, process_log_queue: multiprocessing.Queue):
 
 #===============================================================================
 
+LOG_PORT_OFFSET = 900
+
+class LogReceiver:
+    def __init__(self):
+        self.__port = int(settings['SERVER_PORT']) + LOG_PORT_OFFSET
+        while True:
+            try:
+                self.__socket = socket.create_server(('localhost', self.__port))
+                break
+            except OSError:
+                self.__port += 1
+        self.__connection = None
+
+    @property
+    def port(self):
+        return self.__port
+
+    def close(self):
+    #===============
+        self.__socket.close()
+
+    def recv(self) -> Optional[logging.LogRecord]:
+    #=============================================
+        if self.__connection is None:
+            (self.__connection, _) = self.__socket.accept()
+
+        self.__connection.settimeout(0.1)
+        chunk = self.__connection.recv(4)
+        if len(chunk) < 4:
+            return None     # EOF
+
+        slen = struct.unpack('>L', chunk)[0]
+        self.__connection.settimeout(0.0)
+        chunk = self.__connection.recv(slen)
+        while len(chunk) < slen:
+            chunk = chunk + self.__connection.recv(slen - len(chunk))
+        data = pickle.loads(chunk)
+        record = logging.makeLogRecord(data)
+        return record
+
+#===============================================================================
+
 class MakerProcess(multiprocessing.Process):
     def __init__(self, params: dict[str, Any], msg_queue: multiprocessing.Queue):
         id = str(uuid.uuid4())
+        self.__log_receiver = LogReceiver()
         self.__process_log_queue = multiprocessing.Queue()
-        super().__init__(target=_run_in_loop, args=(_make_map, params, self.__process_log_queue), name=id)
+        super().__init__(target=_run_in_loop, args=(_make_map, params, self.__log_receiver.port, self.__process_log_queue), name=id)
         self.__id = id
         self.__process_id = None
         self.__log_file = None
@@ -152,6 +198,8 @@ class MakerProcess(multiprocessing.Process):
             self.__status = 'terminated'
         else:
             self.__status = 'aborted'
+        self.__log_receiver.close()
+        self.__process_log_queue.close()
         super().join()
         super().close()
 
@@ -178,6 +226,21 @@ class MakerProcess(multiprocessing.Process):
             except queue.Empty:
                 return
 
+    def read_log_receiver(self):
+    #===========================
+        try:
+            log_record = self.__log_receiver.recv()
+            if log_record is None:
+                return
+            message = json.loads(log_record.msg)
+            if log_record.levelno == logging.CRITICAL:
+                if message['event'].startswith('Mapmaker succeeded'):
+                    self.__result = { key: value for key in MAKER_RESULT_KEYS
+                                        if (value := message.get(key)) is not None }
+            self.__msg_queue.put(message)
+        except TimeoutError:
+            return
+
     def start(self):
     #===============
         self.__status = 'running'
@@ -201,6 +264,7 @@ class Manager(threading.Thread):
         self.__last_running_process_id: Optional[str] = None
         self.__last_running_process_status: str = 'terminated'
         self.__process_msg_queue = multiprocessing.Queue()
+
         self.__running_process: Optional[MakerProcess] = None
         self.__terminate_event = asyncio.Event()
         self.__process_lock = asyncio.Lock()
@@ -281,7 +345,8 @@ class Manager(threading.Thread):
             if self.__running_process is not None:
                 async with self.__process_lock:
                     process = self.__running_process
-                    process.read_process_log_queue()
+                    ##process.read_process_log_queue()
+                    process.read_log_receiver()
                     if not process.is_alive():
                         process.close()                                 # This updates status
                         self.__last_log_lines = self.__get_log_lines()

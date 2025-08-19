@@ -34,6 +34,9 @@ from .settings import settings
 SERVER_INTERFACE = os.environ.get('SERVER_INTERFACE', '127.0.0.1')
 SERVER_PORT      = os.environ.get('SERVER_PORT', '8000')
 
+# Make available to other modules
+settings['SERVER_PORT'] = SERVER_PORT
+
 #===============================================================================
 
 LOGGING_CONFIG = '''
