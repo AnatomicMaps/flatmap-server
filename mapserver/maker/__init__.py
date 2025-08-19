@@ -86,33 +86,40 @@ def log_file(pid):
 
 #===============================================================================
 
-def _run_in_loop(func, args):
+def _run_in_loop(func, *args):
+#=============================
     loop = uvloop.new_event_loop()
-    loop.run_until_complete(func(args))
+    loop.run_until_complete(func(*args))
 
-async def _make_map(params):
-#===========================
+async def _make_map(params, process_log_queue: multiprocessing.Queue):
+#=====================================================================
     try:
-        mapmaker = MapMaker(params)
+        mapmaker = MapMaker(params, process_log_queue=process_log_queue)
         mapmaker.make()
     except Exception as e:
         utils.log.exception(e, exc_info=True)
+        ## And now we need to send a CRITICAL failed message onto the msg_queue...
+        ## as any raised exception will end up here
+        ## e.g. ???
+        ## {"exc_info": true, "level": "error", "timestamp": "2025-08-18T08:01:06.842287Z", "msg": "GitCommandError(['git', 'checkout', 'staging'], 1, b\"error: pathspec 'staging' did not match any file(s) known to git\", b'')"}
         sys.exit(1)
 
 #===============================================================================
 
 class MakerProcess(multiprocessing.Process):
-    def __init__(self, params: dict[str, Any]):
+    def __init__(self, params: dict[str, Any], msg_queue: multiprocessing.Queue):
         id = str(uuid.uuid4())
         self.__process_log_queue = multiprocessing.Queue()
-        params['logQueue'] = self.__process_log_queue
-        super().__init__(target=_run_in_loop, args=(_make_map, params), name=id)
+        super().__init__(target=_run_in_loop, args=(_make_map, params, self.__process_log_queue), name=id)
         self.__id = id
         self.__process_id = None
         self.__log_file = None
-        self.__msg_queue = multiprocessing.Queue()
+        self.__msg_queue = msg_queue
         self.__status = 'queued'
         self.__result = {}
+
+    def __str__(self):
+        return f'MakerProcess {self.__id}: {self.__status}, {self.is_alive()} ({self.pid})'
 
     @property
     def completed(self):
@@ -127,23 +134,16 @@ class MakerProcess(multiprocessing.Process):
         return self.__id
 
     @property
-    def msg_queue(self):
-        return self.__msg_queue
-
-    @property
     def process_id(self):
         return self.__process_id
 
     @property
-    def result(self):
+    def result(self) -> dict:
         return self.__result
 
     @property
     def status(self) -> str:
         return self.__status
-    @status.setter
-    def status(self, value: str):
-        self.__status = value
 
     def close(self):
     #===============
@@ -205,6 +205,9 @@ class Manager(threading.Thread):
             os.makedirs(settings['MAPMAKER_LOGS'])
         self.__map_dir = settings['FLATMAP_ROOT']
 
+        self.__last_running_process_id: Optional[str] = None
+        self.__last_running_process_status: str = 'terminated'
+        self.__process_msg_queue = multiprocessing.Queue()
         self.__running_process: Optional[MakerProcess] = None
         self.__terminate_event = asyncio.Event()
         self.__process_lock = asyncio.Lock()
@@ -227,15 +230,24 @@ class Manager(threading.Thread):
             return log_lines
         return ''
 
+    def __flush_process_log(self):
+    #=============================
+        while True:
+            try:
+                self.__process_msg_queue.get(block=False)
+            except queue.Empty:
+                return
+
     async def get_process_log(self, id):
     #===================================
         if self.__running_process is not None and id == self.__running_process.id:
             while self.__running_process is not None and not self.__running_process.completed:
                 try:
-                    msg = self.__running_process.msg_queue.get(block=False)
+                    msg = self.__process_msg_queue.get(block=False)
                     yield msg
                 except queue.Empty:
                     await asyncio.sleep(0.01)
+
 
     async def make(self, data: MakerData) -> MakerStatus:
     #====================================================
@@ -249,7 +261,8 @@ class Manager(threading.Thread):
             'logPath': settings['MAPMAKER_LOGS']  # Logfile name is `PROCESS_ID.json.log`
         })
         if self.__running_process is None:
-            process = MakerProcess(params)
+            self.__flush_process_log()
+            process = MakerProcess(params, self.__process_msg_queue)
             await self.__start_process(process)
             return await self.status(process.id)
         else:
@@ -267,15 +280,23 @@ class Manager(threading.Thread):
                     process = self.__running_process
                     process.read_process_log_queue()
                     if not process.is_alive():
-                        process.close()
-                        self.__running_process = None
-                        maker_result = process.result
-                        if len(maker_result):
+                        if not self.__process_msg_queue.empty():
+                            self.__log.error(f'Process log queue is not empty: {process.status} {process.result}')
+                            while True:
+                                try:
+                                    self.__log.warn(f'Queued: {self.__process_msg_queue.get(block=False)}')
+                                except queue.Empty:
+                                    break
+                        process.close()                                 # This updates status
+                        self.__last_running_process_id = process.id
+                        self.__last_running_process_status = process.status
+                        if len(process.result):
                             info = ', '.join([ f'{key}: {value}' for key in MAKER_RESULT_KEYS
-                                            if (value := maker_result.get(key)) is not None ])
+                                            if (value := process.result.get(key)) is not None ])
                             self.__log.info(f'Mapmaker succeeded: {process.name}, Map {info}')
                         else:
                             self.__log.error(f'Mapmaker FAILED: {process.name}')
+                        self.__running_process = None
             await asyncio.sleep(0.01)
 
     def terminate(self):
@@ -288,6 +309,9 @@ class Manager(threading.Thread):
         if self.__running_process is not None and id == self.__running_process.id:
             status = self.__running_process.status
             pid = self.__running_process.process_id
+        elif id == self.__last_running_process_id:
+            status = self.__last_running_process_status
+            self.__last_running_process_id = None
         else:
             status = 'unknown'
         return MakerStatus(status, id, pid)
@@ -297,6 +321,7 @@ class Manager(threading.Thread):
         process.start()
         async with self.__process_lock:
             self.__running_process = process
+            self.__last_running_process_id = None
         self.__log.info(f'Started mapmaker process: {process.name}, PID: {process.process_id}')
 
 #===============================================================================
