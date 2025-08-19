@@ -135,7 +135,7 @@ class LogReceiver:
         if self.__connection is None:
             (self.__connection, _) = self.__socket.accept()
 
-        self.__connection.settimeout(0.1)
+        self.__connection.settimeout(0.01)
         chunk = self.__connection.recv(4)
         if len(chunk) < 4:
             return None     # EOF
