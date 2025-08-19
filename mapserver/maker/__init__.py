@@ -115,6 +115,7 @@ class MakerProcess(multiprocessing.Process):
         self.__process_id = None
         self.__log_file = None
         self.__msg_queue = msg_queue
+        self.__next_log_line = 1
         self.__status = 'queued'
         self.__result = {}
 
@@ -155,12 +156,14 @@ class MakerProcess(multiprocessing.Process):
         super().join()
         super().close()
 
-    def get_log(self, start_line=1) -> str:
-    #======================================
+    def new_log_lines(self) -> str:
+    #==============================
         if (filename := self.__log_file) is not None and os.path.exists(filename):
             with open(filename) as fp:
                 log_lines = fp.read().split('\n')
-                return '\n'.join(log_lines[start_line-1:])
+                last_lines = log_lines[self.__next_log_line - 1:]
+                self.__next_log_line += len(last_lines)
+                return'\n'.join(last_lines)
         return ''
 
     def __clean_up(self):
@@ -205,6 +208,7 @@ class Manager(threading.Thread):
             os.makedirs(settings['MAPMAKER_LOGS'])
         self.__map_dir = settings['FLATMAP_ROOT']
 
+        self.__last_log_lines: Optional[str] = None
         self.__last_running_process_id: Optional[str] = None
         self.__last_running_process_status: str = 'terminated'
         self.__process_msg_queue = multiprocessing.Queue()
@@ -215,19 +219,20 @@ class Manager(threading.Thread):
 
         self.start()
 
-    async def full_log(self, pid):
-    #=======================
+    async def process_log(self, pid: int):
+    #=====================================
         filename = log_file(pid)
         if os.path.exists(filename):
             with open(filename) as fp:
                 return fp.read()
         return f'Missing log file... {filename}'
 
-    async def get_log(self, id, start_line=1):
-    #=========================================
+    async def get_status_log(self, id: str) -> str:
+    #==============================================
         if self.__running_process is not None and id == self.__running_process.id:
-            log_lines = self.__running_process.get_log(start_line)
-            return log_lines
+            return self.__running_process.new_log_lines()
+        elif id == self.__last_running_process_id and self.__last_log_lines is not None:
+            return self.__last_log_lines
         return ''
 
     def __flush_process_log(self):
@@ -288,6 +293,7 @@ class Manager(threading.Thread):
                                 except queue.Empty:
                                     break
                         process.close()                                 # This updates status
+                        self.__last_log_lines = process.new_log_lines()
                         self.__last_running_process_id = process.id
                         self.__last_running_process_status = process.status
                         if len(process.result):

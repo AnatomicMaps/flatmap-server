@@ -91,29 +91,30 @@ async def make_map(data: MakerData) -> MakerResponse|Response:
 @get('/process-log/{pid:int}')
 async def make_process_log(pid: int) -> dict|Response:
 #=====================================================
+    """
+    Return the log of a map generation process
+
+    :param pid: The system process id of a map generation process
+    """
     if map_maker is None:
         return Response(content={'error': 'unauthorized'}, status_code=403)
-    log = await map_maker.full_log(pid)
+    log = await map_maker.process_log(pid)
     return {
         'pid': pid,
         'log': log
     }
 
-@get(['/log/{id:str}', '/log/{id:str}/{start_line:int}'])
-async def make_status_log(id: str, start_line: int=1) -> MakerLogResponse|Response:
+@get('/log/{id:str}')
+async def make_status_log(id: str) -> MakerLogResponse|Response:
 #==================================================================================
     """
-    Return the status of a map generation process along with log records
+    Return the status of a map generation process along with unseen log records
 
-    :param id: The id of a maker process
-    :type id: str
-    :param start_line: The line number in the log file of the first log record to return.
-                       1-origin, defaults to ``1``
-    :type start_line: int
+    :param id: The local id of a map generation process
     """
     if map_maker is None:
         return Response(content={'error': 'unauthorized'}, status_code=403)
-    log_data = await map_maker.get_log(id, start_line)
+    log_data = await map_maker.get_status_log(id)
     status = await map_maker.status(id)
     return MakerLogResponse(status.status, status.id, status.pid, log_data,  str(datetime.now()))
 
