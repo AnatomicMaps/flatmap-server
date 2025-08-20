@@ -333,9 +333,9 @@ class Manager(threading.Thread):
                         if len(process.result):
                             info = ', '.join([ f'{key}: {value}' for key in MAKER_RESULT_KEYS
                                             if (value := process.result.get(key)) is not None ])
-                            self.__log.info(f'Mapmaker succeeded: {process.name}, Map {info}')
+                            self.__log.info(f'Mapmaker succeeded: {process.id}, Map {info}')
                         else:
-                            self.__log.error(f'Mapmaker FAILED: {process.name}')
+                            self.__log.error(f'Mapmaker FAILED: {process.id}')
                         self.__running_process = None
             await asyncio.sleep(0.01)
 
@@ -362,7 +362,7 @@ class Manager(threading.Thread):
             process.start_maker()
             self.__running_process = process
             self.__last_running_process_id = None
-        self.__log.info(f'Started mapmaker process: {process.name}, PID: {process.process_id}')
+        self.__log.info(f'Started mapmaker process: {process.id}, PID: {process.process_id}')
 
 #===============================================================================
 #===============================================================================
