@@ -83,7 +83,7 @@ class MakerLogResponse(MakerStatus):
 
 #===============================================================================
 
-def log_file(pid):
+def log_file_name(pid):
     return os.path.join(settings['MAPMAKER_LOGS'], f'{pid}.log.json')
 
 #===============================================================================
@@ -171,10 +171,6 @@ class MakerProcess(multiprocessing.Process):
         return self.__status in ['terminated', 'aborted']
 
     @property
-    def log_file(self):
-        return self.__log_file
-
-    @property
     def id(self):
         return self.__id
 
@@ -240,12 +236,12 @@ class MakerProcess(multiprocessing.Process):
         except TimeoutError:
             return
 
-    def start(self):
-    #===============
+    def start_maker(self):
+    #=====================
         self.__status = 'running'
         super().start()
         self.__process_id = self.pid
-        self.__log_file = log_file(self.pid)
+        self.__log_file = log_file_name(self.pid)
 
 #===============================================================================
 
@@ -273,7 +269,7 @@ class Manager(threading.Thread):
 
     async def process_log(self, pid: int):
     #=====================================
-        filename = log_file(pid)
+        filename = log_file_name(pid)
         if os.path.exists(filename):
             with open(filename) as fp:
                 return fp.read()
@@ -379,8 +375,8 @@ class Manager(threading.Thread):
 
     async def __start_process(self, process: MakerProcess):
     #======================================================
-        process.start()
         async with self.__process_lock:
+            process.start_maker()
             self.__running_process = process
             self.__last_running_process_id = None
         self.__log.info(f'Started mapmaker process: {process.name}, PID: {process.process_id}')
