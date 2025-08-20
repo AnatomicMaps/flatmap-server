@@ -93,10 +93,10 @@ def _run_in_loop(func, *args):
     loop = uvloop.new_event_loop()
     loop.run_until_complete(func(*args))
 
-async def _make_map(params, logger_port: Optional[int], process_log_queue: Optional[multiprocessing.Queue]):
-#===========================================================================================================
+async def _make_map(params, logger_port: Optional[int]):
+#=======================================================
     try:
-        mapmaker = MapMaker(params, logger_port=logger_port, process_log_queue=process_log_queue)
+        mapmaker = MapMaker(params, logger_port=logger_port)
         mapmaker.make()
     except Exception as e:
         utils.log.exception(e, exc_info=True)
@@ -154,8 +154,7 @@ class MakerProcess(multiprocessing.Process):
     def __init__(self, params: dict[str, Any], msg_queue: multiprocessing.Queue):
         id = str(uuid.uuid4())
         self.__log_receiver = LogReceiver()
-        self.__process_log_queue = multiprocessing.Queue()
-        super().__init__(target=_run_in_loop, args=(_make_map, params, self.__log_receiver.port, self.__process_log_queue), name=id)
+        super().__init__(target=_run_in_loop, args=(_make_map, params, self.__log_receiver.port), name=id)
         self.__id = id
         self.__process_id = None
         self.__log_file = None
@@ -194,7 +193,6 @@ class MakerProcess(multiprocessing.Process):
         else:
             self.__status = 'aborted'
         self.__log_receiver.close()
-        self.__process_log_queue.close()
         super().join()
         super().close()
 
@@ -206,20 +204,6 @@ class MakerProcess(multiprocessing.Process):
             if self.__log_file is not None:
                 os.remove(self.__log_file)
                 self.__log_file = None
-
-    def read_process_log_queue(self):
-    #================================
-        while True:
-            try:
-                log_record = self.__process_log_queue.get(block=False)
-                message = json.loads(log_record.msg)
-                if log_record.levelno == logging.CRITICAL:
-                    if message['msg'].startswith('Mapmaker succeeded'):
-                        self.__result = { key: value for key in MAKER_RESULT_KEYS
-                                            if (value := message.get(key)) is not None }
-                self.__msg_queue.put(message)
-            except queue.Empty:
-                return
 
     def read_log_receiver(self):
     #===========================
@@ -340,7 +324,6 @@ class Manager(threading.Thread):
             if self.__running_process is not None:
                 async with self.__process_lock:
                     process = self.__running_process
-                    ##process.read_process_log_queue()
                     process.read_log_receiver()
                     if not process.is_alive():
                         process.close()                                 # This updates status
