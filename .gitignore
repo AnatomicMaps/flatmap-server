@@ -1,6 +1,7 @@
 .venv/
 dist/
-flatmaps/
+!flatmaps/.gitkeep
+flatmaps/**
 pmr/
 connectivity/
 viewer/
