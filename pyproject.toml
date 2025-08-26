@@ -1,6 +1,6 @@
 [project]
 name = "mapserver"
-version = "1.5.1"
+version = "1.5.2"
 description = "An server for anatomical flatmaps."
 authors = [
     { name = "David Brooks", email = "d.brooks@auckland.ac.nz"}
@@ -21,7 +21,7 @@ dependencies = [
     "asyncpg>=0.30.0",
     "flatmapknowledge @ https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.6.0/flatmapknowledge-2.6.0-py3-none-any.whl",
     "mapknowledge @ https://github.com/AnatomicMaps/map-knowledge/releases/download/v1.4.0/mapknowledge-1.4.0-py3-none-any.whl",
-    "mapmaker @ https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.22.0/mapmaker-1.22.0-py3-none-any.whl",
+    "mapmaker @ https://github.com/AnatomicMaps/flatmap-maker/releases/download/v1.22.1/mapmaker-1.22.1-py3-none-any.whl",
     "granian>=2.2.5",
     "semver>=3.0.4",
     "anyio>=4.9.0",
