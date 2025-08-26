@@ -76,7 +76,7 @@ def initialise(app: Litestar):
         logger.warning('No bearer tokens defined')
 
     # Try opening our knowledge base
-    knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=True)
+    knowledge_store = KnowledgeStore(settings['FLATMAP_ROOT'], create=True, update=True)
     if knowledge_store.error is not None:
         logger.error('{}: {}'.format(knowledge_store.error, knowledge_store.db_name))
     knowledge_store.close()

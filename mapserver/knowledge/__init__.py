@@ -27,9 +27,9 @@ import flatmapknowledge
 #===============================================================================
 
 class KnowledgeStore(flatmapknowledge.KnowledgeStore):
-    def __init__(self, directory_path, create=False):
+    def __init__(self, directory_path, create=False, update=False):
         try:
-            super().__init__(directory_path, create=create, read_only=True, verbose=False)
+            super().__init__(directory_path, create=create, read_only=not update, verbose=False)
             self.__error = None
         except (sqlite3.DatabaseError, sqlite3.OperationalError) as error:
             self.__error = str(error)
