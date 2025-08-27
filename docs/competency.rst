@@ -4,8 +4,9 @@ Competency Queries via a Flatmap Server
 Query descriptions
 ------------------
 
-A server's configuration will include a YAML file that specifies what queries are available, along with
-information to assist a frontend UI in obtaining user input and to present result sets back to the user.
+A server's configuration has a set of YAML files that define the available queries, including
+information to assist a frontend UI in obtaining user input and presenting result sets back
+to a user.
 
 ::
 
@@ -41,13 +42,18 @@ information to assist a frontend UI in obtaining user input and to present resul
 Server endpoints
 ----------------
 
-There will be two new server endpoints:
+.. openapi:: spec/openapi.yaml
+   :include:
+      /competency/queries
 
-1.  ``GET competency/queries`` will return a list of available
-    queries giving their ``id``, ``label`` and ``description``.
-2.  ``GET competency/queries/QUERY_ID`` will return details
-    of a specific query (based on the above, in JSON).
-3.  ``POST competency/query/`` will expect JSON data in the form::
+*   ``GET competency/queries`` returns a JSON list of available queries giving their ``id``, ``label`` and ``description``.
+*   ``GET competency/queries/QUERY_ID`` returns details of a specific query from the query description, in JSON.
+
+.. openapi:: spec/openapi.yaml
+   :include:
+      /competency/query
+
+*   ``POST competency/query/`` expects JSON data in the form::
 
         {
             "query_id": "QUERY_ID",

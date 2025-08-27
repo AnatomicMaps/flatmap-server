@@ -7,6 +7,6 @@ Web API
    :caption: Contents:
 
    Server
-   Viewer
    Knowledge
+   Competency
    Maker

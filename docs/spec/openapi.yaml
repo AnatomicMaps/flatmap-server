@@ -1,0 +1,1608 @@
+components:
+  schemas:
+    AnnotationUpdateRequest:
+      properties:
+        data:
+          type: object
+        key:
+          type: string
+        session:
+          type: string
+      required:
+      - data
+      - key
+      - session
+      title: AnnotationUpdateRequest
+      type: object
+    KnowledgeSourcesResponse:
+      properties:
+        sources:
+          items:
+            type: string
+          type: array
+      required:
+      - sources
+      title: KnowledgeSourcesResponse
+      type: object
+    MakerData:
+      properties:
+        commit:
+          oneOf:
+          - type: string
+          - type: 'null'
+        force:
+          oneOf:
+          - type: boolean
+          - type: 'null'
+        manifest:
+          type: string
+        source:
+          type: string
+      required:
+      - manifest
+      - source
+      title: MakerData
+      type: object
+    MakerLogResponse:
+      properties:
+        id:
+          oneOf:
+          - type: integer
+          - type: 'null'
+        log:
+          type: string
+        pid:
+          oneOf:
+          - type: integer
+          - type: 'null'
+        stamp:
+          oneOf:
+          - type: string
+          - type: 'null'
+        status:
+          type: string
+      required:
+      - log
+      - status
+      title: MakerLogResponse
+      type: object
+    MakerResponse:
+      properties:
+        commit:
+          oneOf:
+          - type: string
+          - type: 'null'
+        id:
+          oneOf:
+          - type: integer
+          - type: 'null'
+        pid:
+          oneOf:
+          - type: integer
+          - type: 'null'
+        source:
+          type: string
+        status:
+          type: string
+      required:
+      - source
+      - status
+      title: MakerResponse
+      type: object
+    MakerStatus:
+      properties:
+        id:
+          oneOf:
+          - type: integer
+          - type: 'null'
+        pid:
+          oneOf:
+          - type: integer
+          - type: 'null'
+        status:
+          type: string
+      required:
+      - status
+      title: MakerStatus
+      type: object
+    ParameterChoiceDict:
+      properties:
+        label:
+          type: string
+        value:
+          type: string
+      required:
+      - label
+      - value
+      title: ParameterChoiceDict
+      type: object
+    ParameterDefinitionDict:
+      properties:
+        choices:
+          items:
+            $ref: '#/components/schemas/ParameterChoiceDict'
+          type: array
+        column:
+          type: string
+        default:
+          type: string
+        label:
+          type: string
+        multiple:
+          type: boolean
+        type:
+          type: string
+      required:
+      - column
+      - label
+      title: ParameterDefinitionDict
+      type: object
+    QueryData:
+      properties:
+        params:
+          oneOf:
+          - items:
+              type: string
+            type: array
+          - type: 'null'
+        sql:
+          type: string
+      required:
+      - sql
+      title: QueryData
+      type: object
+    QueryDefinitionDict:
+      properties:
+        description:
+          type: string
+        id:
+          type: string
+        label:
+          type: string
+        parameters:
+          items:
+            $ref: '#/components/schemas/ParameterDefinitionDict'
+          type: array
+        results:
+          items:
+            $ref: '#/components/schemas/ResultDefinitionDict'
+          type: array
+      required:
+      - id
+      - label
+      - results
+      title: QueryDefinitionDict
+      type: object
+    QueryDefinitionSummary:
+      properties:
+        description:
+          type: string
+        id:
+          type: string
+        label:
+          type: string
+      required:
+      - id
+      - label
+      title: QueryDefinitionSummary
+      type: object
+    QueryError:
+      properties:
+        error:
+          type: string
+      required:
+      - error
+      title: QueryError
+      type: object
+    QueryParameter:
+      properties:
+        column:
+          type: string
+        negate:
+          type: boolean
+        value:
+          oneOf:
+          - type: string
+          - items:
+              type: string
+            type: array
+      required:
+      - column
+      - value
+      title: QueryParameter
+      type: object
+    QueryRequest:
+      properties:
+        limit:
+          type: integer
+        order:
+          items:
+            type: string
+          type: array
+        parameters:
+          items:
+            $ref: '#/components/schemas/QueryParameter'
+          type: array
+        query_id:
+          type: string
+      required:
+      - query_id
+      title: QueryRequest
+      type: object
+    QueryResultRows:
+      properties:
+        keys:
+          items:
+            type: string
+          type: array
+        values:
+          items:
+            items:
+              type: string
+            type: array
+          type: array
+      required:
+      - keys
+      - values
+      title: QueryResultRows
+      type: object
+    QueryResults:
+      properties:
+        query_id:
+          type: string
+        results:
+          $ref: '#/components/schemas/QueryResultRows'
+      required:
+      - query_id
+      - results
+      title: QueryResults
+      type: object
+    ResultDefinitionDict:
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        type:
+          type: string
+      required:
+      - key
+      title: ResultDefinitionDict
+      type: object
+info:
+  title: Flatmap Server Web API
+  version: 1.5.2
+openapi: 3.1.0
+paths:
+  /:
+    get:
+      deprecated: false
+      operationId: FlatmapMaps
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+          description: Request fulfilled, document follows
+          headers: {}
+      summary: FlatmapMaps
+  /annotator/annotation:
+    get:
+      deprecated: false
+      operationId: AnnotatorAnnotationAnnotatorAnnotation
+      parameters:
+      - allowEmptyValue: false
+        allowReserved: false
+        deprecated: false
+        in: query
+        name: id
+        required: false
+        schema:
+          oneOf:
+          - type: string
+          - type: 'null'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: AnnotatorAnnotation
+    post:
+      deprecated: false
+      operationId: AnnotatorAnnotationAnnotatorAddAnnotation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnotationUpdateRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                - {}
+          description: Document created, URL follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: AnnotatorAddAnnotation
+  /annotator/annotation/<str:id>:
+    get:
+      deprecated: false
+      operationId: AnnotatorAnnotation<StrId>AnnotatorAnnotation
+      parameters:
+      - allowEmptyValue: false
+        allowReserved: false
+        deprecated: false
+        in: query
+        name: id
+        required: false
+        schema:
+          oneOf:
+          - type: string
+          - type: 'null'
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: AnnotatorAnnotation
+  /annotator/annotations:
+    get:
+      deprecated: false
+      operationId: AnnotatorAnnotationsAnnotatorAnnotations
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Request fulfilled, document follows
+          headers: {}
+      summary: AnnotatorAnnotations
+  /annotator/authenticate:
+    get:
+      deprecated: false
+      operationId: AnnotatorAuthenticateAnnotatorAuthenticate
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                - {}
+          description: Request fulfilled, document follows
+          headers: {}
+      summary: AnnotatorAuthenticate
+  /annotator/download:
+    get:
+      deprecated: false
+      operationId: AnnotatorDownloadAnnotatorDownload
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Request fulfilled, document follows
+          headers: {}
+      summary: AnnotatorDownload
+  /annotator/features:
+    get:
+      deprecated: false
+      operationId: AnnotatorFeaturesAnnotatorFeatures
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Request fulfilled, document follows
+          headers: {}
+      summary: AnnotatorFeatures
+  /annotator/items:
+    get:
+      deprecated: false
+      operationId: AnnotatorItemsAnnotatorAnnotatedItems
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Request fulfilled, document follows
+          headers: {}
+      summary: AnnotatorAnnotatedItems
+  /annotator/unauthenticate:
+    get:
+      deprecated: false
+      operationId: AnnotatorUnauthenticateAnnotatorUnauthenticate
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Request fulfilled, document follows
+          headers: {}
+      summary: AnnotatorUnauthenticate
+  /annotator/update:
+    post:
+      deprecated: false
+      operationId: AnnotatorUpdateAnnotatorUpdateStatus
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnnotationUpdateRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                - {}
+          description: Document created, URL follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: AnnotatorUpdateStatus
+  /competency/queries:
+    get:
+      deprecated: false
+      operationId: CompetencyQueriesCompetencyQueryDefinitions
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/QueryDefinitionSummary'
+                type: array
+          description: Request fulfilled, document follows
+          headers: {}
+      summary: CompetencyQueryDefinitions
+  /competency/queries/{query_id}:
+    get:
+      deprecated: false
+      operationId: CompetencyQueriesQueryIdCompetencyQueryDefinition
+      parameters:
+      - deprecated: false
+        in: path
+        name: query_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QueryDefinitionDict'
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: CompetencyQueryDefinition
+  /competency/query:
+    post:
+      deprecated: false
+      operationId: CompetencyQueryCompetencyQuery
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryRequest'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/QueryResults'
+                - $ref: '#/components/schemas/QueryError'
+          description: Document created, URL follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: CompetencyQuery
+  /flatmap/{map_uuid}:
+    get:
+      deprecated: false
+      operationId: FlatmapMapUuidFlatmapIndex
+      parameters:
+      - deprecated: false
+        in: path
+        name: map_uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                - {}
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: FlatmapIndex
+  /flatmap/{map_uuid}/annotations:
+    get:
+      deprecated: false
+      operationId: FlatmapMapUuidAnnotationsFlatmapAnnotation
+      parameters:
+      - deprecated: false
+        in: path
+        name: map_uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: FlatmapAnnotation
+  /flatmap/{map_uuid}/connectivity/{path_id}:
+    get:
+      deprecated: false
+      operationId: FlatmapMapUuidConnectivityPathIdFlatmapConnectivity
+      parameters:
+      - deprecated: false
+        in: path
+        name: map_uuid
+        required: true
+        schema:
+          type: string
+      - deprecated: false
+        in: path
+        name: path_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: FlatmapConnectivity
+  /flatmap/{map_uuid}/images/{image}:
+    get:
+      deprecated: false
+      operationId: FlatmapMapUuidImagesFlatmapImage
+      parameters:
+      - deprecated: false
+        in: path
+        name: map_uuid
+        required: true
+        schema:
+          type: string
+      - deprecated: false
+        in: path
+        name: image
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: FlatmapImage
+  /flatmap/{map_uuid}/layers:
+    get:
+      deprecated: false
+      operationId: FlatmapMapUuidLayersFlatmapLayers
+      parameters:
+      - deprecated: false
+        in: path
+        name: map_uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: FlatmapLayers
+  /flatmap/{map_uuid}/log:
+    get:
+      deprecated: false
+      operationId: FlatmapMapUuidLogFlatmapMakerLog
+      parameters:
+      - deprecated: false
+        in: path
+        name: map_uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            ? ''
+            : schema:
+                contentMediaType: application/octet-stream
+                type: string
+          description: File Download
+          headers:
+            content-length:
+              deprecated: false
+              description: File size in bytes
+              required: false
+              schema:
+                type: string
+            etag:
+              deprecated: false
+              description: Entity tag
+              required: false
+              schema:
+                type: string
+            last-modified:
+              deprecated: false
+              description: Last modified data-time in RFC 2822 format
+              required: false
+              schema:
+                format: date-time
+                type: string
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: FlatmapMakerLog
+  /flatmap/{map_uuid}/metadata:
+    get:
+      deprecated: false
+      operationId: FlatmapMapUuidMetadataFlatmapMetadata
+      parameters:
+      - deprecated: false
+        in: path
+        name: map_uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: FlatmapMetadata
+  /flatmap/{map_uuid}/mvtiles/{z}/{x}/{y}:
+    get:
+      deprecated: false
+      operationId: FlatmapMapUuidMvtilesZXYFlatmapVectorTiles
+      parameters:
+      - deprecated: false
+        in: path
+        name: map_uuid
+        required: true
+        schema:
+          type: string
+      - deprecated: false
+        in: path
+        name: z
+        required: true
+        schema:
+          type: integer
+      - deprecated: false
+        in: path
+        name: y
+        required: true
+        schema:
+          type: integer
+      - deprecated: false
+        in: path
+        name: x
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: FlatmapVectorTiles
+  /flatmap/{map_uuid}/pathways:
+    get:
+      deprecated: false
+      operationId: FlatmapMapUuidPathwaysFlatmapPathways
+      parameters:
+      - deprecated: false
+        in: path
+        name: map_uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: FlatmapPathways
+  /flatmap/{map_uuid}/style:
+    get:
+      deprecated: false
+      operationId: FlatmapMapUuidStyleFlatmapStyle
+      parameters:
+      - deprecated: false
+        in: path
+        name: map_uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            ? ''
+            : schema:
+                contentMediaType: application/octet-stream
+                type: string
+          description: File Download
+          headers:
+            content-length:
+              deprecated: false
+              description: File size in bytes
+              required: false
+              schema:
+                type: string
+            etag:
+              deprecated: false
+              description: Entity tag
+              required: false
+              schema:
+                type: string
+            last-modified:
+              deprecated: false
+              description: Last modified data-time in RFC 2822 format
+              required: false
+              schema:
+                format: date-time
+                type: string
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: FlatmapStyle
+  /flatmap/{map_uuid}/termgraph:
+    get:
+      deprecated: false
+      operationId: FlatmapMapUuidTermgraphFlatmapTermgraph
+      parameters:
+      - deprecated: false
+        in: path
+        name: map_uuid
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: FlatmapTermgraph
+  /flatmap/{map_uuid}/tiles/{layer}/{z}/{x}/{y}:
+    get:
+      deprecated: false
+      operationId: FlatmapMapUuidTilesLayerZXYFlatmapImageTiles
+      parameters:
+      - deprecated: false
+        in: path
+        name: map_uuid
+        required: true
+        schema:
+          type: string
+      - deprecated: false
+        in: path
+        name: layer
+        required: true
+        schema:
+          type: string
+      - deprecated: false
+        in: path
+        name: z
+        required: true
+        schema:
+          type: integer
+      - deprecated: false
+        in: path
+        name: y
+        required: true
+        schema:
+          type: integer
+      - deprecated: false
+        in: path
+        name: x
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema: {}
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: FlatmapImageTiles
+  /knowledge/query:
+    post:
+      deprecated: false
+      operationId: KnowledgeQueryKnowledgeQuery
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QueryData'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Document created, URL follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: KnowledgeQuery
+  /knowledge/schema-version:
+    get:
+      deprecated: false
+      operationId: KnowledgeSchemaVersionKnowledgeSchemaVersion
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+          description: Request fulfilled, document follows
+          headers: {}
+      summary: KnowledgeSchemaVersion
+  /knowledge/sources:
+    get:
+      deprecated: false
+      operationId: KnowledgeSourcesKnowledgeSources
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KnowledgeSourcesResponse'
+          description: Request fulfilled, document follows
+          headers: {}
+      summary: KnowledgeSources
+  /knowledge/sparcterms:
+    get:
+      deprecated: false
+      operationId: KnowledgeSparctermsKnowledgeSparcterms
+      responses:
+        '200':
+          content:
+            ? ''
+            : schema:
+                contentMediaType: application/octet-stream
+                type: string
+          description: File Download
+          headers:
+            content-length:
+              deprecated: false
+              description: File size in bytes
+              required: false
+              schema:
+                type: string
+            etag:
+              deprecated: false
+              description: Entity tag
+              required: false
+              schema:
+                type: string
+            last-modified:
+              deprecated: false
+              description: Last modified data-time in RFC 2822 format
+              required: false
+              schema:
+                format: date-time
+                type: string
+      summary: KnowledgeSparcterms
+  /make/log/{id}:
+    get:
+      deprecated: false
+      operationId: MakeLogIdMakeStatusLog
+      parameters:
+      - deprecated: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/MakerLogResponse'
+                - {}
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: MakeStatusLog
+  /make/map:
+    post:
+      deprecated: false
+      operationId: MakeMapMakeMap
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MakerData'
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/MakerResponse'
+                - {}
+          description: Document created, URL follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: MakeMap
+  /make/process-log/{pid}:
+    get:
+      deprecated: false
+      operationId: MakeProcessLogPidMakeProcessLog
+      parameters:
+      - deprecated: false
+        in: path
+        name: pid
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                - {}
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: MakeProcessLog
+  /make/status/{id}:
+    get:
+      deprecated: false
+      operationId: MakeStatusIdMakeStatus
+      parameters:
+      - deprecated: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - $ref: '#/components/schemas/MakerStatus'
+                - {}
+          description: Request fulfilled, document follows
+          headers: {}
+        '400':
+          content:
+            application/json:
+              schema:
+                description: Validation Exception
+                examples:
+                - detail: Bad Request
+                  extra: {}
+                  status_code: 400
+                properties:
+                  detail:
+                    type: string
+                  extra:
+                    additionalProperties: {}
+                    type:
+                    - 'null'
+                    - object
+                    - array
+                  status_code:
+                    type: integer
+                required:
+                - detail
+                - status_code
+                type: object
+          description: Bad request syntax or unsupported method
+      summary: MakeStatus
+  /version:
+    get:
+      deprecated: false
+      operationId: VersionVersion
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                items:
+                  type: object
+                type: array
+          description: Request fulfilled, document follows
+          headers: {}
+      summary: Version
+servers:
+- url: ''

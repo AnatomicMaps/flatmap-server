@@ -13,8 +13,10 @@ Prerequisites
 -------------
 
 *   Python 3.12
-*   `uv <https://docs.astral.sh/uv/>`_ Python package manager
-*   Under Ubuntu, ``sudo apt-get install libgl-mesa-glx``
+*   The `uv <https://docs.astral.sh/uv/>`_ Python package manager
+*   Under Ubuntu < 24: ``sudo apt-get install libgl-mesa-glx``
+*   Ubuntu 24: ``sudo apt-get install libfontconfig1 libegl1 libgl1``
+*   RHEL/Fedora: ``yum install fontconfig mesa-libGL mesa-dri-drivers``
 
 
 Installation
@@ -38,7 +40,7 @@ Running
 Debugging
 ---------
 
-Need to have ``dev`` dependencies installed, in particular ``uvicorn``.
+Need to have ``dev`` dependencies installed, in particular ``uvicorn`` and the Python virtual environment activated.
 
 ::
 
