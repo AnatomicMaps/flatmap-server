@@ -1,5 +1,5 @@
-Competency Queries via a Flatmap Server
-=======================================
+Competency Queries
+==================
 
 Query descriptions
 ------------------
