@@ -13,5 +13,6 @@ Flatmap Server
 
    Readme
    WebAPI
+   Tools
 
 

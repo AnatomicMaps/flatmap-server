@@ -34,6 +34,8 @@ from rich.prompt import Confirm
 from rich.table import Table
 from rich.text import Text
 
+from utils.help import HELP_HTML_FORMAT
+
 #===============================================================================
 
 # Suppress warning on import of ``get_flatmap_list``
@@ -248,11 +250,14 @@ logging.basicConfig(
 def main():
 #==========
     import argparse
-    from rich_argparse import RichHelpFormatter
+    from rich_argparse import HelpPreviewAction, RichHelpFormatter
 
     parser = argparse.ArgumentParser(formatter_class=RichHelpFormatter,
         description='Promote anatomical flatmaps from the Staging flatmap server to a destination server.',
         epilog=Markdown(explanation, style='argparse.text'))            # type: ignore
+
+    parser.add_argument('--generate-help-preview', action=HelpPreviewAction,
+                        export_kwds={'code_format': HELP_HTML_FORMAT})
 
     parser.add_argument('server', choices=NON_STAGING_SERVERS,
         help='The destination server to promote flatmaps to.')
