@@ -20,6 +20,7 @@
 
 from dataclasses import dataclass, field
 import logging
+import os
 from pathlib import Path
 import shutil
 from typing import Any, Callable, Optional
@@ -34,6 +35,9 @@ from rich.table import Table
 from rich.text import Text
 
 #===============================================================================
+
+# Suppress warning on import of ``get_flatmap_list``
+os.environ['COMPETENCY_USER'] = 'x'
 
 from mapserver.server.utils import get_flatmap_list
 from mapserver.settings import settings
