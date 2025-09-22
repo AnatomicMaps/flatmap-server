@@ -23,14 +23,14 @@ import logging
 import os
 from pathlib import Path
 import shutil
-from typing import Any, Callable, Optional
+from typing import Any, cast, Callable, Optional
 
 #===============================================================================
 
 from rich import box, print
 from rich.logging import RichHandler
 from rich.markdown import Markdown
-from rich.prompt import Confirm
+from rich.prompt import InvalidResponse, PromptBase
 from rich.table import Table
 from rich.text import Text
 
@@ -131,6 +131,7 @@ class PrintColumn:
     map: Optional[Callable[[Any], str|Text|None]] = None
 
 FULL_REPORT: list[PrintColumn] = [
+    PrintColumn('Nbr', 'map_number'),
     PrintColumn('Id', 'id', {'no_wrap': True}),
     PrintColumn('Taxon', 'taxon'),
     PrintColumn('Biological Sex', 'biologicalSex'),
@@ -188,18 +189,20 @@ class Promoter:
     #================================
         return self.__flatmaps
 
-    def promote_maps(self):
-    #======================
+    def promote_maps(self, numbers: Optional[list[int]]):
+    #====================================================
         for flatmap in self.__flatmaps:
-            self.__promote_map(flatmap['uuid'])
+            if numbers is None or flatmap['map_number'] in numbers:
+                self.__promote_map(flatmap)
 
-    def __promote_map(self, uuid: str):
-    #==================================
+    def __promote_map(self, flatmap: dict):
+    #======================================
+        uuid = flatmap['uuid']
         staging_dir = self.__staging_dir / uuid
         flatmap_dir = self.__flatmap_dir / uuid
         if not flatmap_dir.exists():
             shutil.copytree(staging_dir, flatmap_dir)
-            log.info(f'Promoted flatmap {uuid}')
+            log.info(f"Promoted flatmap {flatmap['map_number']}, {flatmap['id']}: {uuid}")
 
     def __get_maps_for_promotion(self):
     #==================================
@@ -207,14 +210,34 @@ class Promoter:
                                     flatmaps_in_directory(self.__staging_dir, self.__taxon, self.__sex))
         self.__flatmaps = []
         last_map_taxon_sex = None
+        map_number = 1
         for flatmap in self.__staging_flatmaps:
             map_taxon_sex = (flatmap.get('taxon', ''), flatmap.get('biologicalSex', ''))
             if last_map_taxon_sex != map_taxon_sex:
                 last_map_taxon_sex = map_taxon_sex
                 if not (self.__flatmap_dir / flatmap['uuid']).exists():
+                    flatmap['map_number'] = map_number
                     self.__flatmaps.append(flatmap)
+                    map_number += 1
 
 #===============================================================================
+#===============================================================================
+
+class MapNumbers(PromptBase[list[str]|list[int]]):
+    def process_response(self, value: str) -> list[str]|list[int]:
+    #=============================================================
+        values = value.strip().lower().replace(',', ' ').split()
+        if len(values) == 1 and values[0] in ['a', 'q']:
+            return values
+        try:
+            return [int(n) for n in values]
+        except ValueError:
+            pass
+        if self.choices is not None:
+            raise InvalidResponse(f"[prompt.invalid]{self.choices[0]}")
+        else:
+            raise InvalidResponse(f"[prompt.invalid]Invalid response")
+
 #===============================================================================
 
 def promote(args):
@@ -229,10 +252,20 @@ def promote(args):
     reporter.print_report(flatmaps)
 
     promote = args.promote
+    map_numbers = None
     if not promote:
-        promote = Confirm.ask(f"Promote these flatmaps to [b]{args.server}[/b]?", default=False)
+        valid_numbers = [n + 1 for n in range(len(flatmaps))]
+        prompt = ' 1' if len(valid_numbers) == 1 else f's 1..{valid_numbers[-1]}'
+        response = MapNumbers.ask(f'Promote flatmap{prompt} to [b]{args.server}[/b]?',
+                                    choices=['Q(uit), A(ll) or space separated numbers'],
+                                    default='q')
+        if len(response) == 1 and response[0] == 'a':
+            promote = True
+        elif response[0] != 'q':
+            promote = True
+            map_numbers = sorted(set(cast(list[int], response)))
     if promote:
-        promoter.promote_maps()
+        promoter.promote_maps(map_numbers)
 
 #===============================================================================
 
