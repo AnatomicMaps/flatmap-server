@@ -21,7 +21,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'Flatmap Server'
-copyright = '2021, David Brooks'
+copyright = '2021 - 2025, David Brooks'
 author = 'David Brooks'
 
 
