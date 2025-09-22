@@ -34,8 +34,6 @@ from rich.prompt import InvalidResponse, PromptBase
 from rich.table import Table
 from rich.text import Text
 
-from utils.help import HELP_HTML_FORMAT
-
 #===============================================================================
 
 # Suppress warning on import of ``get_flatmap_list``
@@ -43,6 +41,8 @@ os.environ['COMPETENCY_USER'] = 'x'
 
 from mapserver.server.utils import get_flatmap_list
 from mapserver.settings import settings
+
+from tools.utils.help import HELP_HTML_FORMAT
 
 #===============================================================================
 

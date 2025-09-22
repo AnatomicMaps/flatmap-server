@@ -17,7 +17,6 @@ dependencies = [
     "uvloop>=0.21.0",
     "structlog>=24.4.0",
     "rich>=13.9.4",
-    "rich-argparse>=1.7.1",
     "pyyaml>=6.0.2",
     "asyncpg>=0.30.0",
     "flatmapknowledge @ https://github.com/AnatomicMaps/flatmap-knowledge/releases/download/v2.6.0/flatmapknowledge-2.6.0-py3-none-any.whl",
@@ -36,11 +35,15 @@ dev = [
     "uvicorn>=0.35.0",
     "sphinxcontrib-openapi",
 ]
+tools = [
+    "rich-argparse>=1.7.1",
+]
 
 [project.scripts]
 mapserver = 'mapserver.__main__:mapserver'
 mapviewer = 'mapserver.__main__:mapviewer'
 archiver = "tools.archiver:main"
+promote = "tools.promote:main"
 
 [build-system]
 requires = ["hatchling"]
