@@ -152,7 +152,7 @@ FULL_REPORT: list[PrintColumn] = [
     PrintColumn('Taxon', 'taxon'),
     PrintColumn('Biological Sex', 'biologicalSex'),
     PrintColumn('Created', 'created'),
-    PrintColumn('Id', 'id', {'no_wrap': True}),
+    PrintColumn('Name', 'name', {'no_wrap': True}),
     PrintColumn('Directory', 'relative_path'),
     PrintColumn('Size', 'size', {'justify': 'right'}, formatted_size),
 ]

@@ -132,7 +132,7 @@ class PrintColumn:
 
 FULL_REPORT: list[PrintColumn] = [
     PrintColumn('Nbr', 'map_number'),
-    PrintColumn('Id', 'id', {'no_wrap': True}),
+    PrintColumn('Name', 'name', {'no_wrap': True}),
     PrintColumn('Taxon', 'taxon'),
     PrintColumn('Biological Sex', 'biologicalSex'),
     PrintColumn('Created', 'created'),
@@ -202,7 +202,7 @@ class Promoter:
         flatmap_dir = self.__flatmap_dir / uuid
         if not flatmap_dir.exists():
             shutil.copytree(staging_dir, flatmap_dir)
-            log.info(f"Promoted flatmap {flatmap['map_number']}, {flatmap['id']}: {uuid}")
+            log.info(f"Promoted flatmap {flatmap['map_number']}, {flatmap['name']}: {uuid}")
 
     def __get_maps_for_promotion(self):
     #==================================
