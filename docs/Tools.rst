@@ -21,8 +21,8 @@ server as these maps maps are intended to persist after publication.
 Flatmap promotion
 -----------------
 
-The ``promote.py`` tool copies flatmaps from a **STAGING** server to a destination
-by copying the entire directory containing the flatmap. A summary of flatmaps
+The ``promote.py`` tool promotes flatmaps from a **STAGING** server to a destination
+server by copying the entire directory containing the flatmap. A summary of the flatmaps
 available for promotion is presented to the user for confirmation before actual
 promotion.
 
