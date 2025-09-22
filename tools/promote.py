@@ -86,30 +86,35 @@ Flatmaps are promoted from **staging** to the destination server by copying the
 directory containing the flatmap (**flatmap** directories are sub-directories of
 a server's `./{FLATMAP_DIRECTORY}` directory.)
 
-Flatmaps are ordered by their **taxon**, **biological sex** and **creation time**,
--- only the latest map of a (taxon, biological sex) pair will be promoted and only
-if it is not already present on the destination.
+Anatomical flatmaps are ordered by their **taxon**, **biological sex** and
+**creation time** with only the latest map of a (taxon, biological sex) pair
+that is is not already present on the destination, being promoted; functional
+maps are ordered by their **creation time**, again with only the latest map
+not already present on the destination, being promoted.
 
 A summary of the flatmaps to be promoted is shown before asking the user to
 confirm their actual promotion.
 """
 
 
-def flatmaps_in_directory(directory: Path, taxon: Optional[str]=None, sex: Optional[str]=None) -> list[dict]:
-#============================================================================================================
+def flatmaps_in_directory(directory: Path, map_style: str, taxon: Optional[str]=None, sex: Optional[str]=None) -> list[dict]:
+#============================================================================================================================
     settings['FLATMAP_ROOT'] = str(directory)
     flatmaps = get_flatmap_list()
     filtered_maps = []
     for flatmap in flatmaps:
         if flatmap.get('uuid') is None:
             continue
-        if taxon is not None:
-            if flatmap.get('taxon') != taxon:
-                continue
-            if sex is not None and flatmap.get('biologicalSex') != sex:
-                continue
-        elif flatmap.get('taxon') not in TAXON_IDENTIFIERS:
+        if flatmap.get('style') != map_style:
             continue
+        if flatmap.get('style') == 'anatomical':
+            if taxon is not None:
+                if flatmap.get('taxon') != taxon:
+                    continue
+                if sex is not None and flatmap.get('biologicalSex') != sex:
+                    continue
+            elif flatmap.get('taxon') not in TAXON_IDENTIFIERS:
+                continue
         flatmap['relative_path'] = Path(flatmap['path']).relative_to(directory)
         filtered_maps.append(flatmap)
     return filtered_maps
@@ -142,8 +147,10 @@ FULL_REPORT: list[PrintColumn] = [
 #===============================================================================
 
 class FlatmapReporter:
-    def __init__(self):
+    def __init__(self, functional=False):
         self.__columns = FULL_REPORT
+        if functional:
+            del self.__columns[2:4]   # Remove Taxon and Biological Sex
 
     def __get_print_row(self, flatmap: dict) -> list[str|Text]:
     #==========================================================
@@ -175,7 +182,9 @@ class FlatmapReporter:
 #===============================================================================
 
 class Promoter:
-    def __init__(self, server: str, taxon: Optional[str]=None, sex: Optional[str]=None):
+    def __init__(self, server: str, map_style='anatomical',
+                    taxon: Optional[str]=None, sex: Optional[str]=None):
+        self.__map_style = map_style
         self.__taxon = taxon
         self.__sex = sex
         if server not in SERVER_HOME_DIRECTORIES:
@@ -207,7 +216,7 @@ class Promoter:
     def __get_maps_for_promotion(self):
     #==================================
         self.__staging_flatmaps = flatmaps_taxon_reverse_created_order(
-                                    flatmaps_in_directory(self.__staging_dir, self.__taxon, self.__sex))
+                                    flatmaps_in_directory(self.__staging_dir, self.__map_style, self.__taxon, self.__sex))
         self.__flatmaps = []
         last_map_taxon_sex = None
         map_number = 1
@@ -242,13 +251,13 @@ class MapNumbers(PromptBase[list[str]|list[int]]):
 
 def promote(args):
 #=================
-    promoter = Promoter(args.server, taxon=args.taxon, sex=args.biological_sex)
+    promoter = Promoter(args.server, map_style=args.style, taxon=args.taxon, sex=args.biological_sex)
     flatmaps = promoter.flatmaps
     if len(flatmaps) == 0:
         log.info('No flatmaps to promote, exiting.')
         exit(0)
 
-    reporter = FlatmapReporter()
+    reporter = FlatmapReporter(args.style=='functional')
     reporter.print_report(flatmaps)
 
     promote = args.promote
@@ -294,6 +303,8 @@ def main():
 
     parser.add_argument('server', choices=NON_STAGING_SERVERS,
         help='The destination server to promote flatmaps to.')
+    parser.add_argument('--style', choices=['anatomical', 'functional'], default='anatomical',
+        help='Style of flatmaps to promote.')
     parser.add_argument('--taxon', choices=list(TAXON_IDENTIFIERS.values()),
         help='Only promote flatmaps for this taxon.')
     parser.add_argument('--biological-sex', choices=list(BIOLOGICAL_SEX_IDS.values()),
