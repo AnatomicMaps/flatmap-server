@@ -58,14 +58,16 @@ def get_flatmap_list() -> list[dict]:
                      and ('uuid' not in metadata or flatmap_dir.name != metadata['uuid'].split(':')[-1])):
                         flatmap['error'] = f'Flatmap id mismatch with directory: {flatmap_dir}'
                         continue
-
                     flatmap.update({
                         'id': metadata['id'],
+                        'name': metadata.get('name', metadata['id']),
                         'source': metadata['source'],
                         'version': version
                     })
                     if 'uuid' in metadata:
                         flatmap['uuid'] = metadata['uuid']
+                    if 'style' in index:
+                        flatmap['style'] = index['style']
 
                     ## add later...
                     ##id = flatmap.get('uuid', flatmap['id'])
