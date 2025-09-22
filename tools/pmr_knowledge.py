@@ -34,7 +34,7 @@ PMR_BASE_URL = 'https://models.physiomeproject.org/'
 
 #===============================================================================
 
-PMR_KNOWLEDE_SCHEMA = """
+PMR_KNOWLEDGE_SCHEMA = """
     create table if not exists pmr_models (term text, score number, model text, workspace text, exposure text);
     create index if not exists pmr_models_term_index on pmr_models(term, score);
     create index if not exists pmr_models_exposure_index on pmr_models(exposure);
@@ -103,7 +103,7 @@ def main():
 
     # Wrap the entire operation in a transaction
 
-    db.executescript(PMR_KNOWLEDE_SCHEMA)
+    db.executescript(PMR_KNOWLEDGE_SCHEMA)
     db.commit()
 
     if args.index is not None:
