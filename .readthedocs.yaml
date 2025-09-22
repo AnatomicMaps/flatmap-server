@@ -14,5 +14,5 @@ build:
     python: "3.12"
   commands:
     - pip install uv
-    - uv sync --dev
+    - uv sync --all-groups
     - uv run python -m sphinx docs $READTHEDOCS_OUTPUT/html -b html -W
