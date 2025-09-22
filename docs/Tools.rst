@@ -15,7 +15,7 @@ The ``archiver.py`` tool archives flatmaps by moving them from a flatmap server'
 free disk space. The utility though will not archive flatmaps on a **PRODUCTION**
 server as these maps maps are intended to persist after publication.
 
-`\`\`uv run archiver --help\`\` <./_static/archiver.html>`_
+.. image:: ./_static/archiver.svg
 
 
 Flatmap promotion
@@ -26,4 +26,4 @@ by copying the entire directory containing the flatmap. A summary of flatmaps
 available for promotion is presented to the user for confirmation before actual
 promotion.
 
-`\`\`uv run promote --help\`\` <./_static/promote.html>`_
+.. image:: ./_static/promote.svg

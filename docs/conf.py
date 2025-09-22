@@ -57,5 +57,5 @@ html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
 
 # -- Generate HTML help for tools
-os.system('COLUMNS=80 python ../tools/archiver.py --generate-help-preview ./_static/archiver.html')
-os.system('COLUMNS=80 python ../tools/promote.py --generate-help-preview ./_static/promote.html')
+os.system('COLUMNS=80 python ../tools/archiver.py --generate-help-preview ./_static/archiver.svg')
+os.system('COLUMNS=80 python ../tools/promote.py --generate-help-preview ./_static/promote.svg')

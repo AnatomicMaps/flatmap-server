@@ -42,8 +42,6 @@ os.environ['COMPETENCY_USER'] = 'x'
 from mapserver.server.utils import get_flatmap_list
 from mapserver.settings import settings
 
-from tools.utils.help import HELP_HTML_FORMAT
-
 #===============================================================================
 
 MIN_KEEP_GENERATIONS = 2
@@ -356,8 +354,7 @@ def main():
         description='Report on and archive maps on a flatmap server.',
         epilog=Markdown(explanation, style='argparse.text'))            # type: ignore
 
-    parser.add_argument('--generate-help-preview', action=HelpPreviewAction,
-                        export_kwds={'code_format': HELP_HTML_FORMAT})
+    parser.add_argument('--generate-help-preview', action=HelpPreviewAction)
 
     parser.add_argument('server', choices=list(SERVER_HOME_DIRECTORIES.keys()),
         help='The server containing flatmaps to be archived')

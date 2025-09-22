@@ -42,8 +42,6 @@ os.environ['COMPETENCY_USER'] = 'x'
 from mapserver.server.utils import get_flatmap_list
 from mapserver.settings import settings
 
-from tools.utils.help import HELP_HTML_FORMAT
-
 #===============================================================================
 
 FLATMAP_DIRECTORY = 'flatmaps'
@@ -298,8 +296,7 @@ def main():
         description='Promote anatomical flatmaps from the Staging flatmap server to a destination server.',
         epilog=Markdown(explanation, style='argparse.text'))            # type: ignore
 
-    parser.add_argument('--generate-help-preview', action=HelpPreviewAction,
-                        export_kwds={'code_format': HELP_HTML_FORMAT})
+    parser.add_argument('--generate-help-preview', action=HelpPreviewAction)
 
     parser.add_argument('server', choices=NON_STAGING_SERVERS,
         help='The destination server to promote flatmaps to.')
