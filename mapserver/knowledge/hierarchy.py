@@ -39,7 +39,8 @@ from .rdf_utils import ILX_BASE, Node, Triple, Uri
 
 #===============================================================================
 
-TREE_VERSION = '1.2'
+# Bump this to automatically rebuild map term hierarchies
+TREE_VERSION = '1.3'
 
 #===============================================================================
 
@@ -281,8 +282,8 @@ class SparcHierarchy:
         if furthest_term is not None:
             self.__graph.add_edge(ilx.uri.id, furthest_term.id)
 
-    def distance_to_root(self, source):
-    #==================================
+    def distance_to_root(self, source: Uri):
+    #=======================================
         return self.path_length(source, ANATOMICAL_ROOT)
 
     def has(self, term: Uri) -> bool:
@@ -293,13 +294,25 @@ class SparcHierarchy:
     #=================================
         return self.__graph.nodes[term.id]['label']
 
-    def path_length(self, source, target):
-    #=====================================
+    def path_length(self, source: Uri, target: Uri):
+    #===============================================
         try:
             return nx.shortest_path_length(self.__graph, source.id, target.id)
         except (nx.NetworkXNoPath, nx.NodeNotFound):
             pass
         return -1
+
+    def terminal_path_terms(self, start_terms: set[Uri]) -> set[Uri]:
+    #================================================================
+        path_nodes = set()
+        def add_predecessors(start):
+            for node in self.__graph.predecessors(start):
+                if node not in path_nodes:
+                    path_nodes.add(node)
+                    add_predecessors(node)
+        for start in start_terms:
+            add_predecessors(start.id)
+        return { Uri(node) for node in path_nodes }
 
 #===============================================================================
 
@@ -330,6 +343,12 @@ class AnatomicalHierarchy:
                         [ann.get('models') for ann in json_map_metadata(flatmap, 'annotations').values()
                             if ann.get('kind') != 'centreline']
                                 if self.__sparc_hierarchy.has(term))
+
+        # Add downward paths from each term to the tips to cater for datasets
+        # with terms that aren't in the map -- e.g. a FC map with `gi tract` but
+        # no `stomach` and wanting to place a marker for a `stomach` dataset.
+        map_terms |= self.__sparc_hierarchy.terminal_path_terms(map_terms)
+
         for term in map_terms:
             distance = self.__sparc_hierarchy.distance_to_root(term)
             if distance > 0:
