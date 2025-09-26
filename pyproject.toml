@@ -30,10 +30,10 @@ dependencies = [
 [dependency-groups]
 dev = [
     "sphinx<=8.1",
-    "sphinx-rtd-theme<=3.0.1",
     "pytest>=8.4.0",
     "uvicorn>=0.35.0",
     "sphinxcontrib-openapi",
+    "furo>=2025.9.25",
 ]
 tools = [
     "rich-argparse>=1.7.1",
