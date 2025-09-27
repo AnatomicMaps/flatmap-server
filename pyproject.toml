@@ -25,6 +25,9 @@ dependencies = [
     "granian>=2.2.5",
     "semver>=3.0.4",
     "anyio>=4.9.0",
+    "scipy>=1.16.2",
+    "igraph>=0.11.9",
+    "numpy>=1.26.4",
 ]
 
 [dependency-groups]

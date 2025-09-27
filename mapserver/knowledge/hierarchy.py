@@ -27,8 +27,12 @@ from typing import cast, Optional
 
 #===============================================================================
 
+import igraph as ig
 import networkx as nx
+import numpy as np
 import rdflib
+import scipy.sparse
+import scipy.sparse.csgraph as csgraph
 
 #===============================================================================
 
@@ -235,14 +239,16 @@ class SparcHierarchy:
             with open(hierarchy_file) as fp:
                 graph_json = json.load(fp)
                 self.__graph = nx.node_link_graph(graph_json, edges='links', directed=True)  # type: ignore
-                return
         except Exception:
-            pass
-        self.__graph = UberonGraph(uberon_source)
-        self.__add_ilx_terms(interlex_source)
-        graph_json = nx.node_link_data(self.__graph, edges='links')     # type: ignore
-        with open(hierarchy_file, 'w') as fp:
-            json.dump(graph_json, fp)
+            self.__graph = UberonGraph(uberon_source)
+            self.__add_ilx_terms(interlex_source)
+            graph_json = nx.node_link_data(self.__graph, edges='links')     # type: ignore
+            with open(hierarchy_file, 'w') as fp:
+                json.dump(graph_json, fp)
+        self.__igraph = ig.Graph.from_networkx(self.__graph, 'name')
+        adj = self.__igraph.get_adjacency_sparse()
+        self.__distances = csgraph.shortest_path(csgraph=adj, directed=True, unweighted=True)
+        self.__distances[self.__distances == np.inf] = 0
 
     def __add_ilx_terms(self, interlex_source: str):
     #===============================================
@@ -275,34 +281,49 @@ class SparcHierarchy:
         max_parent_distance = 0
         for parent in ilx.parents:
             if parent.id in self.__graph:
-                distance = self.distance_to_root(parent)
+                distance = self.distance_to_root(parent.id)
                 if distance > max_parent_distance:
                     furthest_term = parent
                     max_parent_distance = distance
         if furthest_term is not None:
             self.__graph.add_edge(ilx.uri.id, furthest_term.id)
 
-    def distance_to_root(self, source: Uri):
+    def distance_to_root(self, source: str):
     #=======================================
-        return self.path_length(source, ANATOMICAL_ROOT)
+        return self.path_length(source, ANATOMICAL_ROOT.id)
 
-    def has(self, term: Uri) -> bool:
-    #=================================
+    def has(self, term: Optional[str]) -> bool:
+    #==========================================
         return term is not None and str(term) in self.__graph
 
-    def label(self, term: Uri) -> str:
+    def label(self, term: str) -> str:
     #=================================
-        return self.__graph.nodes[term.id]['label']
+        return self.__graph.nodes[term]['label']
 
-    def path_length(self, source: Uri, target: Uri):
-    #===============================================
+    def path_length(self, source: str, target: str) -> int:
+    #======================================================
         try:
-            return nx.shortest_path_length(self.__graph, source.id, target.id)
-        except (nx.NetworkXNoPath, nx.NodeNotFound):
+            source_vertex = self.__igraph.vs.find(source)
+            target_vertex = self.__igraph.vs.find(target)
+            return self.__distances[source_vertex.index][target_vertex.index]
+        except ValueError:
             pass
         return -1
 
-    def terminal_path_terms(self, start_terms: set[Uri]) -> set[Uri]:
+    def path_distances_from(self, source: str) -> dict[str, int]:
+    #============================================================
+        try:
+            source_vertex = self.__igraph.vs.find(source)
+            target_distances = self.__distances[source_vertex.index]
+            target_vertices = np.nonzero(target_distances)[0]
+            return { self.__igraph.vs[v]['name']: int(d) for v in target_vertices
+                if (d := target_distances[v]) != np.inf
+             }
+        except ValueError:
+            pass
+        return {}
+
+    def terminal_path_terms(self, start_terms: set[str]) -> set[str]:
     #================================================================
         path_nodes = set()
         def add_predecessors(start):
@@ -311,14 +332,18 @@ class SparcHierarchy:
                     path_nodes.add(node)
                     add_predecessors(node)
         for start in start_terms:
-            add_predecessors(start.id)
-        return { Uri(node) for node in path_nodes }
+            add_predecessors(start)
+        return path_nodes
 
+#===============================================================================
+#===============================================================================
+
+SPARC_HIERARCHY = SparcHierarchy(UBERON_ONTOLOGY, NPO_ONTOLOGY)
+
+#===============================================================================
 #===============================================================================
 
 class AnatomicalHierarchy:
-    def __init__(self):
-        self.__sparc_hierarchy = SparcHierarchy(UBERON_ONTOLOGY, NPO_ONTOLOGY)
 
     def get_hierachy(self, flatmap: str) -> dict:
         hierarchy_file = os.path.join(settings['FLATMAP_ROOT'], flatmap, CACHED_MAP_HIERARCHY)
@@ -332,38 +357,37 @@ class AnatomicalHierarchy:
 
         hierarchy_graph = nx.DiGraph()
         hierarchy_graph.add_node(ANATOMICAL_ROOT.id,
-            label=self.__sparc_hierarchy.label(ANATOMICAL_ROOT),
+            label=SPARC_HIERARCHY.label(ANATOMICAL_ROOT.id),
             distance=0)
         hierarchy_graph.add_node(BODY_PROPER.id,
-            label=self.__sparc_hierarchy.label(BODY_PROPER))
+            label=SPARC_HIERARCHY.label(BODY_PROPER.id))
 
         # Nodes on the graph are SPARC terms, with attributes of the term's label and its distance to
         # a common ``anatomical root``
-        map_terms = set(Uri(term) for term in
+        map_terms = set(term for term in
                         [ann.get('models') for ann in json_map_metadata(flatmap, 'annotations').values()
                             if ann.get('kind') != 'centreline']
-                                if self.__sparc_hierarchy.has(term))
+                                if SPARC_HIERARCHY.has(term))
 
         # Add downward paths from each term to the tips to cater for datasets
         # with terms that aren't in the map -- e.g. a FC map with `gi tract` but
         # no `stomach` and wanting to place a marker for a `stomach` dataset.
-        map_terms |= self.__sparc_hierarchy.terminal_path_terms(map_terms)
-
+        map_terms |= SPARC_HIERARCHY.terminal_path_terms(map_terms)
         for term in map_terms:
-            distance = self.__sparc_hierarchy.distance_to_root(term)
+            distance = SPARC_HIERARCHY.distance_to_root(term)
             if distance > 0:
-                hierarchy_graph.add_node(term.id,
-                    label=self.__sparc_hierarchy.label(term),
+                hierarchy_graph.add_node(term,
+                    label=SPARC_HIERARCHY.label(term),
                     distance=distance)
 
         # Find the shortest path between each pair of SPARC terms used in the flatmap,
         # including to the ANATOMICAL_ROOT node, and if a path exists, add an edge to
         # the graph
-        map_terms.add(ANATOMICAL_ROOT)
-        for source, target in itertools.permutations(map_terms, 2):
-            path_length = self.__sparc_hierarchy.path_length(source, target)
-            if path_length > 0:
-                hierarchy_graph.add_edge(source.id, target.id, parent_distance=path_length)
+        map_terms.add(ANATOMICAL_ROOT.id)
+        for source in map_terms:
+            for target, path_length in SPARC_HIERARCHY.path_distances_from(source).items():
+                if target in map_terms:
+                    hierarchy_graph.add_edge(source, target, parent_distance=path_length)
 
         # For each term used by the flatmap find the closest term(s) it is connected to and
         # delete edges connecting to more distant terms
@@ -389,4 +413,5 @@ class AnatomicalHierarchy:
             json.dump(hierarchy, fp)
         return hierarchy
 
+#===============================================================================
 #===============================================================================
