@@ -349,19 +349,13 @@ class AnatomicalHierarchy:
     #=============================================
         hierarchy_file = os.path.join(settings['FLATMAP_ROOT'], flatmap, CACHED_MAP_HIERARCHY)
         try:
+            # Do we already have the current version of the map's hierarchy?
             with open(hierarchy_file) as fp:
                 hierarchy = json.load(fp)
                 if hierarchy.get('graph', {}).get('version', '') >= TREE_VERSION:
                     return hierarchy
         except Exception:
             pass
-
-        hierarchy_graph = nx.DiGraph()
-        hierarchy_graph.add_node(ANATOMICAL_ROOT.id,
-            label=SPARC_HIERARCHY.label(ANATOMICAL_ROOT.id),
-            distance=0)
-        hierarchy_graph.add_node(BODY_PROPER.id,
-            label=SPARC_HIERARCHY.label(BODY_PROPER.id))
 
         # Nodes on the graph are SPARC terms, with attributes of the term's label and its distance to
         # a common ``anatomical root``
@@ -370,11 +364,51 @@ class AnatomicalHierarchy:
                             if ann.get('kind') != 'centreline']
                                 if SPARC_HIERARCHY.has(term))
 
-        # Add downward paths from each term to the tips to cater for datasets
-        # with terms that aren't in the map -- e.g. a FC map with `gi tract` but
-        # no `stomach` and wanting to place a marker for a `stomach` dataset.
-        map_terms |= SPARC_HIERARCHY.terminal_path_terms(map_terms)
-        for term in map_terms:
+        # We first get the hierarchy tree for just the terms on the map
+        map_hierarchy = self.__make_hierarchy(map_terms, False)
+
+        # And save what the viewer needs to be set in the final hierarchy
+        map_max_depth = map_hierarchy['graph']['depth']
+        map_term_depths = { node['id']: node['depth'] for node in map_hierarchy['nodes'] }
+        map_targets_by_source = { link['source']: link['target'] for link in map_hierarchy['links'] }
+
+        # Now build a hierarchy that includes terms that are descendents of those on the map
+        full_hierarchy = self.__make_hierarchy(map_terms, True)
+
+        # And adjust it for what the viewer needs to know about the map's hierarchy
+        full_hierarchy['graph']['depth'] = map_max_depth
+        for node in full_hierarchy['nodes']:
+            if (depth := map_term_depths.get(node['id'])) is not None:
+                node['depth'] = depth
+            else:
+                del node['depth']
+        for link in full_hierarchy['links']:
+            if (target := map_targets_by_source.get(link['source'])) is not None:
+                link['target'] = target
+
+        # Save the hierarchy for future requests
+        with open(hierarchy_file, 'w') as fp:
+            json.dump(full_hierarchy, fp)
+
+        return full_hierarchy
+
+    def __make_hierarchy(self, map_terms: set[str], all_terms: bool) -> dict:
+    #========================================================================
+        hierarchy_graph = nx.DiGraph()
+        hierarchy_graph.add_node(ANATOMICAL_ROOT.id,
+            label=SPARC_HIERARCHY.label(ANATOMICAL_ROOT.id),
+            distance=0)
+        hierarchy_graph.add_node(BODY_PROPER.id,
+            label=SPARC_HIERARCHY.label(BODY_PROPER.id))
+
+        terms = map_terms.copy()
+        if all_terms:
+            # Add downward paths from each term to the tips to cater for datasets
+            # with terms that aren't in the map -- e.g. a FC map with `gi tract` but
+            # no `stomach` and wanting to place a marker for a `stomach` dataset.
+            terms |= SPARC_HIERARCHY.terminal_path_terms(map_terms)
+
+        for term in terms:
             distance = SPARC_HIERARCHY.distance_to_root(term)
             if distance > 0:
                 hierarchy_graph.add_node(term,
@@ -384,10 +418,10 @@ class AnatomicalHierarchy:
         # Find the shortest path between each pair of SPARC terms used in the flatmap,
         # including to the ANATOMICAL_ROOT node, and if a path exists, add an edge to
         # the graph
-        map_terms.add(ANATOMICAL_ROOT.id)
-        for source in map_terms:
+        terms.add(ANATOMICAL_ROOT.id)
+        for source in terms:
             for target, path_length in SPARC_HIERARCHY.path_distances_from(source).items():
-                if target in map_terms:
+                if target in terms:
                     hierarchy_graph.add_edge(source, target, parent_distance=path_length)
 
         # For each term used by the flatmap find the closest term(s) it is connected to and
@@ -408,10 +442,8 @@ class AnatomicalHierarchy:
                     n += 1
 
         hierarchy_tree = Arborescence(hierarchy_graph, ANATOMICAL_ROOT, BODY_PROPER).tree
-        hierarchy_tree.graph['version'] = TREE_VERSION  # type: ignore
+        hierarchy_tree.graph['version'] = TREE_VERSION                  # type: ignore
         hierarchy = nx.node_link_data(hierarchy_tree, edges='links')    # type: ignore
-        with open(hierarchy_file, 'w') as fp:
-            json.dump(hierarchy, fp)
         return hierarchy
 
 #===============================================================================
