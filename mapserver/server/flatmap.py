@@ -288,7 +288,7 @@ async def flatmap_annotation(map_uuid: str) -> dict:
 @get('flatmap/{map_uuid:str}/termgraph')
 async def flatmap_termgraph(map_uuid: str) -> dict:
     try:
-        return anatomical_hierarchy.get_hierachy(map_uuid)
+        return anatomical_hierarchy.get_hierarchy(map_uuid)
     except IOError as err:
         raise exceptions.NotFoundException(detail=str(err))
 

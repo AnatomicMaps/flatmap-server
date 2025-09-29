@@ -345,7 +345,8 @@ SPARC_HIERARCHY = SparcHierarchy(UBERON_ONTOLOGY, NPO_ONTOLOGY)
 
 class AnatomicalHierarchy:
 
-    def get_hierachy(self, flatmap: str) -> dict:
+    def get_hierarchy(self, flatmap: str) -> dict:
+    #=============================================
         hierarchy_file = os.path.join(settings['FLATMAP_ROOT'], flatmap, CACHED_MAP_HIERARCHY)
         try:
             with open(hierarchy_file) as fp:
