@@ -247,8 +247,9 @@ class SparcHierarchy:
                 json.dump(graph_json, fp)
         self.__igraph = ig.Graph.from_networkx(self.__graph, 'name')
         adj = self.__igraph.get_adjacency_sparse()
-        self.__distances = csgraph.shortest_path(csgraph=adj, directed=True, unweighted=True)
-        self.__distances[self.__distances == np.inf] = 0
+        distances = csgraph.shortest_path(csgraph=adj, directed=True, unweighted=True, method='D')
+        distances[distances == np.inf] = 0
+        self.__distances = distances.astype(np.uint8)
 
     def __add_ilx_terms(self, interlex_source: str):
     #===============================================
