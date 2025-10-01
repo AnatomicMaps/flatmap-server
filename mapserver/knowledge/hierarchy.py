@@ -235,6 +235,7 @@ class UberonGraph(nx.DiGraph):
 class SparcHierarchy:
     def __init__(self, uberon_source: str, interlex_source: str):
         hierarchy_file = os.path.join(settings['FLATMAP_ROOT'], CACHED_SPARC_HIERARCHY)
+        self.__distances = None
         try:
             with open(hierarchy_file) as fp:
                 graph_json = json.load(fp)
@@ -291,7 +292,15 @@ class SparcHierarchy:
 
     def distance_to_root(self, source: str):
     #=======================================
-        return self.path_length(source, ANATOMICAL_ROOT.id)
+        if self.__distances is not None:
+            return self.path_length(source, ANATOMICAL_ROOT.id)
+        # Otherwise creating a new UberonGraph and have yet to
+        # initialise ``self.__distances``
+        try:
+            return nx.shortest_path_length(self.__graph, source, ANATOMICAL_ROOT.id)
+        except (nx.NetworkXNoPath, nx.NodeNotFound):
+            pass
+        return -1
 
     def has(self, term: Optional[str]) -> bool:
     #==========================================
@@ -303,6 +312,7 @@ class SparcHierarchy:
 
     def path_length(self, source: str, target: str) -> int:
     #======================================================
+        assert self.__distances is not None
         try:
             source_vertex = self.__igraph.vs.find(source)
             target_vertex = self.__igraph.vs.find(target)
@@ -313,6 +323,7 @@ class SparcHierarchy:
 
     def path_distances_from(self, source: str) -> dict[str, int]:
     #============================================================
+        assert self.__distances is not None
         try:
             source_vertex = self.__igraph.vs.find(source)
             target_distances = self.__distances[source_vertex.index]
