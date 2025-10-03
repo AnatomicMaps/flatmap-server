@@ -62,8 +62,9 @@ UBERON_ONTOLOGY = str(ONTOLOGY_RESOURCE / 'uberon-basic.json')
 
 #===============================================================================
 
-MULTICELLULAR_ORGANISM = Uri('UBERON:0000468')
-ANATOMICAL_ROOT = MULTICELLULAR_ORGANISM
+ANATOMICAL_ENTITY = Uri('UBERON:0001062')
+
+ANATOMICAL_ROOT = ANATOMICAL_ENTITY
 
 BODY_PROPER = Uri('UBERON:0013702')
 
