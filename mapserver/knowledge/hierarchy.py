@@ -20,7 +20,6 @@
 
 import functools
 import importlib.resources
-import itertools
 import json
 import os
 from pathlib import Path
