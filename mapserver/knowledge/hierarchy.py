@@ -44,7 +44,7 @@ from .rdf_utils import ILX_BASE, Node, Triple, Uri
 #===============================================================================
 
 # Bump this to automatically rebuild map term hierarchies
-TREE_VERSION = '1.3'
+MAP_TREE_VERSION = '1.3'
 
 #===============================================================================
 
@@ -363,7 +363,7 @@ class AnatomicalHierarchy:
             # Do we already have the current version of the map's hierarchy?
             with open(hierarchy_file) as fp:
                 hierarchy = json.load(fp)
-                if hierarchy.get('graph', {}).get('version', '') >= TREE_VERSION:
+                if hierarchy.get('graph', {}).get('version', '') >= MAP_TREE_VERSION:
                     return hierarchy
         except Exception:
             pass
@@ -453,8 +453,8 @@ class AnatomicalHierarchy:
                     n += 1
 
         hierarchy_tree = Arborescence(hierarchy_graph, ANATOMICAL_ROOT, BODY_PROPER).tree
-        hierarchy_tree.graph['version'] = TREE_VERSION                  # type: ignore
         hierarchy = nx.node_link_data(hierarchy_tree, edges='links')    # type: ignore
+        hierarchy_tree.graph['version'] = MAP_TREE_VERSION
         return hierarchy
 
 #===============================================================================
