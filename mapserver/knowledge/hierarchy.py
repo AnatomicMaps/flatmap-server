@@ -453,8 +453,8 @@ class AnatomicalHierarchy:
                     n += 1
 
         hierarchy_tree = Arborescence(hierarchy_graph, ANATOMICAL_ROOT, BODY_PROPER).tree
-        hierarchy = nx.node_link_data(hierarchy_tree, edges='links')    # type: ignore
         hierarchy_tree.graph['version'] = MAP_TREE_VERSION
+        hierarchy = nx.node_link_data(hierarchy_tree, edges='links')
         return hierarchy
 
 #===============================================================================
