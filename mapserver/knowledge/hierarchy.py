@@ -379,7 +379,7 @@ class SparcHierarchy:
 class AnatomicalHierarchy:
 
     def __init__(self):
-        self.__sparch_hierarchy = SparcHierarchy(UBERON_ONTOLOGY, NPO_ONTOLOGY)
+        self.__sparc_hierarchy = SparcHierarchy(UBERON_ONTOLOGY, NPO_ONTOLOGY)
 
     def get_hierarchy(self, flatmap: str) -> dict:
     #=============================================
@@ -398,7 +398,7 @@ class AnatomicalHierarchy:
         map_terms = set(term for term in
                         [ann.get('models') for ann in json_map_metadata(flatmap, 'annotations').values()
                             if ann.get('kind') != 'centreline']
-                                if self.__sparch_hierarchy.has(term))
+                                if self.__sparc_hierarchy.has(term))
 
         # We first get the hierarchy tree for just the terms on the map
         map_hierarchy = self.__make_hierarchy(map_terms, False)
@@ -432,23 +432,23 @@ class AnatomicalHierarchy:
     #========================================================================
         hierarchy_graph = nx.DiGraph()
         hierarchy_graph.add_node(ANATOMICAL_ROOT.id,
-            label=self.__sparch_hierarchy.label(ANATOMICAL_ROOT.id),
+            label=self.__sparc_hierarchy.label(ANATOMICAL_ROOT.id),
             distance=0)
         hierarchy_graph.add_node(BODY_PROPER.id,
-            label=self.__sparch_hierarchy.label(BODY_PROPER.id))
+            label=self.__sparc_hierarchy.label(BODY_PROPER.id))
 
         terms = map_terms.copy()
         if all_terms:
             # Add downward paths from each term to the tips to cater for datasets
             # with terms that aren't in the map -- e.g. a FC map with `gi tract` but
             # no `stomach` and wanting to place a marker for a `stomach` dataset.
-            terms |= self.__sparch_hierarchy.terminal_path_terms(map_terms)
+            terms |= self.__sparc_hierarchy.terminal_path_terms(map_terms)
 
         for term in terms:
-            distance = self.__sparch_hierarchy.distance_to_root(term)
+            distance = self.__sparc_hierarchy.distance_to_root(term)
             if distance > 0:
                 hierarchy_graph.add_node(term,
-                    label=self.__sparch_hierarchy.label(term),
+                    label=self.__sparc_hierarchy.label(term),
                     distance=distance)
 
         # Find the shortest path between each pair of SPARC terms used in the flatmap,
@@ -456,7 +456,7 @@ class AnatomicalHierarchy:
         # the graph
         terms.add(ANATOMICAL_ROOT.id)
         for source in terms:
-            for target, path_length in self.__sparch_hierarchy.path_distances_from(source).items():
+            for target, path_length in self.__sparc_hierarchy.path_distances_from(source).items():
                 if target in terms:
                     hierarchy_graph.add_edge(source, target, parent_distance=path_length)
 
