@@ -57,9 +57,6 @@ FLATMAP_PATH_PREFIX = 'flatmap'
 
 #===============================================================================
 
-# Build and cache a hierarchy of anataomical terms used by a flatmap
-
-anatomical_hierarchy = AnatomicalHierarchy()
 
 #===============================================================================
 #===============================================================================
@@ -285,9 +282,13 @@ async def flatmap_annotation(map_uuid: str) -> dict:
 
 #===============================================================================
 
+"""
+Build and cache a hierarchy of anataomical terms used by a flatmap.
+"""
 @get('flatmap/{map_uuid:str}/termgraph')
 async def flatmap_termgraph(map_uuid: str) -> dict:
     try:
+        anatomical_hierarchy = AnatomicalHierarchy()
         return anatomical_hierarchy.get_hierarchy(map_uuid)
     except IOError as err:
         raise exceptions.NotFoundException(detail=str(err))

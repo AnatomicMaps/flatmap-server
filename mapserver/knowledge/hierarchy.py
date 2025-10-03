@@ -379,7 +379,7 @@ class SparcHierarchy:
 class AnatomicalHierarchy:
 
     def __init__(self):
-        self.__sparc_hierarchy = SparcHierarchy(UBERON_ONTOLOGY, NPO_ONTOLOGY)
+        self.__sparc_hierarchy = None
 
     def get_hierarchy(self, flatmap: str) -> dict:
     #=============================================
@@ -392,6 +392,8 @@ class AnatomicalHierarchy:
                     return hierarchy
         except Exception:
             pass
+
+        self.__sparc_hierarchy = SparcHierarchy(UBERON_ONTOLOGY, NPO_ONTOLOGY)
 
         # Nodes on the graph are SPARC terms, with attributes of the term's label and its distance to
         # a common ``anatomical root``
@@ -426,10 +428,15 @@ class AnatomicalHierarchy:
         with open(hierarchy_file, 'w') as fp:
             json.dump(full_hierarchy, fp)
 
+        # Free memory used by the SPARC hierarchy
+        del self.__sparc_hierarchy
+        self.__sparc_hierarchy = None
+
         return full_hierarchy
 
     def __make_hierarchy(self, map_terms: set[str], all_terms: bool) -> dict:
     #========================================================================
+        assert self.__sparc_hierarchy is not None
         hierarchy_graph = nx.DiGraph()
         hierarchy_graph.add_node(ANATOMICAL_ROOT.id,
             label=self.__sparc_hierarchy.label(ANATOMICAL_ROOT.id),
