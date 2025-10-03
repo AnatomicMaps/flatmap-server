@@ -23,6 +23,7 @@ import importlib.resources
 import itertools
 import json
 import os
+from pathlib import Path
 from typing import cast, Optional
 
 #===============================================================================
@@ -43,6 +44,9 @@ from .rdf_utils import ILX_BASE, Node, Triple, Uri
 
 #===============================================================================
 
+# Bump this to automatically rebuild the SPARC term hierarchy
+SPARC_HIERARCHY_VERSION = '1.0'
+
 # Bump this to automatically rebuild map term hierarchies
 MAP_TREE_VERSION = '1.3'
 
@@ -52,6 +56,7 @@ MAP_TREE_VERSION = '1.3'
 
 CACHED_MAP_HIERARCHY = 'hierarchy.json'
 CACHED_SPARC_HIERARCHY = 'sparc-hierarchy.json'
+CACHED_SPARC_DISTANCES = 'sparc-distances.npy'
 
 #===============================================================================
 
@@ -235,23 +240,43 @@ class UberonGraph(nx.DiGraph):
 
 class SparcHierarchy:
     def __init__(self, uberon_source: str, interlex_source: str):
-        hierarchy_file = os.path.join(settings['FLATMAP_ROOT'], CACHED_SPARC_HIERARCHY)
+        self.__hierarchy_file = Path(settings['FLATMAP_ROOT']) / CACHED_SPARC_HIERARCHY
+        self.__distances_file = (self.__hierarchy_file / '..' / CACHED_SPARC_DISTANCES).resolve()
         self.__distances = None
         try:
-            with open(hierarchy_file) as fp:
+            with open(self.__hierarchy_file) as fp:
                 graph_json = json.load(fp)
                 self.__graph = nx.node_link_graph(graph_json, edges='links', directed=True)  # type: ignore
+                if self.__graph.get('graph', {}).get('version', '') < SPARC_HIERARCHY_VERSION:
+                    self.__create_sparc_hierarchy(uberon_source, interlex_source)
         except Exception:
-            self.__graph = UberonGraph(uberon_source)
-            self.__add_ilx_terms(interlex_source)
-            graph_json = nx.node_link_data(self.__graph, edges='links')     # type: ignore
-            with open(hierarchy_file, 'w') as fp:
-                json.dump(graph_json, fp)
+            self.__create_sparc_hierarchy(uberon_source, interlex_source)
         self.__igraph = ig.Graph.from_networkx(self.__graph, 'name')
+        self.__create_sparc_distances()
+
+    def __create_sparc_distances(self):
+    #==================================
+        try:
+            self.__distances = np.load(self.__distances_file)
+            return
+        except Exception:
+            pass
         adj = self.__igraph.get_adjacency_sparse()
         distances = csgraph.shortest_path(csgraph=adj, directed=True, unweighted=True, method='D')
         distances[distances == np.inf] = 0
         self.__distances = distances.astype(np.uint8)
+        np.save(self.__distances_file, self.__distances)
+
+    def __create_sparc_hierarchy(self, uberon_source: str, interlex_source: str):
+    #============================================================================
+        self.__graph = UberonGraph(uberon_source)
+        self.__add_ilx_terms(interlex_source)
+        self.__graph.graph['version'] = SPARC_HIERARCHY_VERSION
+        graph_json = nx.node_link_data(self.__graph, edges='links')     # type: ignore
+        with open(self.__hierarchy_file, 'w') as fp:
+            json.dump(graph_json, fp)
+        if self.__distances_file.exists():
+            self.__distances_file.unlink()
 
     def __add_ilx_terms(self, interlex_source: str):
     #===============================================
