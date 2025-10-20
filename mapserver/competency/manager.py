@@ -82,6 +82,7 @@ class ComptencyManager(threading.Thread):
                 if not db.has_knowledge_source(uuid):
                     self.__load_map(db, uuid)
                     await asyncio.sleep(LOAD_MAP_INTERVAL)
+        db.close()
 
     def __load_map(self, db: CompetencyKnowledge, uuid: str):
     #========================================================

@@ -59,6 +59,7 @@ def main():
     knowledge = anatomical_map_knowledge(args.uuid, competency_db)
     if knowledge is not None:
         competency_db.import_knowledge(knowledge, show_progress=True)
+    competency_db.close()
 
 #===============================================================================
 
