@@ -54,6 +54,7 @@ class ComptencyManager(threading.Thread):
         self.__log = settings['LOGGER']
         self.__terminate_event = asyncio.Event()
         self.__loop = uvloop.new_event_loop()
+        self.__ignored_maps = set()
         self.start()
 
     def run(self):
@@ -79,7 +80,8 @@ class ComptencyManager(threading.Thread):
             elif (uuid := flatmap.get('uuid')) is not None:
                 ## need to check map's creation date with source timestamp in CQ database
                 ## and load if map is more recent...
-                if not db.has_knowledge_source(uuid):
+                if (uuid not in self.__ignored_maps
+                and not db.has_knowledge_source(uuid)):
                     self.__load_map(db, uuid)
                     await asyncio.sleep(LOAD_MAP_INTERVAL)
         db.close()
@@ -87,12 +89,15 @@ class ComptencyManager(threading.Thread):
     def __load_map(self, db: CompetencyKnowledge, uuid: str):
     #========================================================
         knowledge = anatomical_map_knowledge(uuid, db)
-        if knowledge is not None:
+        if knowledge is None:
+            self.__ignored_maps.add(uuid)
+        else:
             try:
                 db.import_knowledge(knowledge)
                 self.__log.info(f'Loaded knowledge for map {uuid} into CQ database')
             except Exception as error:
                 ignore_map(uuid, str(error), settings['LOGGER'].error)
+                self.__ignored_maps.add(uuid)
 
 #===============================================================================
 
