@@ -928,7 +928,7 @@ requires-dist = [
 
 [[package]]
 name = "mapserver"
-version = "1.6.8"
+version = "1.6.9"
 source = { editable = "." }
 dependencies = [
     { name = "anyio" },
