@@ -50,6 +50,8 @@ SPARC_ORGANISATION_ID = os.environ.get('SPARC_ORGANISATION_ID')
 SPARC_ORGANISATION_INT_ID = os.environ.get('SPARC_ORGANISATION_INT_ID')
 SPARC_ANNOTATION_TEAM_ID = os.environ.get('SPARC_ANNOTATION_TEAM_ID')
 
+__logged_missing_ids = False
+
 #===============================================================================
 
 def query(url, method: str='GET') -> Any:
@@ -68,7 +70,11 @@ def query(url, method: str='GET') -> Any:
 
 def get_annotation_team(key: str) -> Optional[list[str]]:
     if SPARC_ORGANISATION_ID is None or SPARC_ORGANISATION_INT_ID is None or SPARC_ANNOTATION_TEAM_ID is None:
-        settings['LOGGER'].warning('Pennsieve IDs of SPARC and MAP Annotation Team are not defined')
+        global __logged_missing_ids
+        if not __logged_missing_ids:
+            settings['LOGGER'].warning('Pennsieve IDs of SPARC and MAP Annotation Team are not defined')
+            __logged_missing_ids = True
+        return None
     try:
         organization = query(f'{PENNSIEVE_API_ENDPOINT}/session/switch-organization?organization_id={SPARC_ORGANISATION_INT_ID}&api_key={key}', 'PUT')
     except Exception as e:
