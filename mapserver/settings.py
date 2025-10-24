@@ -66,6 +66,9 @@ if FLATMAP_SERVER_URL.endswith('/'):
     FLATMAP_SERVER_URL = FLATMAP_SERVER_URL[:-1]
 settings['FLATMAP_SERVER_URL'] = FLATMAP_SERVER_URL
 
+# The number of Granian worker processes to run
+settings['FLATMAP_SERVER_WORKERS'] = os.environ.get('FLATMAP_SERVER_WORKERS', '1')
+
 #===============================================================================
 
 # Bearer tokens for service authentication

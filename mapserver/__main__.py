@@ -129,6 +129,7 @@ def run_server(viewer: bool=False):
         '--log',
         '--log-config', log_config,
         '--access-log',
+        '--workers', settings['FLATMAP_SERVER_WORKERS'],
         'mapserver.__main__:app'])
 
 #===============================================================================
