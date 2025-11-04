@@ -389,8 +389,9 @@ class AnatomicalHierarchy:
                 hierarchy = json.load(fp)
                 if hierarchy.get('graph', {}).get('version', '') >= MAP_TREE_VERSION:
                     return hierarchy
+                settings['LOGGER'].info(f'Rebuilding term hierarchy for {flatmap}: old version: {hierarchy.get('graph', {}).get('version', '')}')
         except Exception:
-            pass
+            settings['LOGGER'].info(f'Rebuilding term hierarchy for {flatmap}: cannot load (file missing?)')
 
         self.__sparc_hierarchy = SparcHierarchy(UBERON_ONTOLOGY, NPO_ONTOLOGY)
 
@@ -426,6 +427,7 @@ class AnatomicalHierarchy:
         # Save the hierarchy for future requests
         with open(hierarchy_file, 'w') as fp:
             json.dump(full_hierarchy, fp)
+        settings['LOGGER'].info(f'Saved rebuilt term hierarchy: {hierarchy_file}')
 
         # Free memory used by the SPARC hierarchy
         del self.__sparc_hierarchy
