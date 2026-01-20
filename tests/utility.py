@@ -1,15 +1,28 @@
 import requests
+from tools.portal_maps import ENDPOINTS, latest_maps
 
-END_POINT = 'https://mapcore-demo.org/devel/flatmap/v4/competency/query'
+END_POINT = ENDPOINTS['development']
+CQ_END_POINT = f'{END_POINT}/competency/query'
 HEADERS = {'Content-Type': 'application/json'}
 
-MALE_UUID = '2b76d336-5c56-55e3-ab1e-795d6c63f9c1'
-FEMALE_UUID = '91359a0f-9e32-5309-b365-145d9956817d'
-RAT_UUID = 'fb6d0345-cb70-5c7e-893c-d744a6313c95'
+# latest flatmap UUIDs for testing obtained dynamically
+maps = latest_maps(END_POINT)
+MALE_UUID = (
+    maps.get(('NCBITaxon:9606', 'PATO:0000384'), {}).get('uuid')
+    or "2b76d336-5c56-55e3-ab1e-795d6c63f9c1"
+)
+FEMALE_UUID = (
+    maps.get(('NCBITaxon:9606', 'PATO:0000383'), {}).get('uuid')
+    or "91359a0f-9e32-5309-b365-145d9956817d"
+)
+RAT_UUID = (
+    maps.get(('NCBITaxon:10114', None), {}).get('uuid')
+    or "fb6d0345-cb70-5c7e-893c-d744a6313c95"
+)
 SCKAN_VERSION = 'sckan-2024-09-21'
 
 def cq_request(query: dict):
-    response = requests.post(END_POINT, json=query, headers=HEADERS)
+    response = requests.post(CQ_END_POINT, json=query, headers=HEADERS)
     return response
 
 def assert_valid_query_response(
