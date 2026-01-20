@@ -25,7 +25,6 @@ expected_node_ids = [
 
 def test_human_male_map():
     query = {**base_query, 'parameters': base_query['parameters'] + [{'column': 'source_id', 'value': MALE_UUID}]}
-    print('. query:', query)
     response = cq_request(query)
 
     assert_valid_query_response(
@@ -40,7 +39,6 @@ def test_human_male_map():
 
 def test_human_female_map():
     query = {**base_query, 'parameters': base_query['parameters'] + [{'column': 'source_id', 'value': FEMALE_UUID}]}
-    print('. query:', query)
     response = cq_request(query)
 
     assert_valid_query_response(
@@ -55,7 +53,6 @@ def test_human_female_map():
 
 def test_human_rat_map():
     query = {**base_query, 'parameters': base_query['parameters'] + [{'column': 'source_id', 'value': RAT_UUID}]}
-    print('. query:', query)
     response = cq_request(query)
 
     assert_valid_query_response(
