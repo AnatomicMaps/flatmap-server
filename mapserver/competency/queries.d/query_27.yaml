@@ -1,0 +1,144 @@
+queries:
+  - id: 27
+    label: Node mapping from sckan to map
+    sql: >
+      WITH node_mappings AS (
+          SELECT DISTINCT
+              sckan.sckan_id,
+              sckan.path_id,
+              sckan.sckan_node_id,
+              map.source_id,
+              map.node_id
+          FROM (
+              SELECT
+                  source_id AS sckan_id,
+                  path_id,
+                  node_id AS sckan_node_id
+              FROM path_nodes
+              WHERE source_id IN (
+                  SELECT sckan_id
+                  FROM path_node_mappings
+                  WHERE %CONDITION_1%
+              )
+                AND %CONDITION_0%
+          ) AS sckan
+          LEFT JOIN (
+              SELECT
+                  source_id,
+                  path_id,
+                  node_id,
+                  sckan_id,
+                  sckan_node_id
+              FROM path_node_mappings
+              WHERE %CONDITION_1%
+                AND %CONDITION_0%
+          ) AS map
+          ON sckan.path_id = map.path_id
+            AND sckan.sckan_node_id = map.sckan_node_id
+      ),
+
+      sckan_labels AS (
+          SELECT
+              nm.sckan_id,
+              nm.sckan_node_id,
+              string_agg(pt.label, ', ' ORDER BY seq.pos) AS sckan_label
+          FROM node_mappings nm
+          JOIN path_node_features pnf
+            ON nm.sckan_id = pnf.source_id
+          AND nm.path_id = pnf.path_id
+          AND nm.sckan_node_id = pnf.node_id
+          JOIN feature_terms pt
+            ON pnf.source_id = pt.source_id
+          AND pnf.feature_id = pt.term_id
+          CROSS JOIN LATERAL (
+              SELECT pos
+              FROM (
+                  SELECT pnf.node_id::jsonb->>0 AS value, 1 AS pos
+                  UNION ALL
+                  SELECT value, ordinality + 1 AS pos
+                  FROM jsonb_array_elements_text(pnf.node_id::jsonb->1) WITH ORDINALITY
+              ) s
+              WHERE s.value = pt.term_id
+          ) AS seq
+          GROUP BY nm.sckan_id, nm.sckan_node_id
+      ),
+
+      map_labels AS (
+          SELECT
+              nm.source_id,
+              nm.node_id,
+              string_agg(pt.label, ', ' ORDER BY seq.pos) AS node_label
+          FROM node_mappings nm
+          JOIN path_node_features pnf
+            ON nm.source_id = pnf.source_id
+          AND nm.path_id = pnf.path_id
+          AND nm.node_id = pnf.node_id
+          JOIN feature_terms pt
+            ON pnf.source_id = pt.source_id
+          AND pnf.feature_id = pt.term_id
+          CROSS JOIN LATERAL (
+              SELECT pos
+              FROM (
+                  SELECT pnf.node_id::jsonb->>0 AS value, 1 AS pos
+                  UNION ALL
+                  SELECT value, ordinality + 1 AS pos
+                  FROM jsonb_array_elements_text(pnf.node_id::jsonb->1) WITH ORDINALITY
+              ) s
+              WHERE s.value = pt.term_id
+          ) AS seq
+          GROUP BY nm.source_id, nm.node_id
+      )
+
+      SELECT
+          nm.sckan_id,
+          nm.path_id,
+          nm.sckan_node_id,
+          sl.sckan_label,
+          COALESCE(nm.source_id, '') AS source_id,
+          COALESCE(nm.node_id, '')   AS node_id,
+          COALESCE(ml.node_label, '') AS node_label
+      FROM node_mappings nm
+      NATURAL JOIN sckan_labels sl
+      LEFT JOIN map_labels ml
+            ON nm.source_id = ml.source_id
+            AND nm.node_id   = ml.node_id;
+    parameters:
+    - id: path_id
+      column: path_id
+      label: Neuron population
+      type: string
+      multiple: true
+      condition: CONDITION_0
+    - id: source_id
+      column: source_id
+      label: Knowledge source
+      type: string
+      multiple: true
+      condition: CONDITION_1
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: sckan_id
+      label: SKCAN Knowledge source
+      type: string
+    - key: path_id
+      label: Neuron population
+      type: string
+    - key: sckan_node_id
+      label: SKCAN Node ID
+      type: string
+    - key: sckan_label
+      label: SKCAN Node Label
+      type: string
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: node_id
+      label: Map Node ID
+      type: string
+    - key: node_label
+      label: Map Node Label
+      type: string
