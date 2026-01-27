@@ -38,55 +38,69 @@ queries:
       ),
 
       sckan_labels AS (
-          SELECT
-              nm.sckan_id,
-              nm.sckan_node_id,
-              string_agg(pt.label, ', ' ORDER BY seq.pos) AS sckan_node_label
-          FROM node_mappings nm
-          JOIN path_node_features pnf
-            ON nm.sckan_id = pnf.source_id
-          AND nm.path_id = pnf.path_id
-          AND nm.sckan_node_id = pnf.node_id
-          JOIN feature_terms pt
-            ON pnf.source_id = pt.source_id
-          AND pnf.feature_id = pt.term_id
-          CROSS JOIN LATERAL (
-              SELECT pos
-              FROM (
-                  SELECT pnf.node_id::jsonb->>0 AS value, 1 AS pos
-                  UNION ALL
-                  SELECT value, ordinality + 1 AS pos
-                  FROM jsonb_array_elements_text(pnf.node_id::jsonb->1) WITH ORDINALITY
-              ) s
-              WHERE s.value = pt.term_id
-          ) AS seq
-          GROUP BY nm.sckan_id, nm.sckan_node_id
+        SELECT
+            sckan_id,
+            sckan_node_id,
+            string_agg(label, ', ' ORDER BY pos) AS sckan_node_label
+        FROM (
+            SELECT DISTINCT
+                nm.sckan_id,
+                nm.sckan_node_id,
+                pt.label,
+                seq.pos
+            FROM node_mappings nm
+            JOIN path_node_features pnf
+              ON nm.sckan_id = pnf.source_id
+            AND nm.path_id = pnf.path_id
+            AND nm.sckan_node_id = pnf.node_id
+            JOIN feature_terms pt
+              ON pnf.source_id = pt.source_id
+            AND pnf.feature_id = pt.term_id
+            CROSS JOIN LATERAL (
+                SELECT pos
+                FROM (
+                    SELECT pnf.node_id::jsonb->>0 AS value, 1 AS pos
+                    UNION ALL
+                    SELECT value, ordinality + 1 AS pos
+                    FROM jsonb_array_elements_text(pnf.node_id::jsonb->1) WITH ORDINALITY
+                ) s
+                WHERE s.value = pt.term_id
+            ) seq
+        ) AS dedup
+        GROUP BY sckan_id, sckan_node_id
       ),
 
       map_labels AS (
-          SELECT
-              nm.source_id,
-              nm.node_id,
-              string_agg(pt.label, ', ' ORDER BY seq.pos) AS node_label
-          FROM node_mappings nm
-          JOIN path_node_features pnf
-            ON nm.source_id = pnf.source_id
-          AND nm.path_id = pnf.path_id
-          AND nm.node_id = pnf.node_id
-          JOIN feature_terms pt
-            ON pnf.source_id = pt.source_id
-          AND pnf.feature_id = pt.term_id
-          CROSS JOIN LATERAL (
-              SELECT pos
-              FROM (
-                  SELECT pnf.node_id::jsonb->>0 AS value, 1 AS pos
-                  UNION ALL
-                  SELECT value, ordinality + 1 AS pos
-                  FROM jsonb_array_elements_text(pnf.node_id::jsonb->1) WITH ORDINALITY
-              ) s
-              WHERE s.value = pt.term_id
-          ) AS seq
-          GROUP BY nm.source_id, nm.node_id
+        SELECT
+            source_id,
+            node_id,
+            string_agg(label, ', ' ORDER BY pos) AS node_label
+        FROM (
+            SELECT DISTINCT
+                nm.source_id,
+                nm.node_id,
+                pt.label,
+                seq.pos
+            FROM node_mappings nm
+            JOIN path_node_features pnf
+              ON nm.source_id = pnf.source_id
+            AND nm.path_id   = pnf.path_id
+            AND nm.node_id   = pnf.node_id
+            JOIN feature_terms pt
+              ON pnf.source_id = pt.source_id
+            AND pnf.feature_id = pt.term_id
+            CROSS JOIN LATERAL (
+                SELECT pos
+                FROM (
+                    SELECT pnf.node_id::jsonb->>0 AS value, 1 AS pos
+                    UNION ALL
+                    SELECT value, ordinality + 1 AS pos
+                    FROM jsonb_array_elements_text(pnf.node_id::jsonb->1) WITH ORDINALITY
+                ) s
+                WHERE s.value = pt.term_id
+            ) seq
+        ) AS dedup
+        GROUP BY source_id, node_id
       )
 
       SELECT
