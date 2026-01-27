@@ -109,6 +109,7 @@ def anatomical_map_knowledge(map_uuid: str, competency_db: CompetencyKnowledge) 
             'nerves': path_knowledge.get('node-nerves', []),
             'phenotypes': path_phenotypes.get(path_id, []),
             'references': path_evidence.get(path_id, []),
+            'node-mappings': path_knowledge.get('node-mappings', []),
         }
         if 'alert' in properties:
             knowledge_terms[path_id]['alert'] = properties['alert']
