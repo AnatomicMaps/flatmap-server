@@ -302,9 +302,9 @@ def main():
         help='The destination server to promote flatmaps to.')
     parser.add_argument('--style', choices=['anatomical', 'functional'], default='anatomical',
         help='Style of flatmaps to promote.')
-    parser.add_argument('--taxon', choices=list(TAXON_IDENTIFIERS.values()),
+    parser.add_argument('--taxon', choices=list(TAXON_IDENTIFIERS.keys()),
         help='Only promote flatmaps for this taxon.')
-    parser.add_argument('--biological-sex', choices=list(BIOLOGICAL_SEX_IDS.values()),
+    parser.add_argument('--biological-sex', choices=list(BIOLOGICAL_SEX_IDS.keys()),
         help='Only promote flatmaps of this biological sex.')
     parser.add_argument('--promote', action='store_true', help='Promote flatmaps without confirmation.')
 
