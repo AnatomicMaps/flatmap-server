@@ -7,18 +7,19 @@ HEADERS = {'Content-Type': 'application/json'}
 
 # latest flatmap UUIDs for testing obtained dynamically
 maps = latest_maps(END_POINT)
-MALE_UUID = (
-    maps.get(('NCBITaxon:9606', 'PATO:0000384'), {}).get('uuid')
-    or "2b76d336-5c56-55e3-ab1e-795d6c63f9c1"
-)
-FEMALE_UUID = (
-    maps.get(('NCBITaxon:9606', 'PATO:0000383'), {}).get('uuid')
-    or "91359a0f-9e32-5309-b365-145d9956817d"
-)
-RAT_UUID = (
-    maps.get(('NCBITaxon:10114', None), {}).get('uuid')
-    or "fb6d0345-cb70-5c7e-893c-d744a6313c95"
-)
+
+MALE_KEY = ('NCBITaxon:9606', 'PATO:0000384')
+FEMALE_KEY = ('NCBITaxon:9606', 'PATO:0000383')
+RAT_KEY = ('NCBITaxon:10114', None)
+
+MALE_FALLBACK_UUID = '2b76d336-5c56-55e3-ab1e-795d6c63f9c1'
+FEMALE_FALLBACK_UUID = '91359a0f-9e32-5309-b365-145d9956817d'
+RAT_FALLBACK_UUID = 'fb6d0345-cb70-5c7e-893c-d744a6313c95'
+
+MALE_UUID = maps.get(MALE_KEY, {}).get('uuid', MALE_FALLBACK_UUID)
+FEMALE_UUID = maps.get(FEMALE_KEY, {}).get('uuid', FEMALE_FALLBACK_UUID)
+RAT_UUID = maps.get(RAT_KEY, {}).get('uuid', RAT_FALLBACK_UUID)
+
 SCKAN_VERSION = 'sckan-2024-09-21'
 
 def cq_request(query: dict):
