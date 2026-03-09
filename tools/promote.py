@@ -46,21 +46,33 @@ from mapserver.settings import settings
 
 FLATMAP_DIRECTORY = 'flatmaps'
 
+CURATION = 'curation'
 STAGING = 'staging'
 
-SERVER_HOME_DIRECTORIES = {
-    'curation': '/home/ubuntu/services/curation-flatmap-server',
-    'debug': '/home/ubuntu/services/debug-flatmap-server',
-    'devel': '/home/ubuntu/services/devel-flatmap-server',
-    'fccb': '/home/ubuntu/services/fccb-flatmap-server',
-    'isan': '/home/ubuntu/services/isan-flatmap-server',
-    'production': '/home/ubuntu/services/prod-flatmap-server',
-    STAGING: '/home/ubuntu/services/staging-flatmap-server',
-    'local': '.',              ########### Do not commit <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+SOURCE_SERVERS = [
+    CURATION,
+    STAGING
+]
+
+DESTINATION_SERVERS: dict[str, list[str]] = {
+    CURATION: ['debug', 'devel'],
+    STAGING: ['debug', 'devel', 'production']
 }
 
-NON_STAGING_SERVERS = list(SERVER_HOME_DIRECTORIES.keys())
-NON_STAGING_SERVERS.remove(STAGING)
+SERVER_HOME_DIRECTORIES = {
+    CURATION: '/home/ubuntu/services/curation-flatmap-server',
+    'debug': '/home/ubuntu/services/debug-flatmap-server',
+    'devel': '/home/ubuntu/services/devel-flatmap-server',
+    'production': '/home/ubuntu/services/prod-flatmap-server',
+    STAGING: '/home/ubuntu/services/staging-flatmap-server'
+}
+
+#===============================================================================
+
+source_server = STAGING
+
+def destination_servers(source: str) -> list[str]:
+    return DESTINATION_SERVERS.get(source, [])
 
 #===============================================================================
 
@@ -80,9 +92,9 @@ TAXON_IDENTIFIERS = {
 #===============================================================================
 
 explanation = f"""
-Flatmaps are promoted from **staging** to the destination server by copying the
-directory containing the flatmap (**flatmap** directories are sub-directories of
-a server's `./{FLATMAP_DIRECTORY}` directory.)
+A flatmap is promoted from a source flatmap server (either **curation** or **staging**)
+to a destination server by copying flatmap's directory (**flatmaps** are in
+sub-directories of a server's `./{FLATMAP_DIRECTORY}` directory.)
 
 Anatomical flatmaps are ordered by their **taxon**, **biological sex** and
 **creation time** with only the latest map of a (taxon, biological sex) pair
@@ -180,15 +192,15 @@ class FlatmapReporter:
 #===============================================================================
 
 class Promoter:
-    def __init__(self, server: str, map_style='anatomical',
+    def __init__(self, source: str,  destination: str, map_style='anatomical',
                     taxon: Optional[str]=None, sex: Optional[str]=None):
         self.__map_style = map_style
         self.__taxon = taxon
         self.__sex = sex
-        if server not in SERVER_HOME_DIRECTORIES:
-            raise ValueError(f'Unknown flatmap server: {server}')
-        self.__flatmap_dir = (Path(SERVER_HOME_DIRECTORIES[server]) / FLATMAP_DIRECTORY).resolve()
-        self.__staging_dir = (Path(SERVER_HOME_DIRECTORIES[STAGING]) / FLATMAP_DIRECTORY).resolve()
+        if destination not in destination_servers(source):
+            raise ValueError(f'Cannot promote from `{source}` flatmap server to `{destination}`')
+        self.__dest_dir = (Path(SERVER_HOME_DIRECTORIES[destination]) / FLATMAP_DIRECTORY).resolve()
+        self.__source_dir = (Path(SERVER_HOME_DIRECTORIES[source]) / FLATMAP_DIRECTORY).resolve()
         self.__get_maps_for_promotion()
 
     @property
@@ -205,16 +217,16 @@ class Promoter:
     def __promote_map(self, flatmap: dict):
     #======================================
         uuid = flatmap['uuid']
-        staging_dir = self.__staging_dir / uuid
-        flatmap_dir = self.__flatmap_dir / uuid
-        if not flatmap_dir.exists():
-            shutil.copytree(staging_dir, flatmap_dir)
+        source_dir = self.__source_dir / uuid
+        dest_dir = self.__dest_dir / uuid
+        if not dest_dir.exists():
+            shutil.copytree(source_dir, dest_dir)
             log.info(f"Promoted flatmap {flatmap['map_number']}, {flatmap['name']}: {uuid}")
 
     def __get_maps_for_promotion(self):
     #==================================
         self.__staging_flatmaps = flatmaps_taxon_reverse_created_order(
-                                    flatmaps_in_directory(self.__staging_dir, self.__map_style, self.__taxon, self.__sex))
+                                    flatmaps_in_directory(self.__source_dir, self.__map_style, self.__taxon, self.__sex))
         self.__flatmaps = []
         last_map_taxon_sex = None
         map_number = 1
@@ -222,7 +234,7 @@ class Promoter:
             map_taxon_sex = (flatmap.get('taxon', ''), flatmap.get('biologicalSex', ''))
             if last_map_taxon_sex != map_taxon_sex:
                 last_map_taxon_sex = map_taxon_sex
-                if not (self.__flatmap_dir / flatmap['uuid']).exists():
+                if not (self.__dest_dir / flatmap['uuid']).exists():
                     flatmap['map_number'] = map_number
                     self.__flatmaps.append(flatmap)
                     map_number += 1
@@ -249,7 +261,7 @@ class MapNumbers(PromptBase[list[str]|list[int]]):
 
 def promote(args):
 #=================
-    promoter = Promoter(args.server, map_style=args.style, taxon=args.taxon, sex=args.biological_sex)
+    promoter = Promoter(args.source, args.destination, map_style=args.style, taxon=args.taxon, sex=args.biological_sex)
     flatmaps = promoter.flatmaps
     if len(flatmaps) == 0:
         log.info('No flatmaps to promote, exiting.')
@@ -263,7 +275,7 @@ def promote(args):
     if not promote:
         valid_numbers = [n + 1 for n in range(len(flatmaps))]
         prompt = ' 1' if len(valid_numbers) == 1 else f's 1..{valid_numbers[-1]}'
-        response = MapNumbers.ask(f'Promote flatmap{prompt} to [b]{args.server}[/b]?',
+        response = MapNumbers.ask(f'Promote flatmap{prompt} to [b]{args.destination}[/b]?',
                                     choices=['Q(uit), A(ll) or space separated numbers'],
                                     default='q')
         if len(response) == 1 and response[0] == 'a':
@@ -293,13 +305,13 @@ def main():
     from rich_argparse import HelpPreviewAction, RichHelpFormatter
 
     parser = argparse.ArgumentParser(formatter_class=RichHelpFormatter,
-        description='Promote anatomical flatmaps from the Staging flatmap server to a destination server.',
+        description='Promote anatomical flatmaps from a Source flatmap server to a destination server.',
         epilog=Markdown(explanation, style='argparse.text'))            # type: ignore
 
     parser.add_argument('--generate-help-preview', action=HelpPreviewAction)
 
-    parser.add_argument('server', choices=NON_STAGING_SERVERS,
-        help='The destination server to promote flatmaps to.')
+    parser.add_argument('--source', choices=SOURCE_SERVERS, default=STAGING,
+        help='The source server to promote flatmaps from.')
     parser.add_argument('--style', choices=['anatomical', 'functional'], default='anatomical',
         help='Style of flatmaps to promote.')
     parser.add_argument('--taxon', choices=list(TAXON_IDENTIFIERS.keys()),
@@ -307,6 +319,8 @@ def main():
     parser.add_argument('--biological-sex', choices=list(BIOLOGICAL_SEX_IDS.keys()),
         help='Only promote flatmaps of this biological sex.')
     parser.add_argument('--promote', action='store_true', help='Promote flatmaps without confirmation.')
+    parser.add_argument('destination', metavar='DESTINATION',
+        help='The destination server to promote flatmaps to.')
 
     args = parser.parse_args()
 
