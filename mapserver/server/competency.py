@@ -28,7 +28,8 @@ from litestar import get, post, Request, Router
 
 #===============================================================================
 
-from ..competency import query, query_definition, query_definitions
+from ..competency import query, query_definition, query_definitions, get_competency_schema_info
+
 from ..competency.definition import QueryDefinitionDict, QueryDefinitionSummary
 from ..competency.definition import QueryRequest, QueryError, QueryResults
 
@@ -52,6 +53,11 @@ async def competency_query(data: QueryRequest, request: Request) -> QueryResults
         request.logger.warning(result["error"])
     return result
 
+@get('schema-version')
+async def competency_schema_version(request: Request) -> dict[str, str|None]:
+#==========================================================================
+    return await get_competency_schema_info(request.app)
+
 #===============================================================================
 #===============================================================================
 
@@ -59,6 +65,7 @@ competency_router = Router(
     path="/competency",
     route_handlers=[
         competency_query,
+        competency_schema_version,
         competency_query_definition,
         competency_query_definitions,
     ]
