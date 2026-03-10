@@ -20,7 +20,7 @@ MALE_UUID = maps.get(MALE_KEY, {}).get('uuid', MALE_FALLBACK_UUID)
 FEMALE_UUID = maps.get(FEMALE_KEY, {}).get('uuid', FEMALE_FALLBACK_UUID)
 RAT_UUID = maps.get(RAT_KEY, {}).get('uuid', RAT_FALLBACK_UUID)
 
-SCKAN_VERSION = 'sckan-2024-09-21'
+SCKAN_VERSION = 'sckan-2026-02-11'
 
 def cq_request(query: dict):
     response = requests.post(CQ_END_POINT, json=query, headers=HEADERS)
