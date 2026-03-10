@@ -66,6 +66,16 @@ async def schema_version(connection: asyncpg.Connection) -> str|None:
     )
     return row[0] if row is not None else None
 
+def schema_mismatch_error(expected: str, actual: str|None, query_id: str|None=None) -> str:
+#=============================================================================
+    found = actual if actual is not None else 'missing metadata/schema_version'
+    query = f' (query {query_id})' if query_id is not None else ''
+    return (
+        f'Competency schema version mismatch{query}: '
+        f'expected `{expected}` but found `{found}`. '
+        'Some queries may fail until the database schema and query definitions are aligned.'
+    )
+
 #===============================================================================
 #===============================================================================
 
@@ -158,6 +168,7 @@ async def query(data: QueryRequest, request: Request) -> QueryResults|QueryError
         return {'error': f'Error building query: {err}'}
     if (pool := get_competency_pool(request.app)) is None:
         return {'error': 'Backend cannot connect to Competency database'}
+    db_schema = get_competency_schema_version(request.app)
     try:
         async with pool.acquire() as connection:
             records = await connection.fetch(sql, *params)
@@ -173,6 +184,9 @@ async def query(data: QueryRequest, request: Request) -> QueryResults|QueryError
                 }
             }
     except Exception as err:
-        return {'error': f'Error executing query: {err}'}
+        error_msg = f'Error executing query: {err}.'
+        if db_schema != COMPETENCY_SCHEMA_VERSION:
+            error_msg += f' {schema_mismatch_error(COMPETENCY_SCHEMA_VERSION, db_schema, data["query_id"])}'
+        return {'error': error_msg}
 
 #===============================================================================
