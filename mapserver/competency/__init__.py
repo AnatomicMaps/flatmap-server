@@ -42,8 +42,29 @@ COMPETENCY_DATABASE = os.environ.get('COMPETENCY_DATABASE', 'map-knowledge')
 COMPETENCY_USER = os.environ.get('COMPETENCY_USER')
 COMPETENCY_HOST = os.environ.get('COMPETENCY_HOST', 'localhost:5432')
 
+COMPETENCY_SCHEMA_VERSION_KEY = 'schema_version'
+COMPETENCY_SCHEMA_STATE_KEY = 'competency-schema-version'
+COMPETENCY_SCHEMA_VERSION = '1.1'
+
 if not COMPETENCY_USER:
     print('Competency queries are unavailable because COMPETENCY_USER is not set')
+
+#===============================================================================
+
+async def table_exists(connection: asyncpg.Connection, table_name: str) -> bool:
+#===========================================================================
+    reg_class = await connection.fetchval('SELECT to_regclass($1)', table_name)
+    return reg_class is not None
+
+async def schema_version(connection: asyncpg.Connection) -> str|None:
+#===================================================================
+    if not await table_exists(connection, 'metadata'):
+        return None
+    row = await connection.fetchrow(
+        'SELECT value FROM metadata WHERE name=$1',
+        COMPETENCY_SCHEMA_VERSION_KEY,
+    )
+    return row[0] if row is not None else None
 
 #===============================================================================
 #===============================================================================
@@ -76,6 +97,8 @@ async def competency_connection_context(app: Litestar) -> AsyncGenerator[None, N
                 timeout=5
             )
             app.state['competency-pool'] = competency_pool
+            async with competency_pool.acquire() as connection:
+                app.state[COMPETENCY_SCHEMA_STATE_KEY] = await schema_version(connection)
         except Exception as err:
             # log (where?)
             print(f'Unable to connect to competency database: {COMPETENCY_HOST}/{COMPETENCY_DATABASE}')
@@ -90,6 +113,23 @@ async def competency_connection_context(app: Litestar) -> AsyncGenerator[None, N
 def get_competency_pool(app: Litestar) -> Optional[asyncpg.Pool]:
 #================================================================
     return getattr(app.state, 'competency-pool', None)
+
+def get_competency_schema_version(app: Litestar) -> str|None:
+#==============================================================
+    return getattr(app.state, COMPETENCY_SCHEMA_STATE_KEY, None)
+
+async def get_competency_schema_info(app: Litestar) -> dict[str, str|None]:
+#======================================================================
+    if (get_competency_pool(app)) is None:
+        return {
+            'version': None,
+            'expected': COMPETENCY_SCHEMA_VERSION,
+            'error': 'Backend cannot connect to Competency database',
+        }
+    return {
+        'version': get_competency_schema_version(app),
+        'expected': COMPETENCY_SCHEMA_VERSION,
+    }
 
 #===============================================================================
 #===============================================================================
