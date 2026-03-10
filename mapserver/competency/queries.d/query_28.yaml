@@ -1,0 +1,30 @@
+queries:
+  - id: 28
+    label: Expert consultants by path_id
+    sql: >
+      SELECT DISTINCT expert_id, source_id
+      FROM feature_expert_consultants
+      WHERE %CONDITIONS%
+    parameters:
+    - id: path_id
+      column: term_id
+      label: Neuron population
+      type: string
+      multiple: true
+    - id: source_id
+      column: source_id
+      label: Knowledge source
+      type: string
+      multiple: true
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: expert_id
+      label: Neuron population
+      type: string
