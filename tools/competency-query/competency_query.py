@@ -59,6 +59,7 @@ REQUEST_TIMEOUT = 10
 QUERY_ENDPOINT = '/competency/query'
 
 QUERY_DEFINITIONS_ENDPOINT = '/competency/queries'
+QUERY_SCHEMA_VERSION_ENDPOINT = '/competency/schema-version'
 
 #===============================================================================
 
@@ -81,7 +82,7 @@ class CompetencyQueryService:
     def __init__(self, map_server: str):
         self.__map_server = map_server
 
-    def request_json(self, method: str, endpoint: str, **kwds) -> dict|list:
+    def request_json(self, method: str, endpoint: str, quiet: bool=False, **kwds) -> dict|list:
     #=======================================================================
         endpoint = self.__map_server + endpoint
         try:
@@ -102,15 +103,16 @@ class CompetencyQueryService:
                 error = f'HTTP error for request: {response.status_code} {response.reason}'
         except requests.exceptions.RequestException as exception:
             error = f'Exception: {exception}'
-        print_formatted_text(FormattedText([('class:error', error),]),
+        if not quiet:
+            print_formatted_text(FormattedText([('class:error', error),]),
                                            style=Style.from_dict({'error': '#ff0000 bold'}))
         return []
 
-    def get_json(self, endpoint: str, param: Optional[str]=None) -> dict|list:
+    def get_json(self, endpoint: str, param: Optional[str]=None, quiet: bool=False) -> dict|list:
     #=========================================================================
         if param is not None:
             endpoint += f'/{param}'
-        return self.request_json('GET', endpoint)
+        return self.request_json('GET', endpoint, quiet=quiet)
 
     def post_query(self, request: QueryRequest) -> dict|list:
     #========================================================
@@ -123,12 +125,30 @@ class CompetencyQueryShell:
 
     def __init__(self, map_server: str):
         self.__query_service = CompetencyQueryService(map_server)
+        self.__warn_if_schema_mismatch()
         self.__queries: dict[str, str] = { str(query['id']): str(query['label'])
                                             for query in self.__query_service.get_json(QUERY_DEFINITIONS_ENDPOINT)
                                                 if 'id' in query }
         self.__cmd_session = PromptSession(message=HTML('<p fg="ansiwhite"><b>cq> </b></p>'),
                                            style=Style.from_dict({'': COMMAND_INPUT_STYLE}))
         self.__input_session = PromptSession()
+
+    def __warn_if_schema_mismatch(self):
+    #===================================
+        schema_info = self.__query_service.get_json(QUERY_SCHEMA_VERSION_ENDPOINT, quiet=True)
+        if isinstance(schema_info, dict):
+            server_schema = schema_info.get('version')
+            expected_schema = schema_info.get('expected')
+            if expected_schema is not None and server_schema != expected_schema:
+                warning = (
+                    'WARNING: Competency schema version mismatch. '
+                    f'Expected {expected_schema}, server has {server_schema}. '
+                    'A schema upgrade may be required.'
+                )
+                print_formatted_text(
+                    FormattedText([('class:warning', warning)]),
+                    style=Style.from_dict({'warning': '#ffaf00 bold'})
+                )
 
     def __list_queries(self):
     #========================
