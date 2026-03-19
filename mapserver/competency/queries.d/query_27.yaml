@@ -2,122 +2,134 @@ queries:
   - id: 27
     label: Node mapping from sckan to map
     sql: >
-      WITH node_mappings AS (
-          SELECT DISTINCT
-              sckan.sckan_id,
-              sckan.path_id,
-              sckan.sckan_node_id,
-              map.source_id,
-              map.node_id
-          FROM (
-              SELECT
-                  source_id AS sckan_id,
-                  path_id,
-                  node_id AS sckan_node_id
-              FROM path_nodes
-              WHERE source_id IN (
-                  SELECT sckan_id
-                  FROM path_node_mappings
-                  WHERE %CONDITION_1%
-              )
-                AND %CONDITION_0%
-          ) AS sckan
-          LEFT JOIN (
-              SELECT
-                  source_id,
-                  path_id,
-                  node_id,
-                  sckan_id,
-                  sckan_node_id
-              FROM path_node_mappings
-              WHERE %CONDITION_1%
-                AND %CONDITION_0%
-          ) AS map
-          ON sckan.path_id = map.path_id
-            AND sckan.sckan_node_id = map.sckan_node_id
+      WITH node_sckan AS (
+        SELECT
+          pn.source_id,
+          pn.path_id,
+          pn.node_id,
+          jsonb_build_array(pn.node_id::jsonb ->> 0)
+            || (pn.node_id::jsonb -> 1) AS node_array,
+          pn.node_id::jsonb -> 1  AS path_array,
+        jsonb_array_length(jsonb_build_array(pn.node_id::jsonb ->> 0)
+            || (pn.node_id::jsonb -> 1)) AS node_len,
+          jsonb_array_length(pn.node_id::jsonb -> 1) AS path_len
+        FROM path_nodes pn
+        WHERE source_id IN
+        (SELECT sckan_id FROM knowledge_sources
+        WHERE %CONDITION_1% )
+          AND %CONDITION_0%
+      ),
+      node_map AS (
+        SELECT
+          pn.source_id,
+          pn.path_id,
+          pn.node_id,
+          jsonb_build_array(pn.node_id::jsonb ->> 0)
+            || (pn.node_id::jsonb -> 1) AS node_array,
+          pn.node_id::jsonb -> 1  AS path_array,
+        jsonb_array_length(jsonb_build_array(pn.node_id::jsonb ->> 0)
+            || (pn.node_id::jsonb -> 1)) AS node_len,
+          jsonb_array_length(pn.node_id::jsonb -> 1) AS path_len
+        FROM path_nodes pn
+        WHERE %CONDITION_1%
+          AND %CONDITION_0%
+      ),
+      node_contained AS (
+        SELECT DISTINCT
+          s2.source_id AS source_id,
+          s1.path_id AS path_id,
+          s1.node_id AS node_id,
+          s1.source_id AS sckan_id,
+          s1.node_id AS sckan_node_id
+        FROM node_sckan s1
+        JOIN node_map s2
+          ON s1.path_id = s2.path_id
+        WHERE
+          s1.node_id != s2.node_id
+          AND s1.node_len <= s2.path_len
+          AND s1.node_array <@ s2.path_array
+      ),
+      combined_node_mappings AS (
+          SELECT * FROM path_node_mappings
+          WHERE %CONDITION_1%
+          AND %CONDITION_0%
+        UNION
+        SELECT * FROM node_contained
+      ),
+      node_mappings AS (
+        SELECT DISTINCT
+            pn.source_id AS sckan_id,
+            pn.path_id,
+            pn.node_id   AS sckan_node_id,
+            map.source_id,
+            map.node_id
+        FROM path_nodes pn
+        LEFT JOIN combined_node_mappings map
+          ON pn.node_id   = map.sckan_node_id
+        AND pn.source_id = map.sckan_id
+        AND pn.path_id   = map.path_id
+        WHERE (pn.source_id, pn.path_id) IN (  SELECT sckan_id, path_id  FROM combined_node_mappings)
       ),
 
       sckan_labels AS (
         SELECT
-            sckan_id,
-            sckan_node_id,
-            string_agg(label, ', ' ORDER BY pos) AS sckan_node_label
-        FROM (
-            SELECT DISTINCT
-                nm.sckan_id,
-                nm.sckan_node_id,
-                pt.label,
-                seq.pos
-            FROM node_mappings nm
-            JOIN path_node_features pnf
-              ON nm.sckan_id = pnf.source_id
-            AND nm.path_id = pnf.path_id
-            AND nm.sckan_node_id = pnf.node_id
-            JOIN feature_terms pt
-              ON pnf.source_id = pt.source_id
-            AND pnf.feature_id = pt.term_id
-            CROSS JOIN LATERAL (
-                SELECT pos
-                FROM (
-                    SELECT pnf.node_id::jsonb->>0 AS value, 1 AS pos
-                    UNION ALL
-                    SELECT value, ordinality + 1 AS pos
-                    FROM jsonb_array_elements_text(pnf.node_id::jsonb->1) WITH ORDINALITY
-                ) s
-                WHERE s.value = pt.term_id
-            ) seq
-        ) AS dedup
-        GROUP BY sckan_id, sckan_node_id
+          nm.sckan_id,
+          nm.path_id,
+          nm.sckan_node_id,
+          string_agg(ft.label, ', ' ORDER BY ft.label) AS sckan_node_label
+        FROM node_mappings nm
+        CROSS JOIN LATERAL (
+          SELECT jsonb_array_elements_text(
+            jsonb_build_array(nm.sckan_node_id::jsonb ->> 0)
+            || (nm.sckan_node_id::jsonb -> 1)
+          ) AS term_id
+        ) terms
+        JOIN feature_terms ft
+          ON ft.term_id = terms.term_id
+        AND ft.source_id = nm.sckan_id
+        GROUP BY
+          nm.sckan_id,
+          nm.path_id,
+          nm.sckan_node_id
       ),
 
       map_labels AS (
         SELECT
-            source_id,
-            node_id,
-            string_agg(label, ', ' ORDER BY pos) AS node_label
-        FROM (
-            SELECT DISTINCT
-                nm.source_id,
-                nm.node_id,
-                pt.label,
-                seq.pos
-            FROM node_mappings nm
-            JOIN path_node_features pnf
-              ON nm.source_id = pnf.source_id
-            AND nm.path_id   = pnf.path_id
-            AND nm.node_id   = pnf.node_id
-            JOIN feature_terms pt
-              ON pnf.source_id = pt.source_id
-            AND pnf.feature_id = pt.term_id
-            CROSS JOIN LATERAL (
-                SELECT pos
-                FROM (
-                    SELECT pnf.node_id::jsonb->>0 AS value, 1 AS pos
-                    UNION ALL
-                    SELECT value, ordinality + 1 AS pos
-                    FROM jsonb_array_elements_text(pnf.node_id::jsonb->1) WITH ORDINALITY
-                ) s
-                WHERE s.value = pt.term_id
-            ) seq
-        ) AS dedup
-        GROUP BY source_id, node_id
+          nm.source_id,
+          nm.path_id,
+          nm.node_id,
+          string_agg(ft.label, ', ' ORDER BY ft.label) AS node_label
+        FROM node_mappings nm
+        CROSS JOIN LATERAL (
+          SELECT jsonb_array_elements_text(
+            jsonb_build_array(nm.node_id::jsonb ->> 0)
+            || (nm.node_id::jsonb -> 1)
+          ) AS term_id
+        ) terms
+        JOIN feature_terms ft
+          ON ft.term_id = terms.term_id
+        AND ft.source_id = nm.source_id
+        GROUP BY
+          nm.source_id,
+          nm.path_id,
+          nm.node_id
       )
 
       SELECT
-          nm.sckan_id,
-          nm.path_id,
-          nm.sckan_node_id,
-          UPPER(SUBSTRING(sl.sckan_node_label, 1, 1)) ||
-          SUBSTRING(sl.sckan_node_label, 2) AS sckan_node_label,
-          COALESCE(nm.source_id, '') AS source_id,
-          COALESCE(nm.node_id, '')   AS node_id,
-          COALESCE(UPPER(SUBSTRING(ml.node_label, 1, 1)) ||
-          SUBSTRING(ml.node_label, 2), '') AS node_label
+        nm.sckan_id,
+        nm.path_id,
+        nm.sckan_node_id,
+        UPPER(SUBSTRING(sl.sckan_node_label, 1, 1)) ||
+        SUBSTRING(sl.sckan_node_label, 2) AS sckan_node_label,
+        COALESCE(nm.source_id, '') AS source_id,
+        COALESCE(nm.node_id, '')   AS node_id,
+        COALESCE(UPPER(SUBSTRING(ml.node_label, 1, 1)) ||
+        SUBSTRING(ml.node_label, 2), '') AS node_label
       FROM node_mappings nm
       NATURAL JOIN sckan_labels sl
       LEFT JOIN map_labels ml
-            ON nm.source_id = ml.source_id
-            AND nm.node_id   = ml.node_id;
+        ON nm.source_id = ml.source_id
+        AND nm.node_id  = ml.node_id;
     parameters:
     - id: path_id
       column: path_id
