@@ -119,8 +119,9 @@ async def flatmap_index(request: Request, map_uuid: str) -> dict|Response:
 
     :reqheader Accept: Determines the response content
 
-    If an SVG representation of the map exists and the :mailheader:`Accept` header
-    doesn't specify a JSON response then the SVG is returned, otherwise the
+    A request for ``text/turtle`` will return the RDF knowledge about the map in
+    ``index.ttl`; if an SVG representation of the map exists and the :mailheader:`Accept`
+    header doesn't specify a JSON response then the SVG is returned; otherwise the
     flatmap's ``index.json`` is returned.
     """
     index_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'index.json'
@@ -128,7 +129,15 @@ async def flatmap_index(request: Request, map_uuid: str) -> dict|Response:
         return Response(content={'detail': 'Missing map index'}, status_code=404)
     with open(index_file) as fp:
         index = json.load(fp)
-    if 'json' not in request.headers.get('accept', '*/*'):
+    accept_mediatype = request.headers.get('accept', '*/*')
+    if 'text/turtle' in accept_mediatype:
+        # Return RDF knowledge (as Turtle) about the map.
+        knowledge = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'index.ttl'
+        if not knowledge.exists():
+            return Response(content={'detail': 'RDF knowledge is not available'}, status_code=404)
+        with open(knowledge) as fp:
+            return Response(content=fp.read(), media_type='text/turtle')
+    elif 'json' not in request.headers.get('accept', '*/*'):
         svg_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / f'{index["id"]}.svg'
         if not svg_file.exists():
             svg_file = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'images' / f'{index["id"]}.svg'
