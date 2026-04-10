@@ -191,12 +191,11 @@ async def maker_ws_log(socket: WebSocket) -> None:
 #===============================================================================
 
 def check_authorised(request: Request):
-    if map_maker is not None:
-        if not settings['MAPMAKER_TOKENS']:
-            return  # no security defined; permit all access.
+    if (map_maker is not None
+    and (valid_tokens := settings.get('MAPMAKER_TOKENS', [])) is not None):
         auth = request.headers.get('Authorization', '')
         if auth.startswith('Bearer '):
-            if auth.split()[1] in settings['MAPMAKER_TOKENS']:
+            if auth.split()[1] in valid_tokens:
                 return
     raise exceptions.NotAuthorizedException()
 
