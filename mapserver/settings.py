@@ -60,7 +60,7 @@ if not os.path.exists(settings['FLATMAP_SERVER_LOGS']):
 MAPMAKER_LOGS = os.environ.get('MAPMAKER_LOGS', os.path.join(FLATMAP_SERVER_LOGS, 'mapmaker'))
 settings['MAPMAKER_LOGS'] = normalise_path(MAPMAKER_LOGS)
 
-
+# The URL the flatmap server is available at
 FLATMAP_SERVER_URL = os.environ.get('FLATMAP_SERVER_URL', '')
 if FLATMAP_SERVER_URL.endswith('/'):
     FLATMAP_SERVER_URL = FLATMAP_SERVER_URL[:-1]
