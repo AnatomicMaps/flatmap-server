@@ -33,7 +33,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "sphinx<=8.1",
-    "pytest>=8.4.0",
+    "pytest>=9.0.3",
     "uvicorn>=0.35.0",
     "sphinxcontrib-openapi",
     "furo>=2025.9.25",
