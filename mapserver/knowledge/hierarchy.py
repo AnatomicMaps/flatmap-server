@@ -246,7 +246,7 @@ class SparcHierarchy:
             with open(self.__hierarchy_file) as fp:
                 graph_json = json.load(fp)
                 self.__graph = nx.node_link_graph(graph_json, edges='links', directed=True)  # type: ignore
-                if self.__graph.get('graph', {}).get('version', '') < SPARC_HIERARCHY_VERSION:
+                if graph_json.get('graph', {}).get('version', '') < SPARC_HIERARCHY_VERSION:
                     self.__create_sparc_hierarchy(uberon_source, interlex_source)
         except Exception:
             self.__create_sparc_hierarchy(uberon_source, interlex_source)
