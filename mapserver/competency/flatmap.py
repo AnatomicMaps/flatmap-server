@@ -36,6 +36,7 @@ from ..settings import settings
 from ..utils import json_map_metadata
 
 from .knowledge import CompetencyKnowledge
+from ..knowledge.hierarchy import SparcHierarchy, NPO_ONTOLOGY, UBERON_ONTOLOGY
 
 #===============================================================================
 
@@ -121,6 +122,7 @@ def anatomical_map_knowledge(map_uuid: str, competency_db: CompetencyKnowledge) 
         nerve_terms.update(term for node in knowledge_terms[path_id]['nerves'] for term in [node[0]] + node[1])
 
     # Non-path features with an anatomical term
+    hierarchy = SparcHierarchy(UBERON_ONTOLOGY, NPO_ONTOLOGY)
     for feature_id, properties in annotated_features.items():
         if feature_id not in knowledge_terms:
             label = properties.get('label', properties.get('name', feature_id))
@@ -129,6 +131,8 @@ def anatomical_map_knowledge(map_uuid: str, competency_db: CompetencyKnowledge) 
                 'source': map_uuid,
                 'label': label,
                 'long-label': descriptions.get(feature_id, label),
+                'descendants': hierarchy.terminal_path_terms({feature_id}).intersection(knowledge_terms.keys())
+                                if hierarchy.has(feature_id) else []
             }
             if properties.get('type') == 'nerve' or feature_id in nerve_terms:
                 knowledge_terms[feature_id]['type'] = NERVE_TYPE
