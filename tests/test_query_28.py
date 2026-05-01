@@ -37,7 +37,6 @@ def test_human_female_map():
 def test_human_rat_map():
     query = {**base_query, 'parameters': base_query['parameters'] + [{'column': 'source_id', 'value': RAT_UUID}]}
     response = cq_request(query)
-    print(MALE_UUID, response.json())
     assert_valid_query_response(
         response,
         expected_column_values={'expert_id': expected_expert_ids}
