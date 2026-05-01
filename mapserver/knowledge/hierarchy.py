@@ -287,7 +287,7 @@ class SparcHierarchy:
             else:
                 self.__add_ilx_child(ilx_term)
         depth = 0
-        while depth < 3 and len(have_ilx_parents):
+        while len(have_ilx_parents):
             new_parents = []
             for ilx_term in have_ilx_parents:
                 # Are all parents now in the graph?
@@ -296,10 +296,19 @@ class SparcHierarchy:
                     self.__add_ilx_child(ilx_term)
                 else:
                     new_parents.append(ilx_term)
+            if len(new_parents) == len(have_ilx_parents):
+                # No progress — remaining terms form a cycle or reference unknown parents
+                for t in set(new_parents):
+                    missing_parents = [p.id for p in t.parents if p.id not in self.__graph]
+                    settings['LOGGER'].warning(
+                        f'Unresolved Interlex term: {t.uri.id}; missing parents: {missing_parents}'
+                    )
+                break
             have_ilx_parents = new_parents
             depth += 1
-        if len(have_ilx_parents):
-            raise ValueError('Some Interlex parts are too deeply nested')
+            if len(have_ilx_parents) and depth >= 3:
+                settings['LOGGER'].warning('Some Interlex parts are too deeply nested')
+                break
 
     def __add_ilx_child(self, ilx: IlxTerm):
     #=======================================
