@@ -1,5 +1,5 @@
 import pytest
-from utility import cq_request, assert_valid_query_response, MALE_UUID, FEMALE_UUID, RAT_UUID, SCKAN_VERSION, CQ_END_POINT
+from utility import cq_request, assert_valid_query_response, MALE_UUID, FEMALE_UUID, RAT_UUID
 
 base_query = {
     'query_id': '30',
