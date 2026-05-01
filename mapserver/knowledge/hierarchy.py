@@ -44,10 +44,10 @@ from .rdf_utils import ILX_BASE, Node, Triple, Uri
 #===============================================================================
 
 # Bump this to automatically rebuild the SPARC term hierarchy
-SPARC_HIERARCHY_VERSION = '1.0'
+SPARC_HIERARCHY_VERSION = '1.1'
 
 # Bump this to automatically rebuild map term hierarchies
-MAP_TREE_VERSION = '1.3'
+MAP_TREE_VERSION = '1.4'
 
 #===============================================================================
 
