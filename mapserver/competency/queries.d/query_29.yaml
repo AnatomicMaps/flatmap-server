@@ -1,0 +1,50 @@
+queries:
+  - id: 29
+    label: Neuron populations associated with a location and its children
+    sql: >
+      WITH term_data AS(
+        SELECT term_id, source_id
+        FROM feature_terms
+        WHERE %CONDITIONS%
+      ),
+      descendants AS (
+        SELECT DISTINCT fp.feature_0 AS child_id, fp.source_id, td.term_id AS parent_id
+        FROM feature_relationship fp JOIN term_data td
+          ON fp.source_id = td.source_id and fp.feature_1 = td.term_id
+        WHERE fp.relationship = 'descendant-ancestor'
+        UNION
+        SELECT term_id, source_id, term_id FROM term_data
+      ),
+      descendant_nodes AS (
+        SELECT DISTINCT pnf.path_id, pnf.node_id, pnf.source_id
+        FROM descendants d JOIN path_node_features pnf
+          ON d.child_id = pnf.feature_id AND d.source_id = pnf.source_id
+        GROUP BY pnf.node_id, pnf.source_id, pnf.path_id
+        HAVING COUNT(DISTINCT d.parent_id) = (
+          SELECT COUNT(*) FROM term_data
+        )
+      )
+      SELECT DISTINCT path_id, source_id FROM descendant_nodes
+    parameters:
+    - id: feature_id
+      column: term_id
+      label: Anatomical terms for locations
+      type: string
+      multiple: true
+    - id: source_id
+      column: source_id
+      label: Knowledge source
+      type: string
+      default_msg: the latest source is used
+      default_sql: >
+        select source_id from knowledge_sources where source_id like 'sckan%'
+        order by source_id desc limit 1
+    order: ''
+    results:
+    - key: source_id
+      label: Knowledge source
+      type: string
+    - key: path_id
+      label: Neuron population
+      type: string
+
