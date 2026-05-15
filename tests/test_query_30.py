@@ -1,29 +1,24 @@
 import pytest
-from utility import cq_request, assert_valid_query_response, MALE_UUID, FEMALE_UUID, RAT_UUID, SCKAN_VERSION
+from utility import cq_request, assert_valid_query_response, MALE_UUID, FEMALE_UUID, RAT_UUID
 
 base_query = {
-    'query_id': '28',
+    'query_id': '30',
     'parameters': [
-        {'column': 'path_id','value': 'ilxtr:neuron-type-aacar-11'}
+        {'column': 'feature_id', 'value': 'UBERON:0002080'}
     ]
 }
 
-expected_expert_ids = ['https://orcid.org/0000-0001-9241-0864']
-
-def test_sckan():
-    query = {**base_query, 'parameters': base_query['parameters'] + [{'column': 'source_id', 'value': SCKAN_VERSION}]}
-    response = cq_request(query)
-    assert_valid_query_response(
-        response,
-        expected_column_values={'expert_id': expected_expert_ids}
-    )
+human_expected_node_ids = [
+    '["UBERON:0002165", ["UBERON:0002080"]]',
+    '["UBERON:0002349", ["UBERON:0002080"]]'
+]
 
 def test_human_male_map():
     query = {**base_query, 'parameters': base_query['parameters'] + [{'column': 'source_id', 'value': MALE_UUID}]}
     response = cq_request(query)
     assert_valid_query_response(
         response,
-        expected_column_values={'expert_id': expected_expert_ids}
+        expected_column_values={'node_id': human_expected_node_ids}
     )
 
 def test_human_female_map():
@@ -31,7 +26,7 @@ def test_human_female_map():
     response = cq_request(query)
     assert_valid_query_response(
         response,
-        expected_column_values={'expert_id': expected_expert_ids}
+        expected_column_values={'node_id': human_expected_node_ids}
     )
 
 def test_human_rat_map():
@@ -39,5 +34,5 @@ def test_human_rat_map():
     response = cq_request(query)
     assert_valid_query_response(
         response,
-        expected_column_values={'expert_id': expected_expert_ids}
+        expected_column_values={'node_id': human_expected_node_ids}
     )

@@ -44,10 +44,10 @@ from .rdf_utils import ILX_BASE, Node, Triple, Uri
 #===============================================================================
 
 # Bump this to automatically rebuild the SPARC term hierarchy
-SPARC_HIERARCHY_VERSION = '1.0'
+SPARC_HIERARCHY_VERSION = '1.1'
 
 # Bump this to automatically rebuild map term hierarchies
-MAP_TREE_VERSION = '1.3'
+MAP_TREE_VERSION = '1.4'
 
 #===============================================================================
 
@@ -246,7 +246,7 @@ class SparcHierarchy:
             with open(self.__hierarchy_file) as fp:
                 graph_json = json.load(fp)
                 self.__graph = nx.node_link_graph(graph_json, edges='links', directed=True)  # type: ignore
-                if self.__graph.get('graph', {}).get('version', '') < SPARC_HIERARCHY_VERSION:
+                if graph_json.get('graph', {}).get('version', '') < SPARC_HIERARCHY_VERSION:
                     self.__create_sparc_hierarchy(uberon_source, interlex_source)
         except Exception:
             self.__create_sparc_hierarchy(uberon_source, interlex_source)
@@ -287,7 +287,7 @@ class SparcHierarchy:
             else:
                 self.__add_ilx_child(ilx_term)
         depth = 0
-        while depth < 3 and len(have_ilx_parents):
+        while len(have_ilx_parents):
             new_parents = []
             for ilx_term in have_ilx_parents:
                 # Are all parents now in the graph?
@@ -296,10 +296,19 @@ class SparcHierarchy:
                     self.__add_ilx_child(ilx_term)
                 else:
                     new_parents.append(ilx_term)
+            if len(new_parents) == len(have_ilx_parents):
+                # No progress — remaining terms form a cycle or reference unknown parents
+                for t in set(new_parents):
+                    missing_parents = [p.id for p in t.parents if p.id not in self.__graph]
+                    settings['LOGGER'].warning(
+                        f'Unresolved Interlex term: {t.uri.id}; missing parents: {missing_parents}'
+                    )
+                break
             have_ilx_parents = new_parents
             depth += 1
-        if len(have_ilx_parents):
-            raise ValueError('Some Interlex parts are too deeply nested')
+            if len(have_ilx_parents) and depth >= 3:
+                settings['LOGGER'].warning('Some Interlex parts are too deeply nested')
+                break
 
     def __add_ilx_child(self, ilx: IlxTerm):
     #=======================================
