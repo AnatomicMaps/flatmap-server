@@ -29,7 +29,7 @@ from typing import Any
 
 from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
 
-from litestar import exceptions, get, MediaType, Request, Response, Router
+from litestar import get, MediaType, Request, Response, Router
 from litestar.exceptions import HTTPException, NotFoundException
 from litestar.response import File
 from litestar.status_codes import HTTP_206_PARTIAL_CONTENT, HTTP_416_REQUESTED_RANGE_NOT_SATISFIABLE
@@ -56,9 +56,6 @@ OLD_MAKER_LOG = 'mapmaker.log'
 #===============================================================================
 
 FLATMAP_PATH_PREFIX = 'flatmap'
-
-#===============================================================================
-
 
 #===============================================================================
 #===============================================================================
@@ -156,7 +153,7 @@ async def flatmap_maker_log(map_uuid: str) -> File:
     if not path.exists():
         path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / OLD_MAKER_LOG
         if not path.exists():
-            raise exceptions.NotFoundException(detail=f'Missing {MAKER_LOG}')
+            raise NotFoundException(detail=f'Missing {MAKER_LOG}')
         return File(path=path, filename=OLD_MAKER_LOG, media_type=MediaType.TEXT)
     return File(path=path, filename=MAKER_LOG, media_type=MediaType.JSON)
 
@@ -174,7 +171,7 @@ async def flatmap_layers(map_uuid: str) -> dict:
     try:
         return json_map_metadata(map_uuid, 'layers')
     except IOError as err:
-        raise exceptions.NotFoundException(detail=str(err))
+        raise NotFoundException(detail=str(err))
 
 #===============================================================================
 
@@ -183,7 +180,7 @@ async def flatmap_metadata(map_uuid: str) -> dict:
     try:
         return json_map_metadata(map_uuid, 'metadata')
     except IOError as err:
-        raise exceptions.NotFoundException(detail=str(err))
+        raise NotFoundException(detail=str(err))
 
 #===============================================================================
 #===============================================================================
@@ -193,7 +190,7 @@ async def flatmap_pathways(map_uuid: str) -> dict:
     try:
         return pathways(map_uuid)
     except IOError as err:
-        raise exceptions.NotFoundException(detail=str(err))
+        raise NotFoundException(detail=str(err))
 
 #===============================================================================
 
@@ -214,10 +211,10 @@ async def flatmap_connectivity(map_uuid: str, path_id: str) -> dict:
     try:
         path_data = pathways(map_uuid)
     except IOError as err:
-        raise exceptions.NotFoundException(detail=str(err))
+        raise NotFoundException(detail=str(err))
     paths = path_data.get('paths', {})
     if not path_id.startswith('ilxtr:') or path_id not in paths:
-        raise exceptions.NotFoundException(detail=f'Unknown path: {path_id}')
+        raise NotFoundException(detail=f'Unknown path: {path_id}')
     path = paths[path_id]
     connectivity = {
         'id': path_id,
@@ -248,7 +245,7 @@ async def flatmap_connectivity(map_uuid: str, path_id: str) -> dict:
 async def flatmap_image(map_uuid: str, image:str) -> Response:
     path = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / 'images' / image
     if not path.exists():
-        raise exceptions.NotFoundException(detail=f'Missing image: {image}')
+        raise NotFoundException(detail=f'Missing image: {image}')
     return File(path=path, filename=image, content_disposition_type='inline')
 
 #===============================================================================
@@ -265,7 +262,7 @@ async def flatmap_vector_tiles(map_uuid: str, z: int, y:int, x: int) -> Response
     except ExtractionError:
         pass
     except (InvalidFormatError, sqlite3.OperationalError):
-        raise exceptions.NotFoundException(detail='Cannot read tile database')
+        raise NotFoundException(detail='Cannot read tile database')
     return Response(content='', status_code=204)
 
 #===============================================================================
@@ -332,7 +329,7 @@ async def flatmap_image_tiles(map_uuid: str, layer: str, z: int, y:int, x: int) 
     except ExtractionError:
         pass
     except (InvalidFormatError, sqlite3.OperationalError):
-        raise exceptions.NotFoundException(detail='Cannot read tile database')
+        raise NotFoundException(detail='Cannot read tile database')
     return Response(content=blank_tile(), media_type='image/png')
 
 #===============================================================================
@@ -342,7 +339,7 @@ async def flatmap_annotation(map_uuid: str) -> dict:
     try:
         return json_map_metadata(map_uuid, 'annotations')
     except IOError as err:
-        raise exceptions.NotFoundException(detail=str(err))
+        raise NotFoundException(detail=str(err))
 
 #===============================================================================
 
@@ -355,7 +352,7 @@ async def flatmap_termgraph(map_uuid: str) -> dict:
         anatomical_hierarchy = AnatomicalHierarchy()
         return anatomical_hierarchy.get_hierarchy(map_uuid)
     except IOError as err:
-        raise exceptions.NotFoundException(detail=str(err))
+        raise NotFoundException(detail=str(err))
 
 #===============================================================================
 #===============================================================================
