@@ -143,7 +143,12 @@ route_handlers = [
 
 app = Litestar(
     route_handlers=route_handlers,
-    cors_config=CORSConfig(allow_origins=["*"]),
+    cors_config=CORSConfig(
+        allow_origins=["*"],
+        allow_methods=["GET", "OPTIONS"],
+        # MapLibre needs to inspect Content-Range headers when getting PMTiles
+        expose_headers=["Content-Range", "Content-Length", "Accept-Ranges"]
+    ),
     openapi_config=OpenAPIConfig(
         title="Flatmap Server Web API",
         version=__version__,

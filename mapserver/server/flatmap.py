@@ -30,7 +30,9 @@ from typing import Any
 from landez.sources import MBTilesReader, ExtractionError, InvalidFormatError
 
 from litestar import exceptions, get, MediaType, Request, Response, Router
+from litestar.exceptions import HTTPException, NotFoundException
 from litestar.response import File
+from litestar.status_codes import HTTP_206_PARTIAL_CONTENT, HTTP_416_REQUESTED_RANGE_NOT_SATISFIABLE
 
 from PIL import Image
 
@@ -268,6 +270,59 @@ async def flatmap_vector_tiles(map_uuid: str, z: int, y:int, x: int) -> Response
 
 #===============================================================================
 
+def parse_range_header(header_value: str, file_size: int) -> tuple[int, int]:
+    """Parses a standard 'bytes=start-end' Range header."""
+    try:
+        # Expected format: "bytes=0-1023"
+        units, ranges = header_value.strip().split("=")
+        if units != "bytes":
+            raise ValueError
+        start_str, end_str = ranges.split("-")
+        start = int(start_str) if start_str else 0
+        end = int(end_str) if end_str else file_size - 1
+        if start >= file_size or end >= file_size or start > end:
+            raise ValueError
+        return start, end
+    except ValueError:
+        raise HTTPException(status_code=HTTP_416_REQUESTED_RANGE_NOT_SATISFIABLE)
+
+@get([
+    "flatmap/{map_uuid:str}/pmtiles/",
+    "flatmap/{map_uuid:str}/pmtiles/{layer:str}"
+])
+async def flatmap_get_pmtiles(request: Request, map_uuid: str, layer: str='index') -> File:
+    filename = f'{layer}.pmtiles'
+    filepath = pathlib.Path(settings['FLATMAP_ROOT']) / map_uuid / filename
+    if not filepath.exists():
+        raise NotFoundException(detail='Missing file')
+    file_size = filepath.stat().st_size
+    range_header = request.headers.get("range")
+    if not range_header:
+        # Return the entire file
+        return Response(
+            content=filepath.read_bytes(),
+            media_type='application/vnd.pmtiles',
+            headers={"Accept-Ranges": "bytes"}
+        )
+    # Read and return partial content
+    start, end = parse_range_header(range_header, file_size)
+    requested_length = (end - start) + 1
+    with open(filepath, "rb") as f:
+        f.seek(start)
+        data = f.read(requested_length)
+    return Response(
+        content=data,
+        status_code=HTTP_206_PARTIAL_CONTENT,
+        media_type='application/vnd.pmtiles',
+        headers={
+            "Accept-Ranges": "bytes",
+            "Content-Range": f"bytes {start}-{end}/{file_size}",
+            "Content-Length": str(requested_length),
+        },
+    )
+
+#===============================================================================
+
 @get('flatmap/{map_uuid:str}/tiles/{layer:str}/{z:int}/{x:int}/{y:int}')
 async def flatmap_image_tiles(map_uuid: str, layer: str, z: int, y:int, x: int) -> Response:
     try:
@@ -309,6 +364,7 @@ flatmap_router = Router(
     path="/",
     route_handlers=[
         flatmap_annotation,
+        flatmap_get_pmtiles,
         flatmap_image,
         flatmap_image_tiles,
         flatmap_index,
