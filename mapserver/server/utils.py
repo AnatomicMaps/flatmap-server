@@ -24,13 +24,9 @@ from typing import Any
 
 #===============================================================================
 
-from landez.sources import MBTilesReader
-
-#===============================================================================
-
 from mapserver.maker import MAKER_SENTINEL
 from mapserver.settings import settings
-from mapserver.utils import json_metadata
+from mapserver.utils import json_map_metadata
 
 #===============================================================================
 
@@ -40,17 +36,14 @@ def get_flatmap_list() -> list[dict]:
     root_path = Path(settings['FLATMAP_ROOT']).resolve()
     if root_path.is_dir():
         for flatmap_dir in root_path.iterdir():
-            index = Path(settings['FLATMAP_ROOT']) / flatmap_dir / 'index.json'
-            mbtiles = Path(settings['FLATMAP_ROOT']) / flatmap_dir / 'index.mbtiles'
+            index_file = Path(settings['FLATMAP_ROOT']) / flatmap_dir / 'index.json'
             map_making = Path(settings['FLATMAP_ROOT']) / flatmap_dir / MAKER_SENTINEL
-            if (flatmap_dir.is_dir() and not map_making.exists()
-            and index.exists() and mbtiles.exists()):
-                with open(index) as fp:
-                    index = json.loads(fp.read())
+            if flatmap_dir.is_dir() and not map_making.exists() and index_file.exists():
+                with open(index_file) as fp:
+                    index = json.load(fp)
                 version = index.get('version', 1.0)
-                reader = MBTilesReader(mbtiles)
-                if version >= 1.3:
-                    metadata: dict[str, Any] = json_metadata(reader, 'metadata')
+                if float(version) >= 1.3:
+                    metadata: dict[str, Any] = json_map_metadata(str(flatmap_dir), 'metadata')
                     flatmap = {
                         'path': str(flatmap_dir)
                     }

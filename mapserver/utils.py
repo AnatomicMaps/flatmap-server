@@ -20,6 +20,7 @@
 
 import json
 import os
+from pathlib import Path
 import sqlite3
 from typing import Any, Optional
 
@@ -50,8 +51,21 @@ def json_metadata(tile_reader: MBTilesReader, name: str) -> dict[str, Any]:
 
 def json_map_metadata(map_id: str, name: str) -> dict[str, Any]:
 #===============================================================
-    mbtiles = os.path.join(settings['FLATMAP_ROOT'], map_id, 'index.mbtiles')
-    return json_metadata(MBTilesReader(mbtiles), name)
+    map_path = Path(settings['FLATMAP_ROOT']) / map_id
+    index = map_path / 'index.json'
+    with open(index) as fp:
+        version = float(json.load(fp).get('version', 1.6))
+    if version < 2.0:
+        mbtiles = map_path / 'index.mbtiles'
+        if mbtiles.exists():
+            return json_metadata(MBTilesReader(mbtiles), name)
+    else:
+        annotation_file = map_path / 'annotations.json'
+        if annotation_file.exists():
+            with open(annotation_file) as fp:
+                annotation = json.load(fp)
+            return annotation.get(name, {})
+    return {}
 
 #===============================================================================
 #===============================================================================
